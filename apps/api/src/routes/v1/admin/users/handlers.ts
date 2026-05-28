@@ -1,10 +1,65 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../../../../lib/prisma.js";
+import { hashPassword } from "../../../../lib/auth.js";
 import type {
   UserParams,
   UpdateRoleBody,
   UpdateScopesBody,
+  CreateUserBody,
 } from "./schema.js";
+
+/**
+ * POST /admin/users - Create a new user with email + password.
+ * Optionally attaches scopes (for STATION users).
+ */
+export async function createUser(
+  request: FastifyRequest<{ Body: CreateUserBody }>,
+  reply: FastifyReply,
+): Promise<void> {
+  const { email, name, password, role, scopes } = request.body;
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    return reply.status(409).send({ error: "Email already registered" });
+  }
+
+  const passwordHash = await hashPassword(password);
+
+  const user = await prisma.$transaction(async (tx) => {
+    const created = await tx.user.create({
+      data: { email, name, passwordHash, role, isActive: true },
+    });
+
+    if (scopes && scopes.length > 0) {
+      await tx.userScope.createMany({
+        data: scopes.map((s) => ({
+          userId: created.id,
+          entityType: s.entityType,
+          entityId: s.entityId,
+        })),
+      });
+    }
+
+    return tx.user.findUniqueOrThrow({
+      where: { id: created.id },
+      include: { scopes: true },
+    });
+  });
+
+  return reply.status(201).send({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    isActive: user.isActive,
+    lastLoginAt: user.lastLoginAt,
+    createdAt: user.createdAt,
+    scopes: user.scopes.map((s) => ({
+      entityType: s.entityType,
+      entityId: s.entityId,
+    })),
+  });
+}
 
 /**
  * GET /admin/users - List all users with their scopes.

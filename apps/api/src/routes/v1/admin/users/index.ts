@@ -5,9 +5,11 @@ import {
   UserParamsSchema,
   UpdateRoleSchema,
   UpdateScopesSchema,
+  CreateUserSchema,
 } from "./schema.js";
 import {
   listUsers,
+  createUser,
   deactivateUser,
   reactivateUser,
   updateUserRole,
@@ -21,6 +23,15 @@ const adminUserRoutes: FastifyPluginAsync = async (fastify) => {
 
   // GET / - List all users
   fastify.get("/", listUsers);
+
+  // POST / - Create a new user
+  fastify.post(
+    "/",
+    {
+      schema: { body: CreateUserSchema },
+    },
+    createUser,
+  );
 
   // PATCH /:id/deactivate - Deactivate a user
   fastify.patch(

@@ -3,8 +3,8 @@ import "./globals.css";
 import { LayoutShell } from "@/components/layout-shell";
 
 export const metadata: Metadata = {
-  title: "myFuckingMusic — Admin Portal",
-  description: "Manage features, users, and subscriptions",
+  title: "myFuckingMusic — Operations Console",
+  description: "Stations, detections, users, billing.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

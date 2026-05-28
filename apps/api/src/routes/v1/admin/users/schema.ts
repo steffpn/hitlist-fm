@@ -31,3 +31,25 @@ export const UpdateScopesSchema = Type.Object({
 });
 
 export type UpdateScopesBody = Static<typeof UpdateScopesSchema>;
+
+export const CreateUserSchema = Type.Object({
+  email: Type.String({ format: "email" }),
+  name: Type.String({ minLength: 1 }),
+  password: Type.String({ minLength: 8 }),
+  role: Type.Union([
+    Type.Literal("ADMIN"),
+    Type.Literal("ARTIST"),
+    Type.Literal("LABEL"),
+    Type.Literal("STATION"),
+  ]),
+  scopes: Type.Optional(
+    Type.Array(
+      Type.Object({
+        entityType: Type.String({ minLength: 1 }),
+        entityId: Type.Number(),
+      }),
+    ),
+  ),
+});
+
+export type CreateUserBody = Static<typeof CreateUserSchema>;

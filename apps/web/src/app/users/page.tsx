@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, FormEvent } from "react";
 import { apiFetch } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { cn } from "@/lib/cn";
@@ -16,6 +16,11 @@ interface User {
   createdAt: string;
 }
 
+interface Station {
+  id: number;
+  name: string;
+}
+
 const ROLES = ["ARTIST", "LABEL", "STATION", "ADMIN"] as const;
 
 const ROLE_COLORS: Record<string, string> = {
@@ -27,9 +32,11 @@ const ROLE_COLORS: Record<string, string> = {
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
+  const [stations, setStations] = useState<Station[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   const fetchUsers = useCallback(async () => {
     const token = getToken();
@@ -51,6 +58,10 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchUsers();
+    const token = getToken();
+    if (token) {
+      apiFetch<Station[]>("/stations", { token }).then(setStations).catch(() => {});
+    }
   }, [fetchUsers]);
 
   async function toggleActive(user: User) {
@@ -132,7 +143,24 @@ export default function UsersPage() {
           <h1 className="text-2xl font-bold text-white">User Management</h1>
           <p className="text-sm text-zinc-400 mt-1">{users.length} users</p>
         </div>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="px-4 py-2 bg-white text-zinc-900 rounded-lg text-sm font-semibold hover:bg-zinc-100 transition-colors"
+        >
+          + Create user
+        </button>
       </div>
+
+      {showCreate && (
+        <CreateUserModal
+          stations={stations}
+          onClose={() => setShowCreate(false)}
+          onCreated={(u) => {
+            setUsers((prev) => [u, ...prev]);
+            setShowCreate(false);
+          }}
+        />
+      )}
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
@@ -230,5 +258,198 @@ export default function UsersPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function CreateUserModal({
+  stations,
+  onClose,
+  onCreated,
+}: {
+  stations: Station[];
+  onClose: () => void;
+  onCreated: (user: User) => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"ARTIST" | "LABEL" | "STATION" | "ADMIN">("ARTIST");
+  const [stationId, setStationId] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function generatePassword() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+    let pw = "";
+    const crypto = window.crypto;
+    const arr = new Uint32Array(14);
+    crypto.getRandomValues(arr);
+    for (let i = 0; i < arr.length; i++) pw += chars[arr[i] % chars.length];
+    setPassword(pw);
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    const token = getToken();
+    if (!token) {
+      setError("Not authenticated");
+      setSubmitting(false);
+      return;
+    }
+    try {
+      const payload: Record<string, unknown> = { email, name, password, role };
+      if (role === "STATION" && stationId) {
+        payload.scopes = [{ entityType: "STATION", entityId: Number(stationId) }];
+      }
+      const created = await apiFetch<User>("/admin/users", {
+        method: "POST",
+        token,
+        body: JSON.stringify(payload),
+      });
+      onCreated(created);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Create failed");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-white">Create user</h2>
+          <button onClick={onClose} className="text-zinc-500 hover:text-white text-xl leading-none">×</button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <Field label="Email">
+            <input
+              type="email"
+              required
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white focus:outline-none focus:border-zinc-600"
+              placeholder="user@example.com"
+              autoComplete="off"
+            />
+          </Field>
+
+          <Field label="Display name">
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white focus:outline-none focus:border-zinc-600"
+              placeholder="Jane Doe"
+              autoComplete="off"
+            />
+          </Field>
+
+          <Field label="Password" hint="Min 8 chars. Share with the user via secure channel.">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="flex-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-zinc-600"
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={generatePassword}
+                className="px-3 py-2 text-xs text-zinc-300 border border-zinc-800 hover:border-zinc-600 rounded-lg whitespace-nowrap"
+              >
+                Generate
+              </button>
+            </div>
+          </Field>
+
+          <Field label="Role">
+            <div className="grid grid-cols-4 gap-2">
+              {(["ARTIST", "LABEL", "STATION", "ADMIN"] as const).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={cn(
+                    "px-2 py-2 rounded-lg text-xs font-semibold border transition-colors",
+                    role === r
+                      ? ROLE_COLORS[r] + " border-current"
+                      : "text-zinc-500 border-zinc-800 hover:border-zinc-600",
+                  )}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          {role === "STATION" && (
+            <Field label="Scope to station" hint="STATION users see only this station's data.">
+              <select
+                value={stationId}
+                onChange={(e) => setStationId(e.target.value)}
+                className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white focus:outline-none focus:border-zinc-600"
+              >
+                <option value="">— no scope (sees nothing) —</option>
+                {stations.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </Field>
+          )}
+
+          {error && (
+            <div className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-2 mt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 text-sm text-zinc-300 border border-zinc-800 hover:border-zinc-600 rounded-lg"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting || !email || !name || !password}
+              className={cn(
+                "flex-1 px-4 py-2 text-sm font-semibold rounded-lg transition-colors",
+                submitting || !email || !name || !password
+                  ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
+                  : "bg-white text-zinc-900 hover:bg-zinc-100",
+              )}
+            >
+              {submitting ? "Creating…" : "Create user"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="block text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">{label}</span>
+      {children}
+      {hint && <span className="block text-[11px] text-zinc-600 mt-1">{hint}</span>}
+    </label>
   );
 }

@@ -69,9 +69,6 @@ const v1Routes: FastifyPluginAsync = async (fastify) => {
   fastify.register(import("./chart-alerts/index.js"), {
     prefix: "/chart-alerts",
   });
-  fastify.register(import("./config/index.js"), {
-    prefix: "/config",
-  });
 };
 
 export default v1Routes;

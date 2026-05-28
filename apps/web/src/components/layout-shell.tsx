@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { isAuthenticated, clearToken } from "@/lib/auth";
 
-const NO_SHELL_PATHS = ["/login", "/embed"];
+const NO_SHELL_PATHS = ["/login"];
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -13,61 +13,80 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   const isNoShell = NO_SHELL_PATHS.some((p) => pathname.startsWith(p));
-  const isPublic = isNoShell || pathname.startsWith("/curation");
 
   useEffect(() => {
-    if (!isPublic && !isAuthenticated()) {
+    if (!isNoShell && !isAuthenticated()) {
       router.replace("/login");
     } else {
       setReady(true);
     }
-  }, [pathname, router, isPublic]);
+  }, [pathname, router, isNoShell]);
 
-  // Login & embed pages: no sidebar, no auth check
   if (isNoShell) {
     return <>{children}</>;
   }
 
-  // Public pages (curation): show minimal nav
-  if (pathname.startsWith("/curation") && !pathname.startsWith("/curation/admin")) {
-    return <>{children}</>;
-  }
-
-  // Auth-protected pages: show sidebar
   if (!ready) return null;
 
   return (
     <div className="min-h-screen flex">
       <Sidebar pathname={pathname} />
-      <main className="flex-1 p-8">{children}</main>
+      <main className="flex-1 p-8 overflow-x-auto">{children}</main>
     </div>
   );
 }
+
+const NAV_GROUPS = [
+  {
+    label: "Operations",
+    items: [
+      { href: "/", label: "Overview", match: (p: string) => p === "/" },
+      { href: "/stations", label: "Stations", match: (p: string) => p.startsWith("/stations") },
+      { href: "/detections", label: "Detections", match: (p: string) => p.startsWith("/detections") },
+    ],
+  },
+  {
+    label: "Access",
+    items: [
+      { href: "/users", label: "Users", match: (p: string) => p === "/users" },
+      { href: "/invitations", label: "Invitations", match: (p: string) => p === "/invitations" },
+    ],
+  },
+  {
+    label: "Billing",
+    items: [
+      { href: "/features", label: "Feature Matrix", match: (p: string) => p === "/features" },
+      { href: "/plans", label: "Plans & Pricing", match: (p: string) => p === "/plans" },
+      { href: "/subscriptions", label: "Subscriptions", match: (p: string) => p === "/subscriptions" },
+    ],
+  },
+];
 
 function Sidebar({ pathname }: { pathname: string }) {
   const router = useRouter();
 
   return (
-    <aside className="w-64 bg-zinc-900 border-r border-zinc-800 p-6 flex flex-col">
-      <h1 className="text-lg font-bold text-white mb-8">myFuckingMusic</h1>
+    <aside className="w-60 shrink-0 bg-zinc-900 border-r border-zinc-800 p-6 flex flex-col">
+      <Link href="/" className="block mb-8">
+        <h1 className="text-lg font-bold text-white">myFuckingMusic</h1>
+        <p className="text-[11px] text-zinc-500 uppercase tracking-wider">Operations Console</p>
+      </Link>
 
       <nav className="flex flex-col gap-1 flex-1">
-        <NavLink href="/" active={pathname === "/"}>Dashboard</NavLink>
-        <NavLink href="/users" active={pathname === "/users"}>Users</NavLink>
-        <NavLink href="/invitations" active={pathname === "/invitations"}>Invitations</NavLink>
-
-        <div className="mt-4 mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-600">Billing</span>
-        </div>
-        <NavLink href="/features" active={pathname === "/features"}>Feature Matrix</NavLink>
-        <NavLink href="/plans" active={pathname === "/plans"}>Plans & Pricing</NavLink>
-        <NavLink href="/subscriptions" active={pathname === "/subscriptions"}>Subscriptions</NavLink>
-
-        <div className="mt-4 mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-600">Engagement</span>
-        </div>
-        <NavLink href="/curation/admin" active={pathname.startsWith("/curation/admin")}>Song Curation</NavLink>
-        <NavLink href="/charts" active={pathname === "/charts"}>Chart Alerts</NavLink>
+        {NAV_GROUPS.map((group, idx) => (
+          <div key={group.label} className={idx === 0 ? "" : "mt-4"}>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-600 px-3">
+              {group.label}
+            </span>
+            <div className="mt-1 flex flex-col gap-1">
+              {group.items.map((item) => (
+                <NavLink key={item.href} href={item.href} active={item.match(pathname)}>
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+        ))}
       </nav>
 
       <button
