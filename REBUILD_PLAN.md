@@ -67,5 +67,21 @@ executată autonom de Claude. Utilizatorul face analiza before/after la final.
   marcată applied pe prod) + phase1_cleanup (verificată pe clonă de prod). Backup prod în backups/.
   Teste: fără fișiere noi picate vs HEAD (121 eșecuri PRE-EXISTENTE — reparația suitei = item val 3).
   tsc: 7 erori noi TS2345 (boala pre-existentă fastify schema+preHandler) — fix global în val 3.
-- F1 val 2 (în curs): partial_play wiring + artwork caching; /billing move; forgot/reset password
-  + delete account; station health alerts; browse-tracks artist + /artists/summary + DELETE song.
+- F1 val 2 comis (c6228d5): prag 30s partial_play exclus din 62 de query-uri user-facing +
+  artwork Deezer cache pe evenimente; /billing (+alias deprecated /admin/subscriptions);
+  forgot/reset password + DELETE /auth/account (guard ultimul admin, operează pe realUser);
+  station health (ERROR/DEGRADED cu push admini, fără reset orb la boot, lastAcrCallbackAt);
+  /artist/browse-tracks + DELETE /artist/songs/:id + GET /artists/summary. Teste: 193 pass / 95 fail
+  (pre-existente). LIMITARE cunoscută: dashboard admin (daily_station_plays cagg) include partial plays.
+- F3 COMIS (9894bee): paleta ON AIR pe iOS (BUILD SUCCEEDED) + Android (assembleDebug verde,
+  FontVariation fix) + web (next build verde, rebrand onair.music Ops). rbLive=roșu pulsant,
+  rbSuccess nou pt semantica pozitivă, glow no-op, glass doar pe hero, tokens în packages/tokens/.
+- F1 val 3 COMIS (2f49561): tsc 0 erori (era 69) + suită 292 passed / 0 failed (era 121 failed).
+  F1 = DONE cu o limitare documentată (dashboard cagg include partial plays).
+- F5 iOS COMIS (eacddb6): toate cele 14 fix-uri, BUILD SUCCEEDED, /billing/* adoptat.
+- F6 Android COMIS (fd0d585): navigație+scriere+push+paritate, BUILD SUCCESSFUL, daily-driver.
+- F4 fundație COMIS (2a5ef0e): shell role-aware, view-as-role web, sesiune cu refresh, admin complet.
+  /portal/* e placeholder cu nav per rol pregătit (flag "soon") — partea 2 umple paginile.
+- În curs: F7 product-features pe apps/api (push ON AIR, chart public, rotation alerts, coverage, share).
+- Urmează: F4 partea 2 (portal content, apps/web); F2 identitate (docs/phase2-identity-spec.md);
+  F8 demo accounts + DEMO_ACCOUNTS.md + SETUP_NOTES.md + deploy Railway + verificare live.
