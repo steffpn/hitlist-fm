@@ -15,3 +15,7 @@ apps/ios/myFuckingMusic.xcodeproj/xcuserdata
 *.pbxproj.backup
 .DS_Store
 backups/
+apps/api/prisma.config.js
+apps/api/prisma.config.js.map
+apps/api/prisma.config.d.ts
+apps/api/prisma.config.d.ts.map
