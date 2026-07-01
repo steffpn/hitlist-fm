@@ -7,8 +7,8 @@ struct StationAffinityView: View {
 
     var body: some View {
         ZStack {
-            Color.rbBackground
-                .ignoresSafeArea()
+            Color.clear
+                .onairGlow(subtle: true)
 
             if viewModel.isLoading && viewModel.affinityData.isEmpty {
                 LoadingView()
@@ -25,7 +25,7 @@ struct StationAffinityView: View {
                             affinityRow(item)
 
                             Divider()
-                                .overlay(Color.rbSurfaceLight.opacity(0.5))
+                                .overlay(Color.rbHairline)
                                 .padding(.leading, 68)
                         }
                     }
@@ -56,14 +56,14 @@ struct StationAffinityView: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text(item.stationName)
-                        .font(.subheadline.weight(.semibold))
+                        .font(.sora(14, .semibold))
                         .foregroundStyle(Color.rbTextPrimary)
                         .lineLimit(1)
 
                     Spacer()
 
                     Text(String(format: "%.1f%%", item.affinityPercent))
-                        .font(.subheadline.weight(.bold))
+                        .font(.mono(14, .medium))
                         .foregroundStyle(Color.rbAccent)
                 }
 
@@ -71,17 +71,11 @@ struct StationAffinityView: View {
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 3)
-                            .fill(Color.rbSurface)
+                            .fill(Color.white.opacity(0.10))
                             .frame(height: 6)
 
                         RoundedRectangle(cornerRadius: 3)
-                            .fill(
-                                LinearGradient(
-                                    colors: [.rbAccent, .rbWarm],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
+                            .fill(LinearGradient.rbAccentGradientH)
                             .frame(
                                 width: geometry.size.width * CGFloat(min(item.affinityPercent, 100.0) / 100.0),
                                 height: 6
@@ -91,7 +85,7 @@ struct StationAffinityView: View {
                 .frame(height: 6)
 
                 Text("\(item.labelPlays) plays")
-                    .font(.caption)
+                    .font(.mono(11))
                     .foregroundStyle(Color.rbTextSecondary)
             }
         }
@@ -122,7 +116,7 @@ struct StationAffinityView: View {
 
     private var stationPlaceholder: some View {
         ZStack {
-            Color.rbSurface
+            Color.rbSurfaceLight
             Image(systemName: "antenna.radiowaves.left.and.right")
                 .font(.system(size: 16))
                 .foregroundStyle(Color.rbTextTertiary)
@@ -138,11 +132,11 @@ struct StationAffinityView: View {
                 .foregroundStyle(Color.rbTextTertiary)
 
             Text("No Station Data")
-                .font(.title3.weight(.semibold))
+                .font(.sora(20, .bold))
                 .foregroundStyle(Color.rbTextPrimary)
 
             Text("Station affinity data will appear once your artists are detected on radio stations")
-                .font(.subheadline)
+                .font(.sora(14))
                 .foregroundStyle(Color.rbTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)

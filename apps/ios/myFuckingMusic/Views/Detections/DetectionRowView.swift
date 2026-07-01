@@ -23,19 +23,19 @@ struct DetectionRowView: View {
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text(event.songTitle)
-                            .font(.subheadline.weight(.semibold))
+                            .font(.sora(14, .semibold))
                             .foregroundStyle(Color.rbTextPrimary)
                             .lineLimit(1)
 
                         Text(event.artistName)
-                            .font(.caption)
+                            .font(.sora(12))
                             .foregroundStyle(Color.rbTextSecondary)
                             .lineLimit(1)
 
                         if let stationName = event.station?.name {
                             Text(stationName)
-                                .font(.caption2)
-                                .foregroundStyle(Color.rbTextTertiary)
+                                .font(.sora(11))
+                                .foregroundStyle(Color.rbTextQuaternary)
                                 .lineLimit(1)
                         }
                     }
@@ -43,8 +43,9 @@ struct DetectionRowView: View {
                     Spacer()
 
                     Text(DateFormatters.shortDateTime(event.startedAt))
-                        .font(.caption2)
+                        .font(.mono(11))
                         .foregroundStyle(Color.rbTextTertiary)
+                        .frame(maxHeight: .infinity, alignment: .top)
                 }
             }
             .buttonStyle(.plain)
@@ -54,7 +55,11 @@ struct DetectionRowView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
-        .background(isActiveRow ? Color.rbSurfaceHighlight : Color.clear)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.rbAccent.opacity(isActiveRow ? 0.09 : 0))
+                .padding(.horizontal, 8)
+        )
         .contentShape(Rectangle())
         .task {
             await loadArtwork()
@@ -72,10 +77,10 @@ struct DetectionRowView: View {
                 if isActiveRow && audioPlayer.isLoadingSnippet {
                     ProgressView()
                         .tint(Color.rbAccent)
-                        .frame(width: 28, height: 28)
+                        .frame(width: 30, height: 30)
                 } else {
                     Image(systemName: isActiveRow && audioPlayer.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                        .font(.system(size: 28))
+                        .font(.system(size: 30))
                         .foregroundStyle(Color.rbAccent)
                 }
             }
@@ -93,15 +98,15 @@ struct DetectionRowView: View {
                     .aspectRatio(contentMode: .fill)
             } else {
                 ZStack {
-                    Color.rbSurface
+                    LinearGradient.rbAccentGradient
                     Image(systemName: "music.note")
                         .font(.system(size: 16))
-                        .foregroundStyle(Color.rbTextTertiary)
+                        .foregroundStyle(Color.white.opacity(0.9))
                 }
             }
         }
         .frame(width: 48, height: 48)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     // MARK: - Load Artwork

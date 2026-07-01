@@ -41,7 +41,7 @@ struct DetectionsView: View {
                     }
                 }
             }
-            .background(Color.rbBackground)
+            .onairGlow(subtle: true)
             .navigationTitle("Detections")
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
@@ -157,14 +157,18 @@ struct DetectionsView: View {
 
     /// Colored pill in the toolbar indicating SSE connection state.
     private var connectionIndicator: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 5) {
             Circle()
                 .fill(connectionColor)
-                .frame(width: 6, height: 6)
+                .frame(width: 7, height: 7)
             Text(connectionLabel)
-                .font(.caption2)
-                .foregroundStyle(Color.rbTextSecondary)
+                .font(.sora(11, .semibold))
+                .foregroundStyle(connectionColor)
         }
+        .padding(.horizontal, 9)
+        .padding(.vertical, 5)
+        .background(Capsule().fill(connectionColor.opacity(0.16)))
+        .overlay(Capsule().strokeBorder(connectionColor.opacity(0.35), lineWidth: 1))
     }
 
     private var connectionColor: Color {
@@ -222,8 +226,8 @@ struct DetectionsView: View {
                     DetectionRowView(event: event)
 
                     Divider()
-                        .overlay(Color.rbSurfaceLight)
-                        .padding(.leading)
+                        .overlay(Color.rbHairline)
+                        .padding(.leading, 68)
 
                     // Trigger load more when approaching the last 5 items
                     if index >= viewModel.detections.count - 5 {
@@ -246,6 +250,7 @@ struct DetectionsView: View {
             }
             .animation(.easeInOut, value: audioPlayer.currentlyPlayingId)
         }
+        .scrollContentBackground(.hidden)
     }
 
     // MARK: - Empty State
@@ -257,17 +262,16 @@ struct DetectionsView: View {
                 .foregroundStyle(Color.rbTextTertiary)
 
             Text("No detections found")
-                .font(.headline)
+                .font(.sora(17, .semibold))
                 .foregroundStyle(Color.rbTextSecondary)
 
             if !viewModel.searchQuery.isEmpty {
                 Text("Try a different search term")
-                    .font(.subheadline)
+                    .font(.sora(14))
                     .foregroundStyle(Color.rbTextTertiary)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.rbBackground)
     }
 }
 

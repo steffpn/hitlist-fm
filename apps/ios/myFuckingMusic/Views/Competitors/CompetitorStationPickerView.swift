@@ -32,11 +32,18 @@ struct CompetitorStationPickerView: View {
             } else {
                 List(filteredStations) { station in
                     stationRow(station)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparatorTint(Color.rbHairline)
                 }
+                .scrollContentBackground(.hidden)
                 .searchable(text: $searchText, prompt: "Search stations")
             }
         }
+        .onairGlow(subtle: true)
         .navigationTitle("Add Competitor")
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbarBackground(Color.rbBackground, for: .navigationBar)
+        .preferredColorScheme(.dark)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
@@ -65,15 +72,17 @@ struct CompetitorStationPickerView: View {
 
         HStack {
             Text(station.name)
-                .font(.body)
+                .font(.sora(15, .medium))
+                .foregroundStyle(Color.rbTextPrimary)
 
             Spacer()
 
             if isAdding {
                 ProgressView()
+                    .tint(Color.rbAccent)
             } else if isWatched {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(Color.rbLive)
             }
         }
         .contentShape(Rectangle())

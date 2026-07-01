@@ -1,35 +1,46 @@
 import SwiftUI
 
-// RadioBug Dark Theme - inspired by Spotify, YouTube Music, SoundCloud
+// onair.music — "Pulse / 2c Violet" dark theme.
+// Near-black violet base, glassy translucent cards, violet→magenta brand gradient.
+// Token NAMES are unchanged from the old RadioBug theme so no call sites break;
+// only the hex values changed (teal → violet). See design_handoff_onair_violet.
 extension Color {
     // Backgrounds
-    static let rbBackground = Color(hex: "0A0A0A")           // Near black
-    static let rbSurface = Color(hex: "1A1A2E")              // Dark navy card bg
-    static let rbSurfaceLight = Color(hex: "252540")          // Elevated surface
-    static let rbSurfaceHighlight = Color(hex: "2D2D4A")     // Hover/selected state
+    static let rbBackground = Color(hex: "0A070E")          // violet-tinted near-black app base
+    static let rbSurface = Color(hex: "16121F")             // solid fallback (prefer .rbCard glass)
+    static let rbSurfaceLight = Color(hex: "241C36")         // borders / elevated fills
+    static let rbSurfaceHighlight = Color(hex: "2E2442")    // selected/active row
 
-    // Accent - radiowave teal/cyan
-    static let rbAccent = Color(hex: "00D4AA")               // Primary accent (teal)
-    static let rbAccentLight = Color(hex: "4DFFD4")          // Light accent
-    static let rbAccentDark = Color(hex: "00A080")           // Dark accent for pressed states
+    // Accent — violet ("Pulse")
+    static let rbAccent = Color(hex: "9A6DFF")              // primary interactive
+    static let rbAccentLight = Color(hex: "C4A5FF")         // light accent text (LIVE, Premium)
+    static let rbAccentDark = Color(hex: "7C5CF6")          // gradient start / pressed
 
-    // Secondary accent - warm amber for highlights
-    static let rbWarm = Color(hex: "FF6B35")                 // Orange/warm accent
-    static let rbWarmLight = Color(hex: "FFA06B")            // Light warm
+    // Secondary accent — warm coral: semantic "detection point" marker ONLY (unchanged)
+    static let rbWarm = Color(hex: "FF6B35")
+    static let rbWarmLight = Color(hex: "FFA06B")
 
     // Text
-    static let rbTextPrimary = Color(hex: "F0F0F0")          // Primary text
-    static let rbTextSecondary = Color(hex: "A0A0B0")        // Secondary text
-    static let rbTextTertiary = Color(hex: "6B6B80")         // Muted text
+    static let rbTextPrimary = Color(hex: "F3F1F6")
+    static let rbTextSecondary = Color(hex: "A8A2B6")
+    static let rbTextTertiary = Color(hex: "8E86A2")
+    static let rbTextQuaternary = Color(hex: "726A84")      // dimmest labels / inactive tab
 
     // Status
-    static let rbLive = Color(hex: "00FF88")                 // Live/connected green
-    static let rbError = Color(hex: "FF4757")                // Error red
-    static let rbWarning = Color(hex: "FFB347")              // Warning amber
+    static let rbLive = Color(hex: "34D399")               // up-trend green / "Live" dot
+    static let rbError = Color(hex: "FF7B7B")              // softer red (Log out)
+    static let rbWarning = Color(hex: "FBBF24")            // amber — PENDING status
 
-    // Gradients
-    static let rbGradientStart = Color(hex: "00D4AA")
-    static let rbGradientEnd = Color(hex: "0066FF")
+    // Gradients (violet → magenta-purple)
+    static let rbGradientStart = Color(hex: "7C5CF6")      // violet
+    static let rbGradientEnd = Color(hex: "B84DF0")        // magenta-purple
+    static let rbAccentGradEnd = Color(hex: "B84DF0")      // == rbGradientEnd
+
+    // Glass system
+    static let rbGlassTint = Color.white.opacity(0.055)    // card fill over material
+    static let rbGlassBorder = Color.white.opacity(0.11)   // 1px hairline on glass
+    static let rbHairline = Color.white.opacity(0.08)      // row dividers
+    static let rbDetection = Color(hex: "FF6B35")          // alias of rbWarm, for clarity
 
     // Hex initializer
     init(hex: String) {
@@ -55,11 +66,30 @@ extension Color {
     }
 }
 
-// Reusable gradient
+// Reusable brand gradient — violet → magenta.
 extension LinearGradient {
+    // 135° (topLeading → bottomTrailing) for fills, buttons, artwork tiles, gauge.
     static let rbAccentGradient = LinearGradient(
+        colors: [.rbGradientStart, .rbGradientEnd],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+    // Horizontal variant for the now-playing progress bar.
+    static let rbAccentGradientH = LinearGradient(
         colors: [.rbGradientStart, .rbGradientEnd],
         startPoint: .leading,
         endPoint: .trailing
     )
+}
+
+// Typography — Sora (UI) + IBM Plex Mono (timestamps / ISRC / counts).
+// Fonts are registered at launch (see FontRegistration). If a face is not
+// bundled yet, .custom gracefully falls back to the system font.
+extension Font {
+    static func sora(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        .custom("Sora", size: size).weight(weight)
+    }
+    static func mono(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        .custom("IBMPlexMono", size: size).weight(weight)
+    }
 }

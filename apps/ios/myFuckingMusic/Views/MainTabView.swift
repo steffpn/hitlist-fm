@@ -14,9 +14,9 @@ struct MainTabView: View {
         appearance.backgroundColor = UIColor(Color.rbBackground)
 
         // Normal state
-        appearance.stackedLayoutAppearance.normal.iconColor = UIColor(Color.rbTextTertiary)
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor(Color.rbTextQuaternary)
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
-            .foregroundColor: UIColor(Color.rbTextTertiary)
+            .foregroundColor: UIColor(Color.rbTextQuaternary)
         ]
 
         // Selected state

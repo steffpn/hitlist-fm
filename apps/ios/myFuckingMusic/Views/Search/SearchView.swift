@@ -38,7 +38,10 @@ struct SearchView: View {
                         resultsList
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .onairGlow(subtle: true)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationTitle("Search")
             .searchable(
                 text: $viewModel.searchQuery,
@@ -58,6 +61,7 @@ struct SearchView: View {
                 }
             }
         }
+        .preferredColorScheme(.dark)
     }
 
     // MARK: - Search Prompt (empty state before any search)
@@ -66,15 +70,15 @@ struct SearchView: View {
         VStack(spacing: 16) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 40))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.rbTextTertiary)
 
             Text("Search Detections")
-                .font(.headline)
-                .foregroundStyle(.secondary)
+                .font(.sora(17, .semibold))
+                .foregroundStyle(Color.rbTextSecondary)
 
             Text("Find airplay events by song title, artist name, or ISRC code")
-                .font(.subheadline)
-                .foregroundStyle(.tertiary)
+                .font(.sora(14))
+                .foregroundStyle(Color.rbTextTertiary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
         }
@@ -87,15 +91,15 @@ struct SearchView: View {
         VStack(spacing: 16) {
             Image(systemName: "music.note.list")
                 .font(.system(size: 40))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.rbTextTertiary)
 
             Text("No results found")
-                .font(.headline)
-                .foregroundStyle(.secondary)
+                .font(.sora(17, .semibold))
+                .foregroundStyle(Color.rbTextSecondary)
 
             Text("Try a different search term or adjust filters")
-                .font(.subheadline)
-                .foregroundStyle(.tertiary)
+                .font(.sora(14))
+                .foregroundStyle(Color.rbTextTertiary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -110,6 +114,7 @@ struct SearchView: View {
                     DetectionRowView(event: event)
 
                     Divider()
+                        .overlay(Color.rbHairline)
                         .padding(.leading)
 
                     // Trigger load more when approaching the last 5 items

@@ -9,9 +9,6 @@ struct MonitoredSongsView: View {
 
     var body: some View {
         ZStack {
-            Color.rbBackground
-                .ignoresSafeArea()
-
             if viewModel.isLoading && viewModel.songs.isEmpty {
                 LoadingView()
             } else if let errorMessage = viewModel.error, viewModel.songs.isEmpty {
@@ -23,6 +20,12 @@ struct MonitoredSongsView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 12) {
+                        Text("\(viewModel.songs.count) song\(viewModel.songs.count == 1 ? "" : "s") monitored")
+                            .font(.sora(13, .medium))
+                            .foregroundStyle(Color.rbTextSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.bottom, 2)
+
                         ForEach(viewModel.songs) { song in
                             NavigationLink {
                                 SongAnalyticsView(song: song)
@@ -41,6 +44,7 @@ struct MonitoredSongsView: View {
                 }
             }
         }
+        .onairGlow(subtle: true)
         .navigationTitle("My Songs")
         .navigationBarTitleDisplayMode(.large)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -51,9 +55,15 @@ struct MonitoredSongsView: View {
                 Button {
                     showingAddSheet = true
                 } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(Color.rbAccent)
-                        .font(.title3)
+                    Image(systemName: "plus")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 38, height: 38)
+                        .background(
+                            LinearGradient.rbAccentGradient,
+                            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        )
+                        .shadow(color: Color.rbAccent.opacity(0.5), radius: 10, y: 5)
                 }
             }
         }
@@ -71,14 +81,14 @@ struct MonitoredSongsView: View {
         VStack(spacing: 16) {
             Image(systemName: "music.note.list")
                 .font(.system(size: 48, weight: .light))
-                .foregroundStyle(Color.rbAccent.opacity(0.5))
+                .foregroundStyle(LinearGradient.rbAccentGradient)
 
             Text("No Monitored Songs")
-                .font(.title3.weight(.semibold))
+                .font(.sora(20, .bold))
                 .foregroundStyle(Color.rbTextPrimary)
 
             Text("Add songs to track their airplay across radio stations.")
-                .font(.subheadline)
+                .font(.sora(14))
                 .foregroundStyle(Color.rbTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
@@ -90,14 +100,9 @@ struct MonitoredSongsView: View {
                     Image(systemName: "plus")
                         .font(.system(size: 14, weight: .bold))
                     Text("Add Song")
-                        .font(.subheadline.weight(.semibold))
                 }
-                .foregroundStyle(.black)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 12)
-                .background(Color.rbAccent)
-                .clipShape(Capsule())
             }
+            .buttonStyle(RBAccentButtonStyle())
             .padding(.top, 8)
         }
     }
@@ -105,28 +110,22 @@ struct MonitoredSongsView: View {
     // MARK: - Song Row
 
     private func songRow(_ song: MonitoredSong) -> some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             // Song thumbnail
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [.rbAccent.opacity(0.2), .rbSurface],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: 48, height: 48)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(LinearGradient.rbAccentGradient)
+                .frame(width: 46, height: 46)
                 .overlay {
                     Image(systemName: "music.note")
-                        .font(.system(size: 18, weight: .light))
-                        .foregroundStyle(Color.rbAccent.opacity(0.7))
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.9))
                 }
 
             // Song info
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
                     Text(song.songTitle)
-                        .font(.subheadline.weight(.medium))
+                        .font(.sora(14, .semibold))
                         .foregroundStyle(Color.rbTextPrimary)
                         .lineLimit(1)
 
@@ -134,8 +133,8 @@ struct MonitoredSongsView: View {
                 }
 
                 Text(song.isrc)
-                    .font(.caption)
-                    .foregroundStyle(Color.rbTextTertiary)
+                    .font(.mono(11))
+                    .foregroundStyle(Color.rbTextQuaternary)
                     .lineLimit(1)
 
                 // Stats row
@@ -145,8 +144,8 @@ struct MonitoredSongsView: View {
                             Image(systemName: "play.fill")
                                 .font(.system(size: 8))
                                 .foregroundStyle(Color.rbAccent)
-                            Text("\(plays)")
-                                .font(.caption)
+                            Text("\(plays) plays")
+                                .font(.sora(12, .medium))
                                 .foregroundStyle(Color.rbTextSecondary)
                         }
                     }
@@ -157,7 +156,7 @@ struct MonitoredSongsView: View {
                                 .font(.system(size: 8))
                                 .foregroundStyle(Color.rbTextTertiary)
                             Text("\(stations) stations")
-                                .font(.caption)
+                                .font(.sora(12, .medium))
                                 .foregroundStyle(Color.rbTextSecondary)
                         }
                     }
@@ -181,16 +180,8 @@ struct MonitoredSongsView: View {
                     .foregroundStyle(Color.rbTextTertiary)
             }
         }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.5)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.4))
-        )
+        .padding(12)
+        .rbCard(radius: 18)
         .contentShape(Rectangle())
     }
 
@@ -199,24 +190,24 @@ struct MonitoredSongsView: View {
     private func statusBadge(_ status: String) -> some View {
         let (color, label) = statusInfo(status)
         return Text(label)
-            .font(.system(size: 9, weight: .bold))
+            .font(.sora(9, .bold))
             .foregroundStyle(color)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(
                 Capsule()
-                    .fill(color.opacity(0.15))
+                    .fill(color.opacity(0.16))
             )
     }
 
     private func statusInfo(_ status: String) -> (Color, String) {
         switch status.lowercased() {
         case "active":
-            return (.green, "ACTIVE")
+            return (Color.rbLive, "ACTIVE")
         case "expired":
             return (Color.rbTextTertiary, "EXPIRED")
         case "pending":
-            return (.yellow, "PENDING")
+            return (Color.rbWarning, "PENDING")
         default:
             return (Color.rbTextTertiary, status.uppercased())
         }

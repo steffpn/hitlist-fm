@@ -4,12 +4,10 @@ import SwiftUI
 /// Shows today/weekly play counts, most played song, and weekly digest.
 struct ArtistDashboardView: View {
     @State private var viewModel = ArtistDashboardViewModel()
+    @Environment(AuthManager.self) private var authManager
 
     var body: some View {
         ZStack {
-            Color.rbBackground
-                .ignoresSafeArea()
-
             if viewModel.isLoading && viewModel.dashboard == nil {
                 LoadingView()
             } else if let errorMessage = viewModel.error, viewModel.dashboard == nil {
@@ -18,10 +16,19 @@ struct ArtistDashboardView: View {
                 }
             } else {
                 ScrollView {
-                    VStack(spacing: 20) {
-                        // Summary cards
+                    VStack(spacing: 14) {
+                        topBar
+
+                        Text("Dashboard")
+                            .font(.sora(30, .bold))
+                            .tracking(-0.6)
+                            .foregroundStyle(Color.rbTextPrimary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, 2)
+
+                        // Airplay gauge hero — merges Plays Today + Plays This Week.
                         if let dash = viewModel.dashboard {
-                            summarySection(dash)
+                            airplayGaugeCard(dash)
                         }
 
                         // Most played song
@@ -35,7 +42,7 @@ struct ArtistDashboardView: View {
                         }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 12)
+                    .padding(.top, 8)
                     .padding(.bottom, 40)
                 }
                 .refreshable {
@@ -44,10 +51,8 @@ struct ArtistDashboardView: View {
                 }
             }
         }
-        .navigationTitle("Dashboard")
-        .navigationBarTitleDisplayMode(.large)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .toolbarBackground(Color.rbBackground, for: .navigationBar)
+        .onairGlow()
+        .navigationBarHidden(true)
         .preferredColorScheme(.dark)
         .task {
             await viewModel.loadDashboard()
@@ -55,56 +60,111 @@ struct ArtistDashboardView: View {
         }
     }
 
-    // MARK: - Summary Section
+    // MARK: - Top Bar
 
-    @ViewBuilder
-    private func summarySection(_ dash: ArtistDashboardResponse) -> some View {
-        HStack(spacing: 12) {
-            statCard(
-                title: "Plays Today",
-                value: "\(dash.totalPlaysToday)",
-                icon: "play.circle.fill",
-                color: .rbAccent
-            )
+    /// Custom top bar replacing the large nav title: left wordmark, right a glass
+    /// LIVE pill + circular gradient avatar with the user's initial.
+    private var topBar: some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 0) {
+                Text("onair")
+                    .foregroundStyle(Color.rbTextPrimary)
+                Text(".")
+                    .foregroundStyle(Color.rbAccent)
+                Text("music")
+                    .foregroundStyle(Color.rbTextTertiary)
+            }
+            .font(.sora(20, .bold))
+            .tracking(-0.4)
 
-            statCard(
-                title: "Plays This Week",
-                value: "\(dash.totalPlaysWeek)",
-                icon: "calendar",
-                color: .rbWarm
-            )
+            Spacer()
+
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(Color.rbLive)
+                    .frame(width: 6, height: 6)
+
+                Text("LIVE")
+                    .font(.sora(10, .semibold))
+                    .tracking(1.2)
+                    .foregroundStyle(Color.rbAccentLight)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(Capsule().strokeBorder(Color.rbGlassBorder, lineWidth: 1))
+
+            Circle()
+                .fill(LinearGradient.rbAccentGradient)
+                .frame(width: 34, height: 34)
+                .overlay {
+                    Text(avatarInitial)
+                        .font(.sora(15, .bold))
+                        .foregroundStyle(.white)
+                }
         }
+        .padding(.top, 8)
     }
 
-    private func statCard(title: String, value: String, icon: String, color: Color) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(color)
+    /// First letter of the signed-in user's name (falls back to a music glyph letter).
+    private var avatarInitial: String {
+        let name = authManager.currentUser?.name ?? ""
+        return name.first.map { String($0).uppercased() } ?? "♪"
+    }
 
-            Text(value)
-                .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.rbTextPrimary)
+    // MARK: - Airplay Gauge Card (hero)
 
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(Color.rbTextSecondary)
+    @ViewBuilder
+    private func airplayGaugeCard(_ dash: ArtistDashboardResponse) -> some View {
+        // Gauge fill: today relative to weekly volume (no "personal best" field exists).
+        let fraction = min(Double(dash.totalPlaysToday) / Double(max(dash.totalPlaysWeek, 1)), 1)
+        // Trend pill: today vs this week's daily average (derived only from existing data).
+        let dailyAvg = Double(dash.totalPlaysWeek) / 7.0
+        let deltaPercent: Int = dailyAvg > 0
+            ? Int(((Double(dash.totalPlaysToday) - dailyAvg) / dailyAvg * 100).rounded())
+            : 0
+
+        HStack(spacing: 18) {
+            AirplayGauge(value: dash.totalPlaysToday, fraction: fraction)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("AIRPLAY")
+                    .font(.sora(10, .semibold))
+                    .tracking(1.4)
+                    .foregroundStyle(Color.rbTextTertiary)
+
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text("\(dash.totalPlaysWeek)")
+                        .font(.sora(30, .heavy))
+                        .foregroundStyle(LinearGradient.rbAccentGradient)
+
+                    Text("this week")
+                        .font(.sora(13, .medium))
+                        .foregroundStyle(Color.rbTextSecondary)
+                }
+
+                trendPill(delta: deltaPercent)
+            }
+
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 18)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.rbSurfaceLight, lineWidth: 1)
-        )
+        .rbCard(radius: 22)
+    }
+
+    /// Green up / gray flat trend pill on a tinted background.
+    private func trendPill(delta: Int) -> some View {
+        let isUp = delta >= 0
+        let color: Color = isUp ? .rbLive : .rbTextTertiary
+        return HStack(spacing: 4) {
+            Image(systemName: isUp ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill")
+                .font(.system(size: 8, weight: .bold))
+            Text("\(abs(delta))% vs daily avg")
+                .font(.sora(11, .semibold))
+        }
+        .foregroundStyle(color)
+        .padding(.horizontal, 9)
+        .padding(.vertical, 5)
+        .background(Capsule().fill(color.opacity(0.16)))
     }
 
     // MARK: - Most Played Card
@@ -114,65 +174,51 @@ struct ArtistDashboardView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 Image(systemName: "crown.fill")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Color.rbWarm)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.rbAccent)
 
-                Text("Most Played")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.rbTextSecondary)
+                Text("MOST PLAYED")
+                    .font(.sora(10, .semibold))
+                    .tracking(1.4)
+                    .foregroundStyle(Color.rbTextTertiary)
             }
 
             HStack(spacing: 14) {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [.rbAccent.opacity(0.3), .rbSurface],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(LinearGradient.rbAccentGradient)
                     .frame(width: 52, height: 52)
                     .overlay {
                         Image(systemName: "music.note")
-                            .font(.system(size: 20, weight: .light))
-                            .foregroundStyle(Color.rbAccent)
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.white)
                     }
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(song.title)
-                        .font(.headline)
+                        .font(.sora(15, .bold))
                         .foregroundStyle(Color.rbTextPrimary)
                         .lineLimit(1)
 
                     Text(song.artist)
-                        .font(.subheadline)
+                        .font(.sora(13, .regular))
                         .foregroundStyle(Color.rbTextSecondary)
                         .lineLimit(1)
                 }
 
                 Spacer()
 
-                VStack(spacing: 2) {
+                VStack(alignment: .trailing, spacing: 2) {
                     Text("\(song.plays)")
-                        .font(.title2.weight(.bold))
-                        .foregroundStyle(Color.rbAccent)
+                        .font(.sora(22, .heavy))
+                        .foregroundStyle(LinearGradient.rbAccentGradient)
 
                     Text("plays")
-                        .font(.caption2)
+                        .font(.sora(10, .medium))
                         .foregroundStyle(Color.rbTextTertiary)
                 }
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
+        .rbCard(radius: 22)
     }
 
     // MARK: - Weekly Digest Section
@@ -185,14 +231,14 @@ struct ArtistDashboardView: View {
                     .font(.system(size: 14))
                     .foregroundStyle(Color.rbAccent)
 
-                Text("Weekly Report")
-                    .font(.headline)
+                Text("Weekly report")
+                    .font(.sora(16, .bold))
                     .foregroundStyle(Color.rbTextPrimary)
 
                 Spacer()
 
                 Text("\(digest.songs.count) songs")
-                    .font(.caption)
+                    .font(.mono(11, .regular))
                     .foregroundStyle(Color.rbTextTertiary)
             }
 
@@ -200,16 +246,7 @@ struct ArtistDashboardView: View {
                 digestRow(item)
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
+        .rbCard(radius: 22)
     }
 
     private func digestRow(_ item: SongDigestItem) -> some View {
@@ -217,13 +254,13 @@ struct ArtistDashboardView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.songTitle)
-                        .font(.subheadline.weight(.medium))
+                        .font(.sora(14, .medium))
                         .foregroundStyle(Color.rbTextPrimary)
                         .lineLimit(1)
 
                     HStack(spacing: 6) {
                         Text("\(item.playsThisWeek) plays")
-                            .font(.caption)
+                            .font(.sora(12, .regular))
                             .foregroundStyle(Color.rbTextSecondary)
 
                         TrendBadge(
@@ -237,25 +274,25 @@ struct ArtistDashboardView: View {
                 Spacer()
 
                 Text("\(item.playsThisWeek)")
-                    .font(.title3.weight(.bold))
-                    .foregroundStyle(Color.rbAccent)
+                    .font(.sora(18, .heavy))
+                    .foregroundStyle(LinearGradient.rbAccentGradient)
             }
 
             if !item.newStations.isEmpty {
                 HStack(spacing: 4) {
                     Image(systemName: "antenna.radiowaves.left.and.right")
                         .font(.system(size: 9))
-                        .foregroundStyle(Color.rbWarm)
+                        .foregroundStyle(Color.rbAccent)
 
                     Text("New on: \(item.newStations.joined(separator: ", "))")
-                        .font(.caption2)
-                        .foregroundStyle(Color.rbWarm)
+                        .font(.sora(11, .medium))
+                        .foregroundStyle(Color.rbAccentLight)
                         .lineLimit(1)
                 }
             }
 
             Divider()
-                .overlay(Color.rbSurfaceLight.opacity(0.3))
+                .overlay(Color.rbHairline)
         }
     }
 }
@@ -264,5 +301,6 @@ struct ArtistDashboardView: View {
     NavigationStack {
         ArtistDashboardView()
     }
+    .environment(AuthManager())
     .preferredColorScheme(.dark)
 }

@@ -33,6 +33,7 @@ struct ChartAlertSettingsView: View {
         List {
             Section {
                 Toggle("Enable Chart Alerts", isOn: Bindable(viewModel).chartAlertsEnabled)
+                    .font(.sora(14.5, .medium))
                     .foregroundStyle(Color.rbTextPrimary)
                     .tint(Color.rbAccent)
                     .onChange(of: viewModel.chartAlertsEnabled) {
@@ -40,10 +41,13 @@ struct ChartAlertSettingsView: View {
                     }
                     .listRowBackground(Color.rbSurface)
             } header: {
-                Text("Chart Alerts")
-                    .foregroundStyle(Color.rbTextSecondary)
+                Text("Chart Alerts".uppercased())
+                    .font(.sora(10, .semibold))
+                    .tracking(1.4)
+                    .foregroundStyle(Color.rbTextTertiary)
             } footer: {
                 Text("Get notified when your songs appear on Shazam, Spotify, or Apple Music charts.")
+                    .font(.sora(11.5, .regular))
                     .foregroundStyle(Color.rbTextTertiary)
             }
 
@@ -56,26 +60,31 @@ struct ChartAlertSettingsView: View {
                             HStack {
                                 Text(flagEmoji(for: country.code))
                                 Text(country.name)
+                                    .font(.sora(14.5, .medium))
                                     .foregroundStyle(Color.rbTextPrimary)
                                 Spacer()
                                 if viewModel.chartAlertCountries.contains(country.code) {
                                     Image(systemName: "checkmark")
+                                        .font(.system(size: 14, weight: .semibold))
                                         .foregroundStyle(Color.rbAccent)
-                                        .fontWeight(.semibold)
                                 }
                             }
                         }
                         .listRowBackground(Color.rbSurface)
                     }
                 } header: {
-                    Text("Countries")
-                        .foregroundStyle(Color.rbTextSecondary)
+                    Text("Countries".uppercased())
+                        .font(.sora(10, .semibold))
+                        .tracking(1.4)
+                        .foregroundStyle(Color.rbTextTertiary)
                 } footer: {
                     if viewModel.chartAlertCountries.isEmpty {
                         Text("Select at least one country to receive chart alerts.")
+                            .font(.sora(11.5, .regular))
                             .foregroundStyle(Color.rbTextTertiary)
                     } else {
                         Text("\(viewModel.chartAlertCountries.count) country(ies) selected.")
+                            .font(.sora(11.5, .regular))
                             .foregroundStyle(Color.rbTextTertiary)
                     }
                 }
@@ -84,14 +93,14 @@ struct ChartAlertSettingsView: View {
             if let error = viewModel.error {
                 Section {
                     Text(error)
+                        .font(.sora(12, .regular))
                         .foregroundStyle(Color.rbError)
-                        .font(.caption)
                         .listRowBackground(Color.rbSurface)
                 }
             }
         }
         .scrollContentBackground(.hidden)
-        .background(Color.rbBackground)
+        .onairGlow(subtle: true)
         .navigationTitle("Chart Alerts")
         .toolbarColorScheme(.dark, for: .navigationBar)
         .preferredColorScheme(.dark)

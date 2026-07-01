@@ -8,9 +8,6 @@ struct DiscoveryScoreView: View {
 
     var body: some View {
         ZStack {
-            Color.rbBackground
-                .ignoresSafeArea()
-
             if viewModel.isLoading && viewModel.discoveryScore == nil {
                 LoadingView()
             } else if let errorMessage = viewModel.error, viewModel.discoveryScore == nil {
@@ -49,6 +46,7 @@ struct DiscoveryScoreView: View {
                 }
             }
         }
+        .onairGlow()
         .navigationTitle("Discovery Score")
         .navigationBarTitleDisplayMode(.large)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -74,14 +72,14 @@ struct DiscoveryScoreView: View {
             ZStack {
                 // Background ring
                 Circle()
-                    .stroke(Color.rbSurface, lineWidth: 12)
+                    .stroke(Color.white.opacity(0.10), lineWidth: 12)
 
                 // Score ring
                 Circle()
                     .trim(from: 0, to: CGFloat(min(animatedScore, 100.0) / 100.0))
                     .stroke(
                         AngularGradient(
-                            colors: [.rbAccent, .rbWarm, .rbAccent],
+                            colors: [Color(hex: "7C5CF6"), Color(hex: "B84DF0"), Color(hex: "7C5CF6")],
                             center: .center,
                             startAngle: .degrees(-90),
                             endAngle: .degrees(270)
@@ -93,11 +91,12 @@ struct DiscoveryScoreView: View {
                 // Score number
                 VStack(spacing: 4) {
                     Text("\(Int(animatedScore))")
-                        .font(.system(size: 56, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.rbTextPrimary)
+                        .font(.sora(56, .heavy))
+                        .foregroundStyle(LinearGradient.rbAccentGradient)
 
-                    Text("out of 100")
-                        .font(.caption)
+                    Text("OUT OF 100")
+                        .font(.sora(10, .semibold))
+                        .tracking(1.4)
                         .foregroundStyle(Color.rbTextTertiary)
                 }
             }
@@ -105,24 +104,12 @@ struct DiscoveryScoreView: View {
 
             // Score label
             Text(scoreLabel(discovery.score))
-                .font(.title3.weight(.semibold))
+                .font(.sora(18, .semibold))
                 .foregroundStyle(scoreColor(discovery.score))
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.rbSurfaceLight, lineWidth: 1)
-        )
+        .padding(.vertical, 8)
+        .rbCard()
         .padding(.horizontal, 16)
     }
 
@@ -164,28 +151,17 @@ struct DiscoveryScoreView: View {
                 .foregroundStyle(color)
 
             Text(value)
-                .font(.title2.weight(.bold))
-                .foregroundStyle(Color.rbTextPrimary)
+                .font(.sora(22, .heavy))
+                .foregroundStyle(LinearGradient.rbAccentGradient)
 
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(Color.rbTextSecondary)
+            Text(title.uppercased())
+                .font(.sora(10, .semibold))
+                .tracking(1.2)
+                .foregroundStyle(Color.rbTextTertiary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(Color.rbSurfaceLight, lineWidth: 1)
-        )
+        .padding(.vertical, 4)
+        .rbCard(radius: 18)
     }
 
     // MARK: - Description Card
@@ -204,12 +180,12 @@ struct DiscoveryScoreView: View {
                     .foregroundStyle(Color.rbAccent)
 
                 Text("What This Means")
-                    .font(.headline)
+                    .font(.sora(16, .bold))
                     .foregroundStyle(Color.rbTextPrimary)
             }
 
             Text("You play \(String(format: "%.0f%%", newPercent)) new music vs \(String(format: "%.0f%%", catalogPercent)) catalog tracks. A higher discovery score means your station introduces more fresh music to listeners.")
-                .font(.subheadline)
+                .font(.sora(14))
                 .foregroundStyle(Color.rbTextSecondary)
                 .lineSpacing(4)
 
@@ -220,25 +196,13 @@ struct DiscoveryScoreView: View {
                         .foregroundStyle(Color.rbAccent)
 
                     Text("New songs account for \(discovery.newSongsPlays) of \(discovery.totalPlays) total plays")
-                        .font(.caption)
+                        .font(.sora(12))
                         .foregroundStyle(Color.rbTextTertiary)
                 }
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.rbSurfaceLight, lineWidth: 1)
-        )
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .rbCard()
         .padding(.horizontal, 16)
     }
 
@@ -256,8 +220,8 @@ struct DiscoveryScoreView: View {
 
     private func scoreColor(_ score: Double) -> Color {
         switch score {
-        case 60...: return .rbAccent
-        case 40..<60: return .rbWarm
+        case 60...: return .rbAccentLight
+        case 40..<60: return .rbWarning
         default: return Color.rbTextSecondary
         }
     }

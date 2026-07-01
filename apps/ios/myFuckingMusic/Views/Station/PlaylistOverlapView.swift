@@ -9,9 +9,6 @@ struct PlaylistOverlapView: View {
 
     var body: some View {
         ZStack {
-            Color.rbBackground
-                .ignoresSafeArea()
-
             if competitorViewModel.isLoading && competitorViewModel.cards.isEmpty {
                 LoadingView()
             } else if competitorViewModel.cards.isEmpty {
@@ -44,6 +41,7 @@ struct PlaylistOverlapView: View {
                 }
             }
         }
+        .onairGlow(subtle: true)
         .navigationTitle("Playlist Overlap")
         .navigationBarTitleDisplayMode(.large)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -82,16 +80,16 @@ struct PlaylistOverlapView: View {
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(card.stationName)
-                            .font(.subheadline.weight(.semibold))
+                            .font(.sora(15, .semibold))
                             .foregroundStyle(Color.rbTextPrimary)
 
                         if isExpanded, let overlap = viewModel.overlap {
                             Text("\(overlap.sharedCount) shared songs")
-                                .font(.caption)
+                                .font(.sora(12))
                                 .foregroundStyle(Color.rbTextSecondary)
                         } else {
                             Text("\(card.playCount) plays")
-                                .font(.caption)
+                                .font(.sora(12))
                                 .foregroundStyle(Color.rbTextSecondary)
                         }
                     }
@@ -115,7 +113,7 @@ struct PlaylistOverlapView: View {
                         .padding()
                 } else if let overlap = viewModel.overlap {
                     Divider()
-                        .overlay(Color.rbSurfaceLight.opacity(0.5))
+                        .overlay(Color.rbHairline)
 
                     // Overlap stats
                     HStack(spacing: 20) {
@@ -137,19 +135,19 @@ struct PlaylistOverlapView: View {
 
                     if !overlap.sharedSongs.isEmpty {
                         Divider()
-                            .overlay(Color.rbSurfaceLight.opacity(0.5))
+                            .overlay(Color.rbHairline)
 
                         VStack(spacing: 0) {
                             ForEach(overlap.sharedSongs.prefix(10)) { song in
                                 HStack {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(song.songTitle)
-                                            .font(.caption)
+                                            .font(.sora(12, .medium))
                                             .foregroundStyle(Color.rbTextPrimary)
                                             .lineLimit(1)
 
                                         Text(song.artistName)
-                                            .font(.caption2)
+                                            .font(.sora(11))
                                             .foregroundStyle(Color.rbTextTertiary)
                                             .lineLimit(1)
                                     }
@@ -158,14 +156,14 @@ struct PlaylistOverlapView: View {
 
                                     VStack(alignment: .trailing, spacing: 1) {
                                         Text("You: \(song.yourPlays)")
-                                            .font(.caption2)
+                                            .font(.mono(11, .medium))
                                             .foregroundStyle(
                                                 song.yourPlays >= song.theirPlays
-                                                    ? Color.rbAccent
+                                                    ? Color.rbAccentLight
                                                     : Color.rbTextSecondary
                                             )
                                         Text("Them: \(song.theirPlays)")
-                                            .font(.caption2)
+                                            .font(.mono(11, .medium))
                                             .foregroundStyle(
                                                 song.theirPlays > song.yourPlays
                                                     ? Color.rbWarm
@@ -181,18 +179,11 @@ struct PlaylistOverlapView: View {
                 }
             }
         }
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.rbGlassTint))
         .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.rbSurfaceLight, lineWidth: 1)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(Color.rbGlassBorder, lineWidth: 1)
         )
     }
 
@@ -201,13 +192,13 @@ struct PlaylistOverlapView: View {
     private func overlapCircle(percent: Double) -> some View {
         ZStack {
             Circle()
-                .stroke(Color.rbSurface, lineWidth: 4)
+                .stroke(Color.white.opacity(0.10), lineWidth: 4)
 
             Circle()
                 .trim(from: 0, to: CGFloat(min(percent, 100.0) / 100.0))
                 .stroke(
                     LinearGradient(
-                        colors: [.rbAccent, .rbWarm],
+                        colors: [Color(hex: "7C5CF6"), Color(hex: "B84DF0")],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
@@ -216,20 +207,21 @@ struct PlaylistOverlapView: View {
                 .rotationEffect(.degrees(-90))
 
             Text(String(format: "%.0f%%", percent))
-                .font(.system(size: 10, weight: .bold))
+                .font(.mono(10, .bold))
                 .foregroundStyle(Color.rbTextPrimary)
         }
         .frame(width: 44, height: 44)
     }
 
     private func overlapStat(label: String, value: String) -> some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 3) {
             Text(value)
-                .font(.subheadline.weight(.bold))
-                .foregroundStyle(Color.rbTextPrimary)
+                .font(.sora(16, .bold))
+                .foregroundStyle(LinearGradient.rbAccentGradient)
 
-            Text(label)
-                .font(.caption2)
+            Text(label.uppercased())
+                .font(.sora(9, .semibold))
+                .tracking(1.2)
                 .foregroundStyle(Color.rbTextTertiary)
         }
         .frame(maxWidth: .infinity)
@@ -244,11 +236,11 @@ struct PlaylistOverlapView: View {
                 .foregroundStyle(Color.rbTextTertiary)
 
             Text("No Competitors Added")
-                .font(.title3.weight(.semibold))
+                .font(.sora(20, .semibold))
                 .foregroundStyle(Color.rbTextPrimary)
 
             Text("Add competitor stations in Settings to see playlist overlap analysis")
-                .font(.subheadline)
+                .font(.sora(14))
                 .foregroundStyle(Color.rbTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)

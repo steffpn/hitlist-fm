@@ -105,8 +105,7 @@ struct ArtistDetailView: View {
     private var artistNameSection: some View {
         VStack(spacing: 6) {
             Text(artist.name)
-                .font(.title)
-                .fontWeight(.bold)
+                .font(.sora(28, .bold))
                 .foregroundStyle(Color.rbTextPrimary)
                 .multilineTextAlignment(.center)
                 .lineLimit(3)
@@ -115,9 +114,9 @@ struct ArtistDetailView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill")
                         .font(.caption2)
-                        .foregroundStyle(Color.rbWarm)
+                        .foregroundStyle(Color.rbAccentLight)
                     Text("Top: \(topSong)")
-                        .font(.caption)
+                        .font(.sora(12))
                         .foregroundStyle(Color.rbTextSecondary)
                         .lineLimit(1)
                 }
@@ -135,25 +134,28 @@ struct ArtistDetailView: View {
 
             Divider()
                 .frame(height: 40)
-                .overlay(Color.rbSurfaceLight)
+                .overlay(Color.rbHairline)
 
             statItem(value: "\(artist.songCount)", label: "Unique Songs", icon: "music.note")
 
             Divider()
                 .frame(height: 40)
-                .overlay(Color.rbSurfaceLight)
+                .overlay(Color.rbHairline)
 
             statItem(value: "\(artist.stationNames.count)", label: "Stations", icon: "antenna.radiowaves.left.and.right")
         }
         .padding(.vertical, 16)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(.ultraThinMaterial)
-                .opacity(0.6)
         )
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.rbGlassTint)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(Color.rbGlassBorder, lineWidth: 1)
         )
         .opacity(appearAnimation ? 1.0 : 0.0)
         .offset(y: appearAnimation ? 0 : 15)
@@ -166,11 +168,12 @@ struct ArtistDetailView: View {
                 .foregroundStyle(Color.rbAccent)
 
             Text(value)
-                .font(.title3.weight(.bold))
-                .foregroundStyle(Color.rbTextPrimary)
+                .font(.sora(19, .heavy))
+                .foregroundStyle(LinearGradient.rbAccentGradient)
 
-            Text(label)
-                .font(.caption2)
+            Text(label.uppercased())
+                .font(.sora(9, .semibold))
+                .tracking(0.8)
                 .foregroundStyle(Color.rbTextTertiary)
         }
         .frame(maxWidth: .infinity)
@@ -181,7 +184,7 @@ struct ArtistDetailView: View {
     private var detectedSongsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Detected Songs")
-                .font(.headline)
+                .font(.sora(17, .bold))
                 .foregroundStyle(Color.rbTextPrimary)
                 .padding(.bottom, 4)
 
@@ -189,7 +192,7 @@ struct ArtistDetailView: View {
 
             if events.isEmpty {
                 Text("No songs found")
-                    .font(.subheadline)
+                    .font(.sora(14))
                     .foregroundStyle(Color.rbTextTertiary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 20)
@@ -216,20 +219,20 @@ struct ArtistDetailView: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(event.songTitle)
-                    .font(.subheadline.weight(.medium))
+                    .font(.sora(14, .medium))
                     .foregroundStyle(Color.rbTextPrimary)
                     .lineLimit(1)
 
                 HStack(spacing: 6) {
                     if let stationName = event.station?.name {
                         Text(stationName)
-                            .font(.caption)
+                            .font(.sora(12))
                             .foregroundStyle(Color.rbTextSecondary)
                             .lineLimit(1)
                     }
 
                     Text(DateFormatters.shortDateTime(event.startedAt))
-                        .font(.caption2)
+                        .font(.mono(10))
                         .foregroundStyle(Color.rbTextTertiary)
                 }
             }
@@ -238,7 +241,7 @@ struct ArtistDetailView: View {
 
             if event.playCount > 1 {
                 Text("\(event.playCount)x")
-                    .font(.caption.weight(.semibold))
+                    .font(.mono(12, .medium))
                     .foregroundStyle(Color.rbAccent)
             }
 
@@ -248,13 +251,16 @@ struct ArtistDetailView: View {
         }
         .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(.ultraThinMaterial)
-                .opacity(0.4)
         )
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.3))
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.rbGlassTint)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(Color.rbGlassBorder, lineWidth: 1)
         )
         .contentShape(Rectangle())
     }

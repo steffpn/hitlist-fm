@@ -8,10 +8,6 @@ struct DashboardView: View {
 
     var body: some View {
         ZStack {
-            // Full-screen dark background
-            Color.rbBackground
-                .ignoresSafeArea()
-
             if viewModel.isLoading && viewModel.summaryResponse == nil {
                 // Initial loading state (no cached data yet)
                 LoadingView()
@@ -63,6 +59,7 @@ struct DashboardView: View {
                 }
             }
         }
+        .onairGlow()
         .navigationTitle("Dashboard")
         .navigationBarTitleDisplayMode(.large)
         .toolbarColorScheme(.dark, for: .navigationBar)

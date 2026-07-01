@@ -17,6 +17,7 @@ struct ArtistPickerView: View {
                             .foregroundStyle(Color.rbTextTertiary)
 
                         TextField("Search artists...", text: $viewModel.searchQuery)
+                            .font(.sora(14))
                             .foregroundStyle(Color.rbTextPrimary)
                             .autocorrectionDisabled()
                             .onChange(of: viewModel.searchQuery) { _, _ in
@@ -34,7 +35,11 @@ struct ArtistPickerView: View {
                         }
                     }
                     .padding(12)
-                    .background(Color.rbSurface, in: RoundedRectangle(cornerRadius: 12))
+                    .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .strokeBorder(Color.rbGlassBorder, lineWidth: 1)
+                    )
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
 
@@ -50,7 +55,7 @@ struct ArtistPickerView: View {
                                 .font(.system(size: 40))
                                 .foregroundStyle(Color.rbTextTertiary)
                             Text("No artists found")
-                                .font(.subheadline)
+                                .font(.sora(14))
                                 .foregroundStyle(Color.rbTextSecondary)
                         }
                         Spacer()
@@ -61,7 +66,7 @@ struct ArtistPickerView: View {
                                 .font(.system(size: 40))
                                 .foregroundStyle(Color.rbTextTertiary)
                             Text("Search for an artist to add")
-                                .font(.subheadline)
+                                .font(.sora(14))
                                 .foregroundStyle(Color.rbTextSecondary)
                         }
                         Spacer()
@@ -78,7 +83,7 @@ struct ArtistPickerView: View {
                                     .buttonStyle(.plain)
 
                                     Divider()
-                                        .overlay(Color.rbSurfaceLight.opacity(0.5))
+                                        .overlay(Color.rbHairline)
                                 }
                             }
                         }
@@ -91,6 +96,7 @@ struct ArtistPickerView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
+                        .font(.sora(15, .medium))
                         .foregroundStyle(Color.rbTextSecondary)
                 }
             }
@@ -118,19 +124,19 @@ struct ArtistPickerView: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(artist.name)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.sora(14, .semibold))
                     .foregroundStyle(Color.rbTextPrimary)
                     .lineLimit(1)
 
                 HStack(spacing: 8) {
                     if artist.fanCount > 0 {
                         Text("\(formatNumber(artist.fanCount)) fans")
-                            .font(.caption)
+                            .font(.mono(11))
                             .foregroundStyle(Color.rbTextTertiary)
                     }
                     if artist.albumCount > 0 {
                         Text("\(artist.albumCount) albums")
-                            .font(.caption)
+                            .font(.mono(11))
                             .foregroundStyle(Color.rbTextTertiary)
                     }
                 }

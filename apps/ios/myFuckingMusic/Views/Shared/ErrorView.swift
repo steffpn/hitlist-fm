@@ -13,7 +13,7 @@ struct ErrorView: View {
                 .foregroundStyle(Color.rbError)
 
             Text(message)
-                .font(.subheadline)
+                .font(.sora(14, .medium))
                 .foregroundStyle(Color.rbTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
@@ -21,11 +21,10 @@ struct ErrorView: View {
             Button("Retry") {
                 retryAction()
             }
-            .buttonStyle(.bordered)
-            .tint(Color.rbAccent)
+            .buttonStyle(RBAccentButtonStyle())
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.rbBackground)
+        .onairGlow(subtle: true)
     }
 }
 

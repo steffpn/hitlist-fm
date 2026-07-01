@@ -29,6 +29,7 @@ struct CompetitorListView: View {
                         }
                         .pickerStyle(.segmented)
                         .padding(.horizontal)
+                        .colorMultiply(.rbAccent)
 
                         // Competitor cards
                         LazyVStack(spacing: 12) {
@@ -62,13 +63,19 @@ struct CompetitorListView: View {
                 }
             }
         }
+        .onairGlow(subtle: true)
         .navigationTitle("Competitors")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbarBackground(Color.rbBackground, for: .navigationBar)
+        .preferredColorScheme(.dark)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     showingStationPicker = true
                 } label: {
                     Image(systemName: "plus")
+                        .foregroundStyle(Color.rbAccent)
                 }
             }
         }
@@ -88,15 +95,15 @@ struct CompetitorListView: View {
         VStack(spacing: 16) {
             Image(systemName: "binoculars")
                 .font(.system(size: 48))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.rbTextTertiary)
 
             Text("No Competitor Stations")
-                .font(.title3)
-                .fontWeight(.semibold)
+                .font(.sora(20, .semibold))
+                .foregroundStyle(Color.rbTextPrimary)
 
             Text("Tap + to start monitoring competitor stations")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.sora(14))
+                .foregroundStyle(Color.rbTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
         }
@@ -114,29 +121,32 @@ private struct CompetitorCardView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(card.stationName)
-                    .font(.headline)
+                    .font(.sora(16, .bold))
+                    .foregroundStyle(Color.rbTextPrimary)
 
                 Spacer()
 
-                Text("\(card.playCount) plays")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                Text("\(card.playCount)")
+                    .font(.mono(14, .semibold))
+                    .foregroundStyle(Color.rbAccentLight)
+                + Text(" plays")
+                    .font(.sora(13))
+                    .foregroundStyle(Color.rbTextSecondary)
             }
 
             if let topSong = card.topSong {
                 Text("'\(topSong.title)' by \(topSong.artist)")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .font(.sora(12))
+                    .foregroundStyle(Color.rbTextTertiary)
                     .lineLimit(1)
             } else {
                 Text("No plays")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .font(.sora(12))
+                    .foregroundStyle(Color.rbTextTertiary)
             }
         }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .rbCard(radius: 18)
     }
 }
 

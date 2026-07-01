@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&family=Hanken+Grotesk:wght@400..800&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Manrope:wght@400..800&family=Sora:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#c7c4be;font-family:system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .dv-turn{padding:44px 48px 40px}
+  .dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 26px}
+  .dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+  .dv-tname{font:600 14px/1.2 system-ui,sans-serif;color:#1a1a1a}
+  .dv-tsub{font:400 12px/1.2 system-ui,sans-serif;color:rgba(0,0,0,.5)}
+  .dv-opts{display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start}
+  .dv-opt{flex:none;display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+  .dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.1);color:#1a1a1a;border-radius:5px;text-decoration:none}
+  .dv-olabel{display:flex;align-items:baseline;gap:9px;font:400 12.5px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.62);max-width:402px}
+  .dv-opt:target .dv-oid{background:#fb5b53;color:#fff}
+  .dv-next{margin:30px 0 0;font:13px/1.7 system-ui,sans-serif;color:rgba(0,0,0,.55);max-width:900px}
+  .dv-next a{color:#a83329;text-decoration:none;font-weight:600}
+</style>
+</helmet>
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Full app — 2c Violet</span><span class="dv-tsub">— <a class="dv-oid" href="#2c">2c</a> scaled across the Artist journey: auth → dashboard → songs → song detail → detections → settings</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="3a">
+<div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a> Log in — brand entry</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+  <div style="height:100%;display:flex;flex-direction:column;background:radial-gradient(120% 48% at 50% 4%,rgba(124,92,246,.44),rgba(175,70,240,.14) 44%,transparent 72%),#0A070E;font-family:'Sora',sans-serif;overflow:hidden">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:22px;padding:58px 26px 40px">
+      <div style="display:flex;flex-direction:column;align-items:center;text-align:center">
+        <div style="width:66px;height:66px;border-radius:20px;background:linear-gradient(135deg,#7C5CF6,#B84DF0);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 34px -8px rgba(124,92,246,.6)"><svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><rect x="2" y="9" width="2.6" height="6" rx="1"/><rect x="6.8" y="5.5" width="2.6" height="13" rx="1"/><rect x="11.6" y="2.5" width="2.6" height="19" rx="1"/><rect x="16.4" y="7" width="2.6" height="10" rx="1"/><rect x="21" y="10.5" width="2.2" height="3" rx="1"/></svg></div>
+        <div style="font:700 27px 'Sora';color:#F3F1F6;letter-spacing:-.02em;margin-top:18px">onair<span style="color:#9A6DFF">.</span><span style="color:#8E86A2;font-weight:500">music</span></div>
+        <div style="font:400 14px 'Sora';color:#A8A2B6;margin-top:8px">Know exactly where your music plays.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:6px">
+        <div>
+          <div style="font:600 10.5px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#8E86A2;margin:0 0 7px 4px">Email</div>
+          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 16px;font:400 15px 'Sora';color:#F3F1F6">you@label.com</div>
+        </div>
+        <div>
+          <div style="font:600 10.5px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#8E86A2;margin:0 0 7px 4px">Password</div>
+          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between"><span style="font:400 15px 'Sora';color:#F3F1F6;letter-spacing:.15em">••••••••••</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E86A2" stroke-width="1.7"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        </div>
+        <div style="font:600 12px 'Sora';color:#9A6DFF;text-align:right;margin-top:2px">Forgot password?</div>
+      </div>
+      <button style="width:100%;border:none;border-radius:14px;padding:15px;background:linear-gradient(135deg,#7C5CF6,#B84DF0);color:#fff;font:700 15px 'Sora';box-shadow:0 12px 30px -10px rgba(124,92,246,.7);cursor:pointer">Log in</button>
+      <div style="display:flex;align-items:center;gap:12px"><span style="flex:1;height:1px;background:rgba(255,255,255,.1)"></span><span style="font:500 11px 'Sora';color:#726A84">or</span><span style="flex:1;height:1px;background:rgba(255,255,255,.1)"></span></div>
+      <button style="width:100%;border:1px solid rgba(154,109,255,.4);border-radius:14px;padding:14px;background:rgba(154,109,255,.1);color:#C4A5FF;font:600 14px 'Sora';display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4A5FF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>Continue with invite code</button>
+      <div style="text-align:center;font:400 13px 'Sora';color:#A8A2B6">New here? <span style="color:#9A6DFF;font-weight:600">Create account</span></div>
+    </div>
+  </div>
+</x-import>
+</div>
+
+<div class="dv-opt" id="3b">
+<div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a> Dashboard — Artist home</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+  <div style="height:100%;display:flex;flex-direction:column;background:radial-gradient(125% 55% at 50% -8%,rgba(124,92,246,.44),rgba(175,70,240,.16) 42%,transparent 70%),#0A070E;font-family:'Sora',sans-serif;overflow:hidden">
+    <div style="flex:1;min-height:0;padding:58px 16px 0;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div style="font:700 16px 'Sora';color:#F3F1F6;letter-spacing:-.01em">onair<span style="color:#9A6DFF">.</span><span style="color:#8E86A2;font-weight:500">music</span></div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12)"><span style="width:6px;height:6px;border-radius:50%;background:#9A6DFF"></span><span style="font:600 10px 'Sora';letter-spacing:.06em;color:#C4A5FF">LIVE</span></span>
+          <span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7C5CF6,#B84DF0);display:flex;align-items:center;justify-content:center;font:700 13px 'Sora';color:#fff">C</span>
+        </div>
+      </div>
+      <div style="font:700 30px/1 'Sora';color:#F3F1F6;letter-spacing:-.02em;margin-bottom:16px">Dashboard</div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:18px;margin-bottom:13px;display:flex;align-items:center;gap:18px">
+        <div style="position:relative;width:88px;height:88px;flex:none">
+          <svg width="88" height="88" viewBox="0 0 88 88"><defs><linearGradient id="pgD" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C5CF6"/><stop offset="1" stop-color="#B84DF0"/></linearGradient></defs><circle cx="44" cy="44" r="35" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="7"/><circle cx="44" cy="44" r="35" fill="none" stroke="url(#pgD)" stroke-width="7" stroke-linecap="round" stroke-dasharray="219.9" stroke-dashoffset="66" transform="rotate(-90 44 44)"/></svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font:800 23px/1 'Sora';color:#F3F1F6">142</span><span style="font:600 9px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#8E86A2;margin-top:3px">today</span></div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font:600 10px 'Sora';letter-spacing:.1em;text-transform:uppercase;color:#8E86A2">Airplay</div>
+          <div style="display:flex;align-items:baseline;gap:7px;margin-top:7px"><span style="font:800 30px/1 'Sora';color:#F3F1F6">968</span><span style="font:500 12px 'Sora';color:#A8A2B6">this week</span></div>
+          <div style="display:inline-flex;align-items:center;gap:5px;margin-top:11px;padding:3px 9px;border-radius:999px;background:rgba(52,211,153,.15)"><span style="font:700 11px 'Sora';color:#34D399">▲ 12% vs yesterday</span></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:14px;margin-bottom:13px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px"><svg width="13" height="13" viewBox="0 0 24 24" fill="#9A6DFF"><path d="M3 7l5 4 4-6 4 6 5-4v11H3z"/></svg><span style="font:600 11px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#A8A2B6">Most played</span></div>
+        <div style="display:flex;align-items:center;gap:13px">
+          <div style="width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#7C5CF6,#B84DF0);flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="1.6"><path d="M9 18V6l10-2v10" stroke-linecap="round"/><circle cx="7" cy="18" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/><circle cx="17" cy="16" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/></svg></div>
+          <div style="flex:1;min-width:0"><div style="font:700 15px 'Sora';color:#F3F1F6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Îngerul</div><div style="font:400 12.5px 'Sora';color:#A8A2B6">Carla's Dreams</div></div>
+          <div style="text-align:right"><div style="font:800 20px/1 'Sora';background:linear-gradient(135deg,#7C5CF6,#B84DF0);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#7C5CF6">342</div><div style="font:500 10px 'Sora';color:#726A84;margin-top:3px">plays</div></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:14px 16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font:700 15px 'Sora';color:#F3F1F6">Weekly report</span><span style="font:500 11.5px 'Sora';color:#726A84">3 songs</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#EBE9F1">Îngerul</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A8A2B6">342 plays</span><span style="font:700 10px 'Sora';color:#34D399;background:rgba(52,211,153,.15);padding:1px 6px;border-radius:5px">▲ 18%</span></div><div style="display:flex;align-items:center;gap:4px;margin-top:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9A6DFF" stroke-width="2"><circle cx="12" cy="14" r="2"/><path d="M7 9a7 7 0 0 1 10 0" stroke-linecap="round"/></svg><span style="font:600 10.5px 'Sora';color:#9A6DFF">New on Kiss FM</span></div></div><span style="font:800 17px 'Sora';color:#F3F1F6">342</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#EBE9F1">Ecou</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A8A2B6">214 plays</span><span style="font:700 10px 'Sora';color:#34D399;background:rgba(52,211,153,.15);padding:1px 6px;border-radius:5px">▲ 6%</span></div></div><span style="font:800 17px 'Sora';color:#F3F1F6">214</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#EBE9F1">Alcool</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A8A2B6">168 plays</span><span style="font:700 10px 'Sora';color:#8B85A2;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:5px">▼ 3%</span></div></div><span style="font:800 17px 'Sora';color:#F3F1F6">168</span></div>
+      </div>
+    </div>
+    <div style="background:rgba(20,15,30,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.09)">
+      <div style="height:3px;background:rgba(255,255,255,.1);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:60%;background:linear-gradient(90deg,#7C5CF6,#B84DF0)"></div><div style="position:absolute;left:83%;top:-3px;bottom:-3px;width:2px;background:#FF6B35"></div></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 16px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#9A6DFF"><rect x="2" y="9" width="2.4" height="6" rx="1"/><rect x="6.5" y="6" width="2.4" height="12" rx="1"/><rect x="11" y="3" width="2.4" height="18" rx="1"/><rect x="15.5" y="7" width="2.4" height="10" rx="1"/><rect x="20" y="10" width="2.4" height="4" rx="1"/></svg>
+        <div style="flex:1;min-width:0"><div style="font:700 12px 'Sora';color:#F3F1F6">Broadcast Proof</div><div style="font:500 10px 'IBM Plex Mono';color:#726A84;margin-top:1px">0:18 / 0:30</div></div>
+        <span style="display:inline-flex;align-items:center;gap:4px;margin-right:4px"><span style="width:5px;height:5px;border-radius:50%;background:#FF6B35"></span><span style="font:600 10px 'Sora';color:#FF6B35">in 7s</span></span>
+        <span style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="#F3F1F6"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+      </div>
+    </div>
+    <div style="background:rgba(10,7,14,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-around;padding:9px 8px 26px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9A6DFF" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="12" width="4" height="8" rx="1.2"/><rect x="10" y="6" width="4" height="14" rx="1.2"/><rect x="17" y="9" width="4" height="11" rx="1.2"/></svg><span style="font:700 10px 'Sora';color:#9A6DFF">Dashboard</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span style="font:500 10px 'Sora';color:#726A84">My Songs</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="2.2"/><path d="M7.5 8.5a6 6 0 0 1 9 0M4.8 5.8a10 10 0 0 1 14.4 0"/></svg><span style="font:500 10px 'Sora';color:#726A84">Detections</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14M5 16h14"/><circle cx="15" cy="8" r="2.6" fill="#0A070E"/><circle cx="9" cy="16" r="2.6" fill="#0A070E"/></svg><span style="font:500 10px 'Sora';color:#726A84">Settings</span></div>
+    </div>
+  </div>
+</x-import>
+</div>
+
+<div class="dv-opt" id="3c">
+<div class="dv-olabel"><a class="dv-oid" href="#3c">3c</a> My Songs — monitored catalog</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+  <div style="height:100%;display:flex;flex-direction:column;background:radial-gradient(120% 38% at 50% -12%,rgba(124,92,246,.22),transparent 62%),#0B0810;font-family:'Sora',sans-serif;overflow:hidden">
+    <div style="flex:1;min-height:0;padding:58px 16px 0;overflow:hidden">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+        <div><div style="font:700 30px/1 'Sora';color:#F3F1F6;letter-spacing:-.02em">My Songs</div><div style="font:500 13px 'Sora';color:#8E86A2;margin-top:6px">5 songs monitored</div></div>
+        <span style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#7C5CF6,#B84DF0);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px -8px rgba(124,92,246,.6)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:12px;display:flex;align-items:center;gap:12px">
+          <div style="width:46px;height:46px;border-radius:11px;background:linear-gradient(135deg,#7C5CF6,#B84DF0);flex:none;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="1.6"><path d="M9 18V6l10-2v10" stroke-linecap="round"/><circle cx="7" cy="18" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/><circle cx="17" cy="16" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/></svg></div>
+          <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:7px"><span style="font:600 14px 'Sora';color:#F3F1F6">Îngerul</span><span style="font:700 8.5px 'Sora';letter-spacing:.05em;color:#34D399;background:rgba(52,211,153,.16);padding:2px 6px;border-radius:6px">ACTIVE</span></div><div style="font:400 10px 'IBM Plex Mono';color:#726A84;margin-top:3px">ROABC1234567</div><div style="display:flex;align-items:center;gap:12px;margin-top:5px"><span style="font:500 11px 'Sora';color:#A8A2B6">342 plays</span><span style="font:500 11px 'Sora';color:#8E86A2">14 stations</span></div></div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span style="font:700 10px 'Sora';color:#34D399;background:rgba(52,211,153,.15);padding:2px 7px;border-radius:6px">▲ 18%</span><svg width="7" height="12" viewBox="0 0 8 14" fill="none" stroke="#726A84" stroke-width="2" stroke-linecap="round"><path d="M1 1l6 6-6 6"/></svg></div>
+        </div>
+        <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:12px;display:flex;align-items:center;gap:12px">
+          <div style="width:46px;height:46px;border-radius:11px;background:linear-gradient(135deg,#3f6f8f,#5aa0a8);flex:none;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="1.6"><path d="M9 18V6l10-2v10" stroke-linecap="round"/><circle cx="7" cy="18" r="2.5" fill="rgba(255,255,255,.9)" stroke="none"/><circle cx="17" cy="16" r="2.5" fill="rgba(255,255,255,.9)" stroke="none"/></svg></div>
+          <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:7px"><span style="font:600 14px 'Sora';color:#F3F1F6">Ecou</span><span style="font:700 8.5px 'Sora';letter-spacing:.05em;color:#34D399;background:rgba(52,211,153,.16);padding:2px 6px;border-radius:6px">ACTIVE</span></div><div style="font:400 10px 'IBM Plex Mono';color:#726A84;margin-top:3px">ROABC2345678</div><div style="display:flex;align-items:center;gap:12px;margin-top:5px"><span style="font:500 11px 'Sora';color:#A8A2B6">214 plays</span><span style="font:500 11px 'Sora';color:#8E86A2">11 stations</span></div></div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span style="font:700 10px 'Sora';color:#34D399;background:rgba(52,211,153,.15);padding:2px 7px;border-radius:6px">▲ 6%</span><svg width="7" height="12" viewBox="0 0 8 14" fill="none" stroke="#726A84" stroke-width="2" stroke-linecap="round"><path d="M1 1l6 6-6 6"/></svg></div>
+        </div>
+        <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:12px;display:flex;align-items:center;gap:12px">
+          <div style="width:46px;height:46px;border-radius:11px;background:linear-gradient(135deg,#8a4b6b,#c05a7d);flex:none;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="1.6"><path d="M9 18V6l10-2v10" stroke-linecap="round"/><circle cx="7" cy="18" r="2.5" fill="rgba(255,255,255,.9)" stroke="none"/><circle cx="17" cy="16" r="2.5" fill="rgba(255,255,255,.9)" stroke="none"/></svg></div>
+          <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:7px"><span style="font:600 14px 'Sora';color:#F3F1F6">Alcool</span><span style="font:700 8.5px 'Sora';letter-spacing:.05em;color:#34D399;background:rgba(52,211,153,.16);padding:2px 6px;border-radius:6px">ACTIVE</span></div><div style="font:400 10px 'IBM Plex Mono';color:#726A84;margin-top:3px">ROABC3456789</div><div style="display:flex;align-items:center;gap:12px;margin-top:5px"><span style="font:500 11px 'Sora';color:#A8A2B6">168 plays</span><span style="font:500 11px 'Sora';color:#8E86A2">9 stations</span></div></div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span style="font:700 10px 'Sora';color:#8B85A2;background:rgba(255,255,255,.07);padding:2px 7px;border-radius:6px">▼ 3%</span><svg width="7" height="12" viewBox="0 0 8 14" fill="none" stroke="#726A84" stroke-width="2" stroke-linecap="round"><path d="M1 1l6 6-6 6"/></svg></div>
+        </div>
+        <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:12px;display:flex;align-items:center;gap:12px">
+          <div style="width:46px;height:46px;border-radius:11px;background:linear-gradient(135deg,#4a4f7a,#6b6fa8);flex:none;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="1.6"><path d="M9 18V6l10-2v10" stroke-linecap="round"/><circle cx="7" cy="18" r="2.5" fill="rgba(255,255,255,.85)" stroke="none"/><circle cx="17" cy="16" r="2.5" fill="rgba(255,255,255,.85)" stroke="none"/></svg></div>
+          <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:7px"><span style="font:600 14px 'Sora';color:#F3F1F6">P.O.H.U.I.</span><span style="font:700 8.5px 'Sora';letter-spacing:.05em;color:#FBBF24;background:rgba(251,191,36,.16);padding:2px 6px;border-radius:6px">PENDING</span></div><div style="font:400 10px 'IBM Plex Mono';color:#726A84;margin-top:3px">awaiting first detection</div><div style="display:flex;align-items:center;gap:12px;margin-top:5px"><span style="font:500 11px 'Sora';color:#8E86A2">0 plays</span></div></div>
+          <svg width="7" height="12" viewBox="0 0 8 14" fill="none" stroke="#726A84" stroke-width="2" stroke-linecap="round"><path d="M1 1l6 6-6 6"/></svg>
+        </div>
+      </div>
+    </div>
+    <div style="background:rgba(11,8,16,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-around;padding:9px 8px 26px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="12" width="4" height="8" rx="1.2"/><rect x="10" y="6" width="4" height="14" rx="1.2"/><rect x="17" y="9" width="4" height="11" rx="1.2"/></svg><span style="font:500 10px 'Sora';color:#726A84">Dashboard</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9A6DFF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span style="font:700 10px 'Sora';color:#9A6DFF">My Songs</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="2.2"/><path d="M7.5 8.5a6 6 0 0 1 9 0M4.8 5.8a10 10 0 0 1 14.4 0"/></svg><span style="font:500 10px 'Sora';color:#726A84">Detections</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14M5 16h14"/><circle cx="15" cy="8" r="2.6" fill="#0B0810"/><circle cx="9" cy="16" r="2.6" fill="#0B0810"/></svg><span style="font:500 10px 'Sora';color:#726A84">Settings</span></div>
+    </div>
+  </div>
+</x-import>
+</div>
+
+<div class="dv-opt" id="3d">
+<div class="dv-olabel"><a class="dv-oid" href="#3d">3d</a> Song detail — immersive, chart + top stations</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+  <div style="min-height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,#5a3aa8 0%,#3a2568 22%,#150f28 46%,#0A070E 68%);font-family:'Sora',sans-serif">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:56px 16px 0">
+      <span style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.14);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center"><svg width="11" height="18" viewBox="0 0 12 20" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L2 10l8 8"/></svg></span>
+      <span style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.14);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center"><svg width="20" height="6" viewBox="0 0 22 6"><circle cx="3" cy="3" r="2.5" fill="#fff"/><circle cx="11" cy="3" r="2.5" fill="#fff"/><circle cx="19" cy="3" r="2.5" fill="#fff"/></svg></span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;padding:22px 24px 40px">
+      <div style="width:184px;height:184px;border-radius:18px;background:linear-gradient(135deg,#7C5CF6,#B84DF0);display:flex;align-items:center;justify-content:center;box-shadow:0 24px 50px -12px rgba(124,92,246,.6),0 8px 20px rgba(0,0,0,.4)"><svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.3"><path d="M9 18V6l10-2v10" stroke-linecap="round"/><circle cx="7" cy="18" r="2.6" fill="rgba(255,255,255,.92)" stroke="none"/><circle cx="17" cy="16" r="2.6" fill="rgba(255,255,255,.92)" stroke="none"/></svg></div>
+      <div style="text-align:center;margin-top:20px"><div style="font:700 22px 'Sora';color:#F5F3F8">Îngerul</div><div style="font:400 15px 'Sora';color:#C4BDD0;margin-top:4px">Carla's Dreams</div><div style="font:400 12.5px 'Sora';color:#9990A6;margin-top:3px">Ngerul — Single</div></div>
+      <button style="margin-top:20px;border:none;border-radius:999px;padding:13px 30px;background:linear-gradient(135deg,#7C5CF6,#B84DF0);color:#fff;font:700 14px 'Sora';display:flex;align-items:center;gap:9px;box-shadow:0 12px 28px -8px rgba(124,92,246,.7);cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>Play Broadcast Proof</button>
+      <div style="display:flex;gap:26px;margin-top:24px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:7px"><span style="width:48px;height:48px;border-radius:50%;background:rgba(29,185,84,.16);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1DB954" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M7 10c3-1 7-1 10 1M7.5 13c2.5-.8 5.5-.6 8 .8" stroke-linecap="round"/></svg></span><span style="font:500 11px 'Sora';color:#A8A2B6">Spotify</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:7px"><span style="width:48px;height:48px;border-radius:50%;background:rgba(162,56,255,.16);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="#A238FF"><rect x="3" y="11" width="3" height="6" rx="1"/><rect x="8" y="8" width="3" height="9" rx="1"/><rect x="13" y="5" width="3" height="12" rx="1"/><rect x="18" y="9" width="3" height="8" rx="1"/></svg></span><span style="font:500 11px 'Sora';color:#A8A2B6">Deezer</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:7px"><span style="width:48px;height:48px;border-radius:50%;background:rgba(255,0,0,.14);display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="3.5" fill="#FF0000"/><path d="M10 9.5l5 2.5-5 2.5z" fill="#fff"/></svg></span><span style="font:500 11px 'Sora';color:#A8A2B6">YouTube</span></div>
+      </div>
+      <div style="width:100%;background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:16px 18px;margin-top:26px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px"><span style="font:700 14px 'Sora';color:#F3F1F6">Play count</span><span style="font:500 10.5px 'Sora';color:#8E86A2">LAST 7 DAYS</span></div>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px;height:96px">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:44px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,#B84DF0,#7C5CF6)"></div><span style="font:500 9.5px 'Sora';color:#726A84">M</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:58px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,#B84DF0,#7C5CF6)"></div><span style="font:500 9.5px 'Sora';color:#726A84">T</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:50px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,#B84DF0,#7C5CF6)"></div><span style="font:500 9.5px 'Sora';color:#726A84">W</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:72px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,#B84DF0,#7C5CF6)"></div><span style="font:500 9.5px 'Sora';color:#726A84">T</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:62px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,#B84DF0,#7C5CF6)"></div><span style="font:500 9.5px 'Sora';color:#726A84">F</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:88px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,#CF6BF5,#8B6BF8)"></div><span style="font:500 9.5px 'Sora';color:#9A6DFF">S</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:78px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,#B84DF0,#7C5CF6)"></div><span style="font:500 9.5px 'Sora';color:#726A84">S</span></div>
+        </div>
+      </div>
+      <div style="width:100%;background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:16px 18px;margin-top:12px">
+        <div style="font:700 14px 'Sora';color:#F3F1F6;margin-bottom:13px">Top stations</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px"><span style="font:500 12px 'Sora';color:#C4BDD0;width:78px;flex:none">Kiss FM</span><div style="flex:1;height:8px;border-radius:5px;background:rgba(255,255,255,.07)"><div style="height:100%;width:100%;border-radius:5px;background:linear-gradient(90deg,#7C5CF6,#B84DF0)"></div></div><span style="font:600 11px 'Sora';color:#A8A2B6;width:22px;text-align:right">45</span></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px"><span style="font:500 12px 'Sora';color:#C4BDD0;width:78px;flex:none">Europa FM</span><div style="flex:1;height:8px;border-radius:5px;background:rgba(255,255,255,.07)"><div style="height:100%;width:84%;border-radius:5px;background:linear-gradient(90deg,#7C5CF6,#B84DF0)"></div></div><span style="font:600 11px 'Sora';color:#A8A2B6;width:22px;text-align:right">38</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="font:500 12px 'Sora';color:#C4BDD0;width:78px;flex:none">Radio ZU</span><div style="flex:1;height:8px;border-radius:5px;background:rgba(255,255,255,.07)"><div style="height:100%;width:60%;border-radius:5px;background:linear-gradient(90deg,#7C5CF6,#B84DF0)"></div></div><span style="font:600 11px 'Sora';color:#A8A2B6;width:22px;text-align:right">27</span></div>
+      </div>
+      <div style="width:100%;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div style="background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px"><div style="font:500 10px 'Sora';letter-spacing:.06em;text-transform:uppercase;color:#8E86A2">ISRC</div><div style="font:500 12px 'IBM Plex Mono';color:#F3F1F6;margin-top:6px">ROABC1234567</div></div>
+        <div style="background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px"><div style="font:500 10px 'Sora';letter-spacing:.06em;text-transform:uppercase;color:#8E86A2">Total plays</div><div style="font:800 18px 'Sora';color:#F3F1F6;margin-top:4px">342</div></div>
+      </div>
+    </div>
+  </div>
+</x-import>
+</div>
+
+<div class="dv-opt" id="3e">
+<div class="dv-olabel"><a class="dv-oid" href="#3e">3e</a> Detections — live feed, search + filters</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+  <div style="height:100%;display:flex;flex-direction:column;background:radial-gradient(120% 34% at 50% -12%,rgba(124,92,246,.2),transparent 60%),#0B0810;font-family:'Sora',sans-serif;overflow:hidden">
+    <div style="padding:58px 16px 0">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+        <div style="font:700 30px/1 'Sora';color:#F3F1F6;letter-spacing:-.02em">Detections</div>
+        <div style="display:flex;align-items:center;gap:10px;padding-top:4px">
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:#34D399;box-shadow:0 0 8px #34D399"></span><span style="font:600 11px 'Sora';color:#A8A2B6">Live</span></span>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#9A6DFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M8 8l4-4 4 4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 13px;margin-bottom:11px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8E86A2" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span style="font:400 14px 'Sora';color:#8E86A2">Search songs, artists, ISRC…</span></div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <span style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A8A2B6" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 9h18M8 3v4M16 3v4"/></svg><span style="font:500 12px 'Sora';color:#A8A2B6">Date range</span></span>
+        <span style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:999px;background:rgba(154,109,255,.16);border:1px solid rgba(154,109,255,.5)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C4A5FF" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="13" r="2"/><path d="M7.5 8.5a6 6 0 0 1 9 0M4.8 5.8a10 10 0 0 1 14.4 0"/></svg><span style="font:600 12px 'Sora';color:#C4A5FF">Kiss FM</span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#C4A5FF" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+      </div>
+    </div>
+    <div style="flex:1;min-height:0;overflow:hidden;padding:0 8px">
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 8px"><div style="width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#c98a3a,#e0b15a);flex:none;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)"><path d="M9 18V6l10-2v10" stroke="none"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="16" r="2.4"/></svg></div><div style="flex:1;min-width:0"><div style="font:600 14px 'Sora';color:#F3F1F6">Espresso</div><div style="font:400 11.5px 'Sora';color:#A8A2B6">Sabrina Carpenter</div><div style="font:400 10.5px 'Sora';color:#726A84;margin-top:1px">Kiss FM</div></div><span style="font:400 10.5px 'Sora';color:#726A84;align-self:flex-start;margin-top:2px">2m</span><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#9A6DFF" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M10 8.5l6 3.5-6 3.5z" fill="#9A6DFF" stroke="none"/></svg></div>
+      <div style="height:1px;background:rgba(255,255,255,.07);margin-left:68px"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 8px"><div style="width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#3a6ea8,#5a97c0);flex:none;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)"><path d="M9 18V6l10-2v10" stroke="none"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="16" r="2.4"/></svg></div><div style="flex:1;min-width:0"><div style="font:600 14px 'Sora';color:#F3F1F6">Illusion</div><div style="font:400 11.5px 'Sora';color:#A8A2B6">Dua Lipa</div><div style="font:400 10.5px 'Sora';color:#726A84;margin-top:1px">Virgin Radio</div></div><span style="font:400 10.5px 'Sora';color:#726A84;align-self:flex-start;margin-top:2px">5m</span><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#9A6DFF" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M10 8.5l6 3.5-6 3.5z" fill="#9A6DFF" stroke="none"/></svg></div>
+      <div style="height:1px;background:rgba(255,255,255,.07);margin-left:68px"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 8px"><div style="width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#a8497a,#d06a9a);flex:none;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)"><path d="M9 18V6l10-2v10" stroke="none"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="16" r="2.4"/></svg></div><div style="flex:1;min-width:0"><div style="font:600 14px 'Sora';color:#F3F1F6">Fără tine</div><div style="font:400 11.5px 'Sora';color:#A8A2B6">INNA</div><div style="font:400 10.5px 'Sora';color:#726A84;margin-top:1px">Radio ZU</div></div><span style="font:400 10.5px 'Sora';color:#726A84;align-self:flex-start;margin-top:2px">7m</span><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#9A6DFF" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M10 8.5l6 3.5-6 3.5z" fill="#9A6DFF" stroke="none"/></svg></div>
+      <div style="height:1px;background:rgba(255,255,255,.07);margin-left:68px"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 8px;background:rgba(154,109,255,.09);border-radius:12px"><div style="width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#7C5CF6,#B84DF0);flex:none;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="rgba(255,255,255,.95)"><path d="M9 18V6l10-2v10" stroke="none"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="16" r="2.4"/></svg></div><div style="flex:1;min-width:0"><div style="font:600 14px 'Sora';color:#F3F1F6">Îngerul</div><div style="font:400 11.5px 'Sora';color:#A8A2B6">Carla's Dreams</div><div style="font:400 10.5px 'Sora';color:#726A84;margin-top:1px">Pro FM</div></div><span style="font:400 10.5px 'Sora';color:#726A84;align-self:flex-start;margin-top:2px">10m</span><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#9A6DFF" stroke-width="1.6"><circle cx="12" cy="12" r="10" fill="#9A6DFF" stroke="none"/><rect x="9" y="8" width="2.4" height="8" rx="1" fill="#0B0810"/><rect x="13" y="8" width="2.4" height="8" rx="1" fill="#0B0810"/></svg></div>
+      <div style="height:1px;background:rgba(255,255,255,.07);margin-left:68px"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 8px"><div style="width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#4a4f7a,#6f74aa);flex:none;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)"><path d="M9 18V6l10-2v10" stroke="none"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="16" r="2.4"/></svg></div><div style="flex:1;min-width:0"><div style="font:600 14px 'Sora';color:#F3F1F6">Beautiful Things</div><div style="font:400 11.5px 'Sora';color:#A8A2B6">Benson Boone</div><div style="font:400 10.5px 'Sora';color:#726A84;margin-top:1px">Digi FM</div></div><span style="font:400 10.5px 'Sora';color:#726A84;align-self:flex-start;margin-top:2px">13m</span><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#9A6DFF" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M10 8.5l6 3.5-6 3.5z" fill="#9A6DFF" stroke="none"/></svg></div>
+    </div>
+    <div style="background:rgba(20,15,30,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.09)">
+      <div style="height:3px;background:rgba(255,255,255,.1);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:60%;background:linear-gradient(90deg,#7C5CF6,#B84DF0)"></div><div style="position:absolute;left:83%;top:-3px;bottom:-3px;width:2px;background:#FF6B35"></div></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 16px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#9A6DFF"><rect x="2" y="9" width="2.4" height="6" rx="1"/><rect x="6.5" y="6" width="2.4" height="12" rx="1"/><rect x="11" y="3" width="2.4" height="18" rx="1"/><rect x="15.5" y="7" width="2.4" height="10" rx="1"/><rect x="20" y="10" width="2.4" height="4" rx="1"/></svg>
+        <div style="flex:1;min-width:0"><div style="font:700 12px 'Sora';color:#F3F1F6">Broadcast Proof · Îngerul</div><div style="font:500 10px 'IBM Plex Mono';color:#726A84;margin-top:1px">0:18 / 0:30</div></div>
+        <span style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="#F3F1F6"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+      </div>
+    </div>
+    <div style="background:rgba(11,8,16,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-around;padding:9px 8px 26px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="12" width="4" height="8" rx="1.2"/><rect x="10" y="6" width="4" height="14" rx="1.2"/><rect x="17" y="9" width="4" height="11" rx="1.2"/></svg><span style="font:500 10px 'Sora';color:#726A84">Dashboard</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span style="font:500 10px 'Sora';color:#726A84">My Songs</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9A6DFF" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="13" r="2.2"/><path d="M7.5 8.5a6 6 0 0 1 9 0M4.8 5.8a10 10 0 0 1 14.4 0"/></svg><span style="font:700 10px 'Sora';color:#9A6DFF">Detections</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14M5 16h14"/><circle cx="15" cy="8" r="2.6" fill="#0B0810"/><circle cx="9" cy="16" r="2.6" fill="#0B0810"/></svg><span style="font:500 10px 'Sora';color:#726A84">Settings</span></div>
+    </div>
+  </div>
+</x-import>
+</div>
+
+<div class="dv-opt" id="3f">
+<div class="dv-olabel"><a class="dv-oid" href="#3f">3f</a> Settings — account, plan, preferences</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+  <div style="height:100%;display:flex;flex-direction:column;background:radial-gradient(120% 34% at 50% -12%,rgba(124,92,246,.2),transparent 60%),#0B0810;font-family:'Sora',sans-serif;overflow:hidden">
+    <div style="flex:1;min-height:0;overflow:hidden;padding:58px 16px 0">
+      <div style="font:700 30px/1 'Sora';color:#F3F1F6;letter-spacing:-.02em;margin-bottom:16px">Settings</div>
+      <div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.11);border-radius:20px;padding:16px;margin-bottom:20px">
+        <span style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#7C5CF6,#B84DF0);display:flex;align-items:center;justify-content:center;font:700 19px 'Sora';color:#fff">C</span>
+        <div style="flex:1;min-width:0"><div style="font:700 16px 'Sora';color:#F3F1F6">Carla's Dreams</div><div style="font:400 12.5px 'Sora';color:#A8A2B6">contact@carlasdreams.ro</div></div>
+        <span style="font:700 9.5px 'Sora';letter-spacing:.06em;color:#C4A5FF;background:rgba(154,109,255,.16);border:1px solid rgba(154,109,255,.34);padding:4px 9px;border-radius:8px">ARTIST</span>
+      </div>
+      <div style="font:600 11px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#8E86A2;margin:0 0 8px 6px">Preferences</div>
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:16px;overflow:hidden;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:13px;padding:13px 14px"><span style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#7C5CF6,#B84DF0);display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></span><span style="flex:1;font:500 14.5px 'Sora';color:#F3F1F6">Notifications</span><svg width="7" height="13" viewBox="0 0 8 14" fill="none" stroke="#726A84" stroke-width="2" stroke-linecap="round"><path d="M1 1l6 6-6 6"/></svg></div>
+        <div style="height:1px;background:rgba(255,255,255,.07);margin-left:57px"></div>
+        <div style="display:flex;align-items:center;gap:13px;padding:13px 14px"><span style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#3a6ea8,#5a97c0);display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l3 4v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7z"/><path d="M9 12h6M9 16h6"/></svg></span><span style="flex:1;font:500 14.5px 'Sora';color:#F3F1F6">Daily report</span><svg width="7" height="13" viewBox="0 0 8 14" fill="none" stroke="#726A84" stroke-width="2" stroke-linecap="round"><path d="M1 1l6 6-6 6"/></svg></div>
+        <div style="height:1px;background:rgba(255,255,255,.07);margin-left:57px"></div>
+        <div style="display:flex;align-items:center;gap:13px;padding:13px 14px"><span style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#1a9e6a,#34d399);display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15l5-5 4 4 7-8"/><path d="M20 6h-4M20 6v4"/></svg></span><span style="flex:1;font:500 14.5px 'Sora';color:#F3F1F6">Chart alerts</span><svg width="7" height="13" viewBox="0 0 8 14" fill="none" stroke="#726A84" stroke-width="2" stroke-linecap="round"><path d="M1 1l6 6-6 6"/></svg></div>
+      </div>
+      <div style="font:600 11px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#8E86A2;margin:0 0 8px 6px">Plan &amp; billing</div>
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:16px;overflow:hidden;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:13px;padding:13px 14px"><span style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#c98a00,#f0b429);display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18"/></svg></span><span style="flex:1;font:500 14.5px 'Sora';color:#F3F1F6">Subscription</span><span style="font:600 12.5px 'Sora';color:#C4A5FF;margin-right:2px">Premium</span><svg width="7" height="13" viewBox="0 0 8 14" fill="none" stroke="#726A84" stroke-width="2" stroke-linecap="round"><path d="M1 1l6 6-6 6"/></svg></div>
+      </div>
+      <button style="width:100%;border:1px solid rgba(255,107,107,.28);border-radius:16px;padding:14px;background:rgba(255,107,107,.1);color:#FF7B7B;font:700 14px 'Sora';cursor:pointer">Log out</button>
+      <div style="text-align:center;font:400 11px 'Sora';color:#5f5972;margin-top:14px">onair.music · version 1.0</div>
+    </div>
+    <div style="background:rgba(11,8,16,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-around;padding:9px 8px 26px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="12" width="4" height="8" rx="1.2"/><rect x="10" y="6" width="4" height="14" rx="1.2"/><rect x="17" y="9" width="4" height="11" rx="1.2"/></svg><span style="font:500 10px 'Sora';color:#726A84">Dashboard</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span style="font:500 10px 'Sora';color:#726A84">My Songs</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="2.2"/><path d="M7.5 8.5a6 6 0 0 1 9 0M4.8 5.8a10 10 0 0 1 14.4 0"/></svg><span style="font:500 10px 'Sora';color:#726A84">Detections</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9A6DFF" stroke-width="1.9" stroke-linecap="round"><path d="M5 8h14M5 16h14"/><circle cx="15" cy="8" r="2.6" fill="#0B0810"/><circle cx="9" cy="16" r="2.6" fill="#0B0810"/></svg><span style="font:700 10px 'Sora';color:#9A6DFF">Settings</span></div>
+    </div>
+  </div>
+</x-import>
+</div>
+
+</div>
+<p class="dv-next">This is the Artist journey in <a class="dv-oid" href="#2c">2c</a>. Next I can do the <b>Label</b> &amp; <b>Station</b> roles (their dashboards + Competitors, Analytics, Insights), the <b>Add song</b> / filter sheets, and empty/loading states. Say “do Label + Station” or “add the analytics sub-screens”.</p>
+</section>
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Pulse in blue-purple</span><span class="dv-tsub">— <a class="dv-oid" href="#1d">1d</a> recolored · three shades along the blue↔violet axis, pick one</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="2a">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a> Indigo — balanced blue-purple (the literal “albastru purpuriu”)</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+  <div style="height:100%;display:flex;flex-direction:column;background:radial-gradient(125% 55% at 50% -8%,rgba(91,99,245,.42),rgba(150,90,240,.16) 42%,transparent 70%),#08070E;font-family:'Sora',sans-serif;overflow:hidden">
+    <div style="flex:1;min-height:0;padding:58px 16px 0;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div style="font:700 16px 'Sora';color:#F2F1F6;letter-spacing:-.01em">onair<span style="color:#6B72FF">.</span><span style="color:#8A88A0;font-weight:500">music</span></div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12)"><span style="width:6px;height:6px;border-radius:50%;background:#6B72FF"></span><span style="font:600 10px 'Sora';letter-spacing:.06em;color:#A9A0FF">LIVE</span></span>
+          <span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#5B63F5,#A557F5);display:flex;align-items:center;justify-content:center;font:700 13px 'Sora';color:#fff">C</span>
+        </div>
+      </div>
+      <div style="font:700 30px/1 'Sora';color:#F2F1F6;letter-spacing:-.02em;margin-bottom:16px">Dashboard</div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:18px;margin-bottom:13px;display:flex;align-items:center;gap:18px">
+        <div style="position:relative;width:88px;height:88px;flex:none">
+          <svg width="88" height="88" viewBox="0 0 88 88"><defs><linearGradient id="pgA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5B63F5"/><stop offset="1" stop-color="#A557F5"/></linearGradient></defs><circle cx="44" cy="44" r="35" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="7"/><circle cx="44" cy="44" r="35" fill="none" stroke="url(#pgA)" stroke-width="7" stroke-linecap="round" stroke-dasharray="219.9" stroke-dashoffset="66" transform="rotate(-90 44 44)"/></svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font:800 23px/1 'Sora';color:#F2F1F6">142</span><span style="font:600 9px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#8A88A0;margin-top:3px">today</span></div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font:600 10px 'Sora';letter-spacing:.1em;text-transform:uppercase;color:#8A88A0">Airplay</div>
+          <div style="display:flex;align-items:baseline;gap:7px;margin-top:7px"><span style="font:800 30px/1 'Sora';color:#F2F1F6">968</span><span style="font:500 12px 'Sora';color:#A6A2B4">this week</span></div>
+          <div style="display:inline-flex;align-items:center;gap:5px;margin-top:11px;padding:3px 9px;border-radius:999px;background:rgba(52,211,153,.15)"><span style="font:700 11px 'Sora';color:#34D399">▲ 12% vs yesterday</span></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:14px;margin-bottom:13px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px"><svg width="13" height="13" viewBox="0 0 24 24" fill="#6B72FF"><path d="M3 7l5 4 4-6 4 6 5-4v11H3z"/></svg><span style="font:600 11px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#A6A2B4">Most played</span></div>
+        <div style="display:flex;align-items:center;gap:13px">
+          <div style="width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#5B63F5,#A557F5);flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="1.6"><path d="M9 18V6l10-2v10" stroke-linecap="round"/><circle cx="7" cy="18" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/><circle cx="17" cy="16" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/></svg></div>
+          <div style="flex:1;min-width:0"><div style="font:700 15px 'Sora';color:#F2F1F6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Îngerul</div><div style="font:400 12.5px 'Sora';color:#A6A2B4">Carla's Dreams</div></div>
+          <div style="text-align:right"><div style="font:800 20px/1 'Sora';background:linear-gradient(135deg,#5B63F5,#A557F5);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#5B63F5">342</div><div style="font:500 10px 'Sora';color:#6E6A80;margin-top:3px">plays</div></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:14px 16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font:700 15px 'Sora';color:#F2F1F6">Weekly report</span><span style="font:500 11.5px 'Sora';color:#6E6A80">3 songs</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#EAE9F0">Îngerul</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A6A2B4">342 plays</span><span style="font:700 10px 'Sora';color:#34D399;background:rgba(52,211,153,.15);padding:1px 6px;border-radius:5px">▲ 18%</span></div><div style="display:flex;align-items:center;gap:4px;margin-top:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6B72FF" stroke-width="2"><circle cx="12" cy="14" r="2"/><path d="M7 9a7 7 0 0 1 10 0" stroke-linecap="round"/></svg><span style="font:600 10.5px 'Sora';color:#6B72FF">New on Kiss FM</span></div></div><span style="font:800 17px 'Sora';color:#F2F1F6">342</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#EAE9F0">Ecou</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A6A2B4">214 plays</span><span style="font:700 10px 'Sora';color:#34D399;background:rgba(52,211,153,.15);padding:1px 6px;border-radius:5px">▲ 6%</span></div></div><span style="font:800 17px 'Sora';color:#F2F1F6">214</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#EAE9F0">Alcool</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A6A2B4">168 plays</span><span style="font:700 10px 'Sora';color:#8A88A0;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:5px">▼ 3%</span></div></div><span style="font:800 17px 'Sora';color:#F2F1F6">168</span></div>
+      </div>
+    </div>
+    <div style="background:rgba(18,16,28,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.09)">
+      <div style="height:3px;background:rgba(255,255,255,.1);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:60%;background:linear-gradient(90deg,#5B63F5,#A557F5)"></div><div style="position:absolute;left:83%;top:-3px;bottom:-3px;width:2px;background:#FF6B35"></div></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 16px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#6B72FF"><rect x="2" y="9" width="2.4" height="6" rx="1"/><rect x="6.5" y="6" width="2.4" height="12" rx="1"/><rect x="11" y="3" width="2.4" height="18" rx="1"/><rect x="15.5" y="7" width="2.4" height="10" rx="1"/><rect x="20" y="10" width="2.4" height="4" rx="1"/></svg>
+        <div style="flex:1;min-width:0"><div style="font:700 12px 'Sora';color:#F2F1F6">Broadcast Proof</div><div style="font:500 10px 'IBM Plex Mono';color:#6E6A80;margin-top:1px">0:18 / 0:30</div></div>
+        <span style="display:inline-flex;align-items:center;gap:4px;margin-right:4px"><span style="width:5px;height:5px;border-radius:50%;background:#FF6B35"></span><span style="font:600 10px 'Sora';color:#FF6B35">in 7s</span></span>
+        <span style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="#F2F1F6"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+      </div>
+    </div>
+    <div style="background:rgba(8,7,14,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-around;padding:9px 8px 26px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6B72FF" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="12" width="4" height="8" rx="1.2"/><rect x="10" y="6" width="4" height="14" rx="1.2"/><rect x="17" y="9" width="4" height="11" rx="1.2"/></svg><span style="font:700 10px 'Sora';color:#6B72FF">Dashboard</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6E6A80" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span style="font:500 10px 'Sora';color:#6E6A80">My Songs</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6E6A80" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="2.2"/><path d="M7.5 8.5a6 6 0 0 1 9 0M4.8 5.8a10 10 0 0 1 14.4 0"/></svg><span style="font:500 10px 'Sora';color:#6E6A80">Detections</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6E6A80" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14M5 16h14"/><circle cx="15" cy="8" r="2.6" fill="#08070E"/><circle cx="9" cy="16" r="2.6" fill="#08070E"/></svg><span style="font:500 10px 'Sora';color:#6E6A80">Settings</span></div>
+    </div>
+  </div>
+</x-import>
+</div>
+
+<div class="dv-opt" id="2b">
+<div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a> Electric Blue — cooler, more blue</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+  <div style="height:100%;display:flex;flex-direction:column;background:radial-gradient(125% 55% at 50% -8%,rgba(59,110,245,.42),rgba(110,80,240,.15) 42%,transparent 70%),#07090F;font-family:'Sora',sans-serif;overflow:hidden">
+    <div style="flex:1;min-height:0;padding:58px 16px 0;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div style="font:700 16px 'Sora';color:#F1F2F6;letter-spacing:-.01em">onair<span style="color:#4E82FF">.</span><span style="color:#868DA0;font-weight:500">music</span></div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12)"><span style="width:6px;height:6px;border-radius:50%;background:#4E82FF"></span><span style="font:600 10px 'Sora';letter-spacing:.06em;color:#8FB0FF">LIVE</span></span>
+          <span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#3B6EF5,#7C4DF0);display:flex;align-items:center;justify-content:center;font:700 13px 'Sora';color:#fff">C</span>
+        </div>
+      </div>
+      <div style="font:700 30px/1 'Sora';color:#F1F2F6;letter-spacing:-.02em;margin-bottom:16px">Dashboard</div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:18px;margin-bottom:13px;display:flex;align-items:center;gap:18px">
+        <div style="position:relative;width:88px;height:88px;flex:none">
+          <svg width="88" height="88" viewBox="0 0 88 88"><defs><linearGradient id="pgB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B6EF5"/><stop offset="1" stop-color="#7C4DF0"/></linearGradient></defs><circle cx="44" cy="44" r="35" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="7"/><circle cx="44" cy="44" r="35" fill="none" stroke="url(#pgB)" stroke-width="7" stroke-linecap="round" stroke-dasharray="219.9" stroke-dashoffset="66" transform="rotate(-90 44 44)"/></svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font:800 23px/1 'Sora';color:#F1F2F6">142</span><span style="font:600 9px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#868DA0;margin-top:3px">today</span></div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font:600 10px 'Sora';letter-spacing:.1em;text-transform:uppercase;color:#868DA0">Airplay</div>
+          <div style="display:flex;align-items:baseline;gap:7px;margin-top:7px"><span style="font:800 30px/1 'Sora';color:#F1F2F6">968</span><span style="font:500 12px 'Sora';color:#A2A6B6">this week</span></div>
+          <div style="display:inline-flex;align-items:center;gap:5px;margin-top:11px;padding:3px 9px;border-radius:999px;background:rgba(52,211,153,.15)"><span style="font:700 11px 'Sora';color:#34D399">▲ 12% vs yesterday</span></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:14px;margin-bottom:13px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px"><svg width="13" height="13" viewBox="0 0 24 24" fill="#4E82FF"><path d="M3 7l5 4 4-6 4 6 5-4v11H3z"/></svg><span style="font:600 11px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#A2A6B6">Most played</span></div>
+        <div style="display:flex;align-items:center;gap:13px">
+          <div style="width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#3B6EF5,#7C4DF0);flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="1.6"><path d="M9 18V6l10-2v10" stroke-linecap="round"/><circle cx="7" cy="18" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/><circle cx="17" cy="16" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/></svg></div>
+          <div style="flex:1;min-width:0"><div style="font:700 15px 'Sora';color:#F1F2F6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Îngerul</div><div style="font:400 12.5px 'Sora';color:#A2A6B6">Carla's Dreams</div></div>
+          <div style="text-align:right"><div style="font:800 20px/1 'Sora';background:linear-gradient(135deg,#3B6EF5,#7C4DF0);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#3B6EF5">342</div><div style="font:500 10px 'Sora';color:#6C7084;margin-top:3px">plays</div></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:14px 16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font:700 15px 'Sora';color:#F1F2F6">Weekly report</span><span style="font:500 11.5px 'Sora';color:#6C7084">3 songs</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#E9EAF0">Îngerul</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A2A6B6">342 plays</span><span style="font:700 10px 'Sora';color:#34D399;background:rgba(52,211,153,.15);padding:1px 6px;border-radius:5px">▲ 18%</span></div><div style="display:flex;align-items:center;gap:4px;margin-top:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#4E82FF" stroke-width="2"><circle cx="12" cy="14" r="2"/><path d="M7 9a7 7 0 0 1 10 0" stroke-linecap="round"/></svg><span style="font:600 10.5px 'Sora';color:#4E82FF">New on Kiss FM</span></div></div><span style="font:800 17px 'Sora';color:#F1F2F6">342</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#E9EAF0">Ecou</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A2A6B6">214 plays</span><span style="font:700 10px 'Sora';color:#34D399;background:rgba(52,211,153,.15);padding:1px 6px;border-radius:5px">▲ 6%</span></div></div><span style="font:800 17px 'Sora';color:#F1F2F6">214</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#E9EAF0">Alcool</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A2A6B6">168 plays</span><span style="font:700 10px 'Sora';color:#8489A0;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:5px">▼ 3%</span></div></div><span style="font:800 17px 'Sora';color:#F1F2F6">168</span></div>
+      </div>
+    </div>
+    <div style="background:rgba(16,18,30,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.09)">
+      <div style="height:3px;background:rgba(255,255,255,.1);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:60%;background:linear-gradient(90deg,#3B6EF5,#7C4DF0)"></div><div style="position:absolute;left:83%;top:-3px;bottom:-3px;width:2px;background:#FF6B35"></div></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 16px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#4E82FF"><rect x="2" y="9" width="2.4" height="6" rx="1"/><rect x="6.5" y="6" width="2.4" height="12" rx="1"/><rect x="11" y="3" width="2.4" height="18" rx="1"/><rect x="15.5" y="7" width="2.4" height="10" rx="1"/><rect x="20" y="10" width="2.4" height="4" rx="1"/></svg>
+        <div style="flex:1;min-width:0"><div style="font:700 12px 'Sora';color:#F1F2F6">Broadcast Proof</div><div style="font:500 10px 'IBM Plex Mono';color:#6C7084;margin-top:1px">0:18 / 0:30</div></div>
+        <span style="display:inline-flex;align-items:center;gap:4px;margin-right:4px"><span style="width:5px;height:5px;border-radius:50%;background:#FF6B35"></span><span style="font:600 10px 'Sora';color:#FF6B35">in 7s</span></span>
+        <span style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="#F1F2F6"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+      </div>
+    </div>
+    <div style="background:rgba(7,9,15,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-around;padding:9px 8px 26px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4E82FF" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="12" width="4" height="8" rx="1.2"/><rect x="10" y="6" width="4" height="14" rx="1.2"/><rect x="17" y="9" width="4" height="11" rx="1.2"/></svg><span style="font:700 10px 'Sora';color:#4E82FF">Dashboard</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6C7084" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span style="font:500 10px 'Sora';color:#6C7084">My Songs</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6C7084" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="2.2"/><path d="M7.5 8.5a6 6 0 0 1 9 0M4.8 5.8a10 10 0 0 1 14.4 0"/></svg><span style="font:500 10px 'Sora';color:#6C7084">Detections</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6C7084" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14M5 16h14"/><circle cx="15" cy="8" r="2.6" fill="#07090F"/><circle cx="9" cy="16" r="2.6" fill="#07090F"/></svg><span style="font:500 10px 'Sora';color:#6C7084">Settings</span></div>
+    </div>
+  </div>
+</x-import>
+</div>
+
+<div class="dv-opt" id="2c">
+<div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a> Violet — warmer, more purple</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+  <div style="height:100%;display:flex;flex-direction:column;background:radial-gradient(125% 55% at 50% -8%,rgba(124,92,246,.44),rgba(175,70,240,.16) 42%,transparent 70%),#0A070E;font-family:'Sora',sans-serif;overflow:hidden">
+    <div style="flex:1;min-height:0;padding:58px 16px 0;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div style="font:700 16px 'Sora';color:#F3F1F6;letter-spacing:-.01em">onair<span style="color:#9A6DFF">.</span><span style="color:#8E86A2;font-weight:500">music</span></div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12)"><span style="width:6px;height:6px;border-radius:50%;background:#9A6DFF"></span><span style="font:600 10px 'Sora';letter-spacing:.06em;color:#C4A5FF">LIVE</span></span>
+          <span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7C5CF6,#B84DF0);display:flex;align-items:center;justify-content:center;font:700 13px 'Sora';color:#fff">C</span>
+        </div>
+      </div>
+      <div style="font:700 30px/1 'Sora';color:#F3F1F6;letter-spacing:-.02em;margin-bottom:16px">Dashboard</div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:18px;margin-bottom:13px;display:flex;align-items:center;gap:18px">
+        <div style="position:relative;width:88px;height:88px;flex:none">
+          <svg width="88" height="88" viewBox="0 0 88 88"><defs><linearGradient id="pgC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C5CF6"/><stop offset="1" stop-color="#B84DF0"/></linearGradient></defs><circle cx="44" cy="44" r="35" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="7"/><circle cx="44" cy="44" r="35" fill="none" stroke="url(#pgC)" stroke-width="7" stroke-linecap="round" stroke-dasharray="219.9" stroke-dashoffset="66" transform="rotate(-90 44 44)"/></svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font:800 23px/1 'Sora';color:#F3F1F6">142</span><span style="font:600 9px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#8E86A2;margin-top:3px">today</span></div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font:600 10px 'Sora';letter-spacing:.1em;text-transform:uppercase;color:#8E86A2">Airplay</div>
+          <div style="display:flex;align-items:baseline;gap:7px;margin-top:7px"><span style="font:800 30px/1 'Sora';color:#F3F1F6">968</span><span style="font:500 12px 'Sora';color:#A8A2B6">this week</span></div>
+          <div style="display:inline-flex;align-items:center;gap:5px;margin-top:11px;padding:3px 9px;border-radius:999px;background:rgba(52,211,153,.15)"><span style="font:700 11px 'Sora';color:#34D399">▲ 12% vs yesterday</span></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:14px;margin-bottom:13px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px"><svg width="13" height="13" viewBox="0 0 24 24" fill="#9A6DFF"><path d="M3 7l5 4 4-6 4 6 5-4v11H3z"/></svg><span style="font:600 11px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#A8A2B6">Most played</span></div>
+        <div style="display:flex;align-items:center;gap:13px">
+          <div style="width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#7C5CF6,#B84DF0);flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="1.6"><path d="M9 18V6l10-2v10" stroke-linecap="round"/><circle cx="7" cy="18" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/><circle cx="17" cy="16" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/></svg></div>
+          <div style="flex:1;min-width:0"><div style="font:700 15px 'Sora';color:#F3F1F6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Îngerul</div><div style="font:400 12.5px 'Sora';color:#A8A2B6">Carla's Dreams</div></div>
+          <div style="text-align:right"><div style="font:800 20px/1 'Sora';background:linear-gradient(135deg,#7C5CF6,#B84DF0);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#7C5CF6">342</div><div style="font:500 10px 'Sora';color:#726A84;margin-top:3px">plays</div></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:14px 16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font:700 15px 'Sora';color:#F3F1F6">Weekly report</span><span style="font:500 11.5px 'Sora';color:#726A84">3 songs</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#EBE9F1">Îngerul</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A8A2B6">342 plays</span><span style="font:700 10px 'Sora';color:#34D399;background:rgba(52,211,153,.15);padding:1px 6px;border-radius:5px">▲ 18%</span></div><div style="display:flex;align-items:center;gap:4px;margin-top:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9A6DFF" stroke-width="2"><circle cx="12" cy="14" r="2"/><path d="M7 9a7 7 0 0 1 10 0" stroke-linecap="round"/></svg><span style="font:600 10.5px 'Sora';color:#9A6DFF">New on Kiss FM</span></div></div><span style="font:800 17px 'Sora';color:#F3F1F6">342</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#EBE9F1">Ecou</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A8A2B6">214 plays</span><span style="font:700 10px 'Sora';color:#34D399;background:rgba(52,211,153,.15);padding:1px 6px;border-radius:5px">▲ 6%</span></div></div><span style="font:800 17px 'Sora';color:#F3F1F6">214</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#EBE9F1">Alcool</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A8A2B6">168 plays</span><span style="font:700 10px 'Sora';color:#8B85A2;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:5px">▼ 3%</span></div></div><span style="font:800 17px 'Sora';color:#F3F1F6">168</span></div>
+      </div>
+    </div>
+    <div style="background:rgba(20,15,30,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.09)">
+      <div style="height:3px;background:rgba(255,255,255,.1);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:60%;background:linear-gradient(90deg,#7C5CF6,#B84DF0)"></div><div style="position:absolute;left:83%;top:-3px;bottom:-3px;width:2px;background:#FF6B35"></div></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 16px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#9A6DFF"><rect x="2" y="9" width="2.4" height="6" rx="1"/><rect x="6.5" y="6" width="2.4" height="12" rx="1"/><rect x="11" y="3" width="2.4" height="18" rx="1"/><rect x="15.5" y="7" width="2.4" height="10" rx="1"/><rect x="20" y="10" width="2.4" height="4" rx="1"/></svg>
+        <div style="flex:1;min-width:0"><div style="font:700 12px 'Sora';color:#F3F1F6">Broadcast Proof</div><div style="font:500 10px 'IBM Plex Mono';color:#726A84;margin-top:1px">0:18 / 0:30</div></div>
+        <span style="display:inline-flex;align-items:center;gap:4px;margin-right:4px"><span style="width:5px;height:5px;border-radius:50%;background:#FF6B35"></span><span style="font:600 10px 'Sora';color:#FF6B35">in 7s</span></span>
+        <span style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="#F3F1F6"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+      </div>
+    </div>
+    <div style="background:rgba(10,7,14,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-around;padding:9px 8px 26px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9A6DFF" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="12" width="4" height="8" rx="1.2"/><rect x="10" y="6" width="4" height="14" rx="1.2"/><rect x="17" y="9" width="4" height="11" rx="1.2"/></svg><span style="font:700 10px 'Sora';color:#9A6DFF">Dashboard</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span style="font:500 10px 'Sora';color:#726A84">My Songs</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="2.2"/><path d="M7.5 8.5a6 6 0 0 1 9 0M4.8 5.8a10 10 0 0 1 14.4 0"/></svg><span style="font:500 10px 'Sora';color:#726A84">Detections</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#726A84" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14M5 16h14"/><circle cx="15" cy="8" r="2.6" fill="#0A070E"/><circle cx="9" cy="16" r="2.6" fill="#0A070E"/></svg><span style="font:500 10px 'Sora';color:#726A84">Settings</span></div>
+    </div>
+  </div>
+</x-import>
+</div>
+
+</div>
+<p class="dv-next">Pick a shade — <a class="dv-oid" href="#2a">2a</a> / <a class="dv-oid" href="#2b">2b</a> / <a class="dv-oid" href="#2c">2c</a> — and I'll build the full app in it. Or nudge it: “<a class="dv-oid" href="#2a">2a</a> a bit deeper/less saturated”, “more indigo, less magenta in the gradient”.</p>
+</section>
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">onair.music — iOS redesign</span><span class="dv-tsub">— Artist Dashboard, four directions · coral accent · rebranded from RadioBug teal</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a> Nocturne — refined dark, Apple-Music-grade restraint, Manrope</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+  <div style="height:100%;display:flex;flex-direction:column;background:#0A0A0B;font-family:'Manrope',sans-serif;overflow:hidden">
+    <div style="flex:1;min-height:0;padding:58px 16px 0;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:7px"><span style="width:8px;height:8px;border-radius:50%;background:#FB5B53"></span><span style="font:800 14px 'Manrope';color:#F2F2F5;letter-spacing:-.01em">onair<span style="color:#64646E;font-weight:600">.music</span></span></div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="width:34px;height:34px;border-radius:50%;background:#16161A;border:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9A9AA6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></span>
+          <span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#FB5B53,#B3372F);display:flex;align-items:center;justify-content:center;font:800 13px 'Manrope';color:#fff">C</span>
+        </div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="font:800 30px/1 'Manrope';color:#F2F2F5;letter-spacing:-.02em">Dashboard</div>
+        <div style="font:500 13px 'Manrope';color:#9A9AA6;margin-top:6px">Sat, Jun 21 · your airplay today</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+        <div style="background:#16161A;border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:15px 16px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FB5B53" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 9l5 3-5 3z" fill="#FB5B53" stroke="none"/></svg>
+          <div style="font:800 30px/1 'Manrope';color:#F2F2F5;margin-top:11px;letter-spacing:-.02em">142</div>
+          <div style="font:600 12px 'Manrope';color:#9A9AA6;margin-top:5px">Plays today</div>
+          <div style="font:700 11px 'Manrope';color:#34D399;margin-top:8px">▲ 12% vs yesterday</div>
+        </div>
+        <div style="background:#16161A;border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:15px 16px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9A9AA6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+          <div style="font:800 30px/1 'Manrope';color:#F2F2F5;margin-top:11px;letter-spacing:-.02em">968</div>
+          <div style="font:600 12px 'Manrope';color:#9A9AA6;margin-top:5px">This week</div>
+          <div style="font:700 11px 'Manrope';color:#34D399;margin-top:8px">▲ 8% vs last week</div>
+        </div>
+      </div>
+      <div style="background:#16161A;border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:14px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FB5B53"><path d="M3 7l5 4 4-6 4 6 5-4v11H3z"/></svg><span style="font:700 11px 'Manrope';letter-spacing:.08em;text-transform:uppercase;color:#9A9AA6">Most played</span></div>
+        <div style="display:flex;align-items:center;gap:13px">
+          <div style="width:52px;height:52px;border-radius:11px;background:linear-gradient(135deg,#FB5B53,#B3372F);flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="1.6"><path d="M9 18V6l10-2v10" stroke-linecap="round"/><circle cx="7" cy="18" r="2.5" fill="rgba(255,255,255,.9)" stroke="none"/><circle cx="17" cy="16" r="2.5" fill="rgba(255,255,255,.9)" stroke="none"/></svg></div>
+          <div style="flex:1;min-width:0"><div style="font:700 15px 'Manrope';color:#F2F2F5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Îngerul</div><div style="font:500 12.5px 'Manrope';color:#9A9AA6">Carla's Dreams</div></div>
+          <div style="text-align:right"><div style="font:800 20px/1 'Manrope';color:#FB5B53">342</div><div style="font:600 10px 'Manrope';color:#64646E;margin-top:3px">plays</div></div>
+        </div>
+      </div>
+      <div style="background:#16161A;border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:14px 16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font:700 15px 'Manrope';color:#F2F2F5">Weekly report</span><span style="font:600 11.5px 'Manrope';color:#64646E">3 songs</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.06)"><div style="flex:1;min-width:0"><div style="font:600 13.5px 'Manrope';color:#F2F2F5">Îngerul</div><div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="font:500 11px 'Manrope';color:#9A9AA6">342 plays</span><span style="font:700 10px 'Manrope';color:#34D399;background:rgba(52,211,153,.14);padding:1px 6px;border-radius:5px">▲ 18%</span></div><div style="display:flex;align-items:center;gap:4px;margin-top:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FB5B53" stroke-width="2"><circle cx="12" cy="14" r="2"/><path d="M7 9a7 7 0 0 1 10 0" stroke-linecap="round"/></svg><span style="font:600 10.5px 'Manrope';color:#FB5B53">New on Kiss FM</span></div></div><span style="font:800 17px 'Manrope';color:#F2F2F5">342</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.06)"><div style="flex:1;min-width:0"><div style="font:600 13.5px 'Manrope';color:#F2F2F5">Ecou</div><div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="font:500 11px 'Manrope';color:#9A9AA6">214 plays</span><span style="font:700 10px 'Manrope';color:#34D399;background:rgba(52,211,153,.14);padding:1px 6px;border-radius:5px">▲ 6%</span></div></div><span style="font:800 17px 'Manrope';color:#F2F2F5">214</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.06)"><div style="flex:1;min-width:0"><div style="font:600 13.5px 'Manrope';color:#F2F2F5">Alcool</div><div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="font:500 11px 'Manrope';color:#9A9AA6">168 plays</span><span style="font:700 10px 'Manrope';color:#8A8A94;background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px">▼ 3%</span></div></div><span style="font:800 17px 'Manrope';color:#F2F2F5">168</span></div>
+      </div>
+    </div>
+    <div style="background:#141418;border-top:1px solid rgba(255,255,255,.07)">
+      <div style="height:3px;background:rgba(255,255,255,.08);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:60%;background:#FB5B53"></div><div style="position:absolute;left:83%;top:-3px;bottom:-3px;width:2px;background:#FF6B35"></div></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 16px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#FB5B53"><rect x="2" y="9" width="2.4" height="6" rx="1"/><rect x="6.5" y="6" width="2.4" height="12" rx="1"/><rect x="11" y="3" width="2.4" height="18" rx="1"/><rect x="15.5" y="7" width="2.4" height="10" rx="1"/><rect x="20" y="10" width="2.4" height="4" rx="1"/></svg>
+        <div style="flex:1;min-width:0"><div style="font:700 12px 'Manrope';color:#F2F2F5">Broadcast Proof</div><div style="font:500 10px 'IBM Plex Mono';color:#64646E;margin-top:1px">0:18 / 0:30</div></div>
+        <span style="display:inline-flex;align-items:center;gap:4px;margin-right:4px"><span style="width:5px;height:5px;border-radius:50%;background:#FF6B35"></span><span style="font:600 10px 'Manrope';color:#FF6B35">in 7s</span></span>
+        <span style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="#F2F2F5"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+      </div>
+    </div>
+    <div style="background:rgba(10,10,11,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-around;padding:9px 8px 26px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FB5B53" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="12" width="4" height="8" rx="1.2"/><rect x="10" y="6" width="4" height="14" rx="1.2"/><rect x="17" y="9" width="4" height="11" rx="1.2"/></svg><span style="font:700 10px 'Manrope';color:#FB5B53">Dashboard</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64646E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span style="font:600 10px 'Manrope';color:#64646E">My Songs</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64646E" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="2.2"/><path d="M7.5 8.5a6 6 0 0 1 9 0M4.8 5.8a10 10 0 0 1 14.4 0"/></svg><span style="font:600 10px 'Manrope';color:#64646E">Detections</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64646E" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14M5 16h14"/><circle cx="15" cy="8" r="2.6" fill="#0A0A0B"/><circle cx="9" cy="16" r="2.6" fill="#0A0A0B"/></svg><span style="font:600 10px 'Manrope';color:#64646E">Settings</span></div>
+    </div>
+  </div>
+</x-import>
+</div>
+
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a> On Air — bold editorial dark, expressive display type, coral hero</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+  <div style="height:100%;display:flex;flex-direction:column;background:#0B0B0D;font-family:'Hanken Grotesk',sans-serif;overflow:hidden">
+    <div style="flex:1;min-height:0;padding:58px 16px 0;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font:700 18px 'Bricolage Grotesque';color:#FAFAFA;letter-spacing:-.02em">onair<span style="color:#FB5B53">.</span><span style="color:#7A7A82;font-weight:600">music</span></div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(251,91,83,.14);border:1px solid rgba(251,91,83,.38)"><span style="width:6px;height:6px;border-radius:50%;background:#FB5B53"></span><span style="font:700 10px 'Hanken Grotesk';letter-spacing:.08em;color:#FB7A72">ON AIR</span></span>
+          <span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#FB5B53,#E23B4E);display:flex;align-items:center;justify-content:center;font:700 13px 'Hanken Grotesk';color:#fff">C</span>
+        </div>
+      </div>
+      <div style="font:700 32px/1 'Bricolage Grotesque';color:#FAFAFA;letter-spacing:-.02em;margin-bottom:14px">Dashboard</div>
+      <div style="background:linear-gradient(120deg,#FB5B53 0%,#E5354B 100%);border-radius:22px;padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:14px;overflow:hidden">
+        <div>
+          <div style="font:700 11px 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.85)">Plays today</div>
+          <div style="font:800 46px/1 'Bricolage Grotesque';color:#fff;letter-spacing:-.02em;margin-top:6px">142</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:11px"><span style="padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.22);font:700 11px 'Hanken Grotesk';color:#fff">▲ 12% today</span><span style="font:600 12px 'Hanken Grotesk';color:rgba(255,255,255,.9)"><b style="font:800 13px 'Bricolage Grotesque'">968</b> this week</span></div>
+        </div>
+        <svg width="120" height="80" viewBox="0 0 120 80" fill="none" style="flex:none;opacity:.9"><path d="M0,58 C12,54 18,30 30,32 C42,34 48,14 62,18 C76,22 84,44 120,34" stroke="rgba(255,255,255,.9)" stroke-width="2.5" stroke-linecap="round"/><path d="M0,68 C14,64 22,50 34,52 C46,54 54,38 68,42 C82,46 90,60 120,54" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div style="background:#141416;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:15px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px"><svg width="14" height="14" viewBox="0 0 24 24" fill="#FB5B53"><path d="M3 7l5 4 4-6 4 6 5-4v11H3z"/></svg><span style="font:700 12px 'Hanken Grotesk';letter-spacing:.06em;text-transform:uppercase;color:#9A9AA2">Most played</span></div>
+        <div style="display:flex;align-items:center;gap:13px">
+          <div style="width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,#3a2f5e,#6d4b8f);flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="1.6"><path d="M9 18V6l10-2v10" stroke-linecap="round"/><circle cx="7" cy="18" r="2.5" fill="rgba(255,255,255,.9)" stroke="none"/><circle cx="17" cy="16" r="2.5" fill="rgba(255,255,255,.9)" stroke="none"/></svg></div>
+          <div style="flex:1;min-width:0"><div style="font:700 16px 'Bricolage Grotesque';color:#FAFAFA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Îngerul</div><div style="font:500 12.5px 'Hanken Grotesk';color:#9A9AA2">Carla's Dreams</div></div>
+          <div style="text-align:right"><div style="font:800 22px/1 'Bricolage Grotesque';color:#FB5B53">342</div><div style="font:600 10px 'Hanken Grotesk';color:#6B6B73;margin-top:3px">plays</div></div>
+        </div>
+      </div>
+      <div style="background:#141416;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:15px 16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font:700 16px 'Bricolage Grotesque';color:#FAFAFA">Weekly report</span><span style="font:600 11.5px 'Hanken Grotesk';color:#6B6B73">3 songs</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.07)"><div style="flex:1;min-width:0"><div style="font:600 13.5px 'Hanken Grotesk';color:#ECECEE">Îngerul</div><div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="font:500 11px 'Hanken Grotesk';color:#9A9AA2">342 plays</span><span style="font:700 10px 'Hanken Grotesk';color:#34D399;background:rgba(52,211,153,.14);padding:1px 6px;border-radius:5px">▲ 18%</span></div><div style="display:flex;align-items:center;gap:4px;margin-top:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FB5B53" stroke-width="2"><circle cx="12" cy="14" r="2"/><path d="M7 9a7 7 0 0 1 10 0" stroke-linecap="round"/></svg><span style="font:600 10.5px 'Hanken Grotesk';color:#FB5B53">New on Kiss FM</span></div></div><span style="font:800 19px 'Bricolage Grotesque';color:#FAFAFA">342</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.07)"><div style="flex:1;min-width:0"><div style="font:600 13.5px 'Hanken Grotesk';color:#ECECEE">Ecou</div><div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="font:500 11px 'Hanken Grotesk';color:#9A9AA2">214 plays</span><span style="font:700 10px 'Hanken Grotesk';color:#34D399;background:rgba(52,211,153,.14);padding:1px 6px;border-radius:5px">▲ 6%</span></div></div><span style="font:800 19px 'Bricolage Grotesque';color:#FAFAFA">214</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.07)"><div style="flex:1;min-width:0"><div style="font:600 13.5px 'Hanken Grotesk';color:#ECECEE">Alcool</div><div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="font:500 11px 'Hanken Grotesk';color:#9A9AA2">168 plays</span><span style="font:700 10px 'Hanken Grotesk';color:#8A8A94;background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px">▼ 3%</span></div></div><span style="font:800 19px 'Bricolage Grotesque';color:#FAFAFA">168</span></div>
+      </div>
+    </div>
+    <div style="background:#141416;border-top:1px solid rgba(255,255,255,.08)">
+      <div style="height:3px;background:rgba(255,255,255,.08);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:60%;background:#FB5B53"></div><div style="position:absolute;left:83%;top:-3px;bottom:-3px;width:2px;background:#FF6B35"></div></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 16px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#FB5B53"><rect x="2" y="9" width="2.4" height="6" rx="1"/><rect x="6.5" y="6" width="2.4" height="12" rx="1"/><rect x="11" y="3" width="2.4" height="18" rx="1"/><rect x="15.5" y="7" width="2.4" height="10" rx="1"/><rect x="20" y="10" width="2.4" height="4" rx="1"/></svg>
+        <div style="flex:1;min-width:0"><div style="font:700 12.5px 'Hanken Grotesk';color:#FAFAFA">Broadcast Proof</div><div style="font:500 10px 'IBM Plex Mono';color:#6B6B73;margin-top:1px">0:18 / 0:30</div></div>
+        <span style="display:inline-flex;align-items:center;gap:4px;margin-right:4px"><span style="width:5px;height:5px;border-radius:50%;background:#FF6B35"></span><span style="font:700 10px 'Hanken Grotesk';color:#FF6B35">in 7s</span></span>
+        <span style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="#FAFAFA"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+      </div>
+    </div>
+    <div style="background:rgba(11,11,13,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-around;padding:9px 8px 26px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FB5B53" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="12" width="4" height="8" rx="1.2"/><rect x="10" y="6" width="4" height="14" rx="1.2"/><rect x="17" y="9" width="4" height="11" rx="1.2"/></svg><span style="font:700 10px 'Hanken Grotesk';color:#FB5B53">Dashboard</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6B6B73" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span style="font:600 10px 'Hanken Grotesk';color:#6B6B73">My Songs</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6B6B73" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="2.2"/><path d="M7.5 8.5a6 6 0 0 1 9 0M4.8 5.8a10 10 0 0 1 14.4 0"/></svg><span style="font:600 10px 'Hanken Grotesk';color:#6B6B73">Detections</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6B6B73" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14M5 16h14"/><circle cx="15" cy="8" r="2.6" fill="#0B0B0D"/><circle cx="9" cy="16" r="2.6" fill="#0B0B0D"/></svg><span style="font:600 10px 'Hanken Grotesk';color:#6B6B73">Settings</span></div>
+    </div>
+  </div>
+</x-import>
+</div>
+
+<div class="dv-opt" id="1c">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a> Studio — warm light editorial, serif display + Figtree, soft &amp; premium</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+  <div style="height:100%;display:flex;flex-direction:column;background:#F6F3EE;font-family:'Figtree',sans-serif;overflow:hidden">
+    <div style="flex:1;min-height:0;padding:58px 16px 0;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#FB5B53"></span><span style="font:400 20px 'Instrument Serif',serif;color:#211F1B">onair<span style="color:#A9A196">.music</span></span></div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="width:34px;height:34px;border-radius:50%;background:#fff;border:1px solid #ECE6DB;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(31,29,25,.04)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6F6A62" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></span>
+          <span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#FB5B53,#E5354B);display:flex;align-items:center;justify-content:center;font:700 13px 'Figtree';color:#fff">C</span>
+        </div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="font:400 32px/1 'Instrument Serif',serif;color:#211F1B">Dashboard</div>
+        <div style="font:500 13px 'Figtree';color:#8A8272;margin-top:6px">Sat, Jun 21 · your airplay today</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+        <div style="background:#fff;border:1px solid #ECE6DB;border-radius:18px;padding:15px 16px;box-shadow:0 1px 2px rgba(31,29,25,.04),0 10px 26px -16px rgba(31,29,25,.18)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FB5B53" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 9l5 3-5 3z" fill="#FB5B53" stroke="none"/></svg>
+          <div style="font:400 34px/1 'Instrument Serif',serif;color:#211F1B;margin-top:10px">142</div>
+          <div style="font:600 12px 'Figtree';color:#8A8272;margin-top:5px">Plays today</div>
+          <div style="font:700 11px 'Figtree';color:#0F9D6B;margin-top:8px">▲ 12% vs yesterday</div>
+        </div>
+        <div style="background:#fff;border:1px solid #ECE6DB;border-radius:18px;padding:15px 16px;box-shadow:0 1px 2px rgba(31,29,25,.04),0 10px 26px -16px rgba(31,29,25,.18)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C99A00" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+          <div style="font:400 34px/1 'Instrument Serif',serif;color:#211F1B;margin-top:10px">968</div>
+          <div style="font:600 12px 'Figtree';color:#8A8272;margin-top:5px">This week</div>
+          <div style="font:700 11px 'Figtree';color:#0F9D6B;margin-top:8px">▲ 8% vs last week</div>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid #ECE6DB;border-radius:18px;padding:14px;margin-bottom:14px;box-shadow:0 1px 2px rgba(31,29,25,.04),0 10px 26px -16px rgba(31,29,25,.18)">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FB5B53"><path d="M3 7l5 4 4-6 4 6 5-4v11H3z"/></svg><span style="font:700 11px 'Figtree';letter-spacing:.06em;text-transform:uppercase;color:#A9A196">Most played</span></div>
+        <div style="display:flex;align-items:center;gap:13px">
+          <div style="width:52px;height:52px;border-radius:11px;background:linear-gradient(135deg,#FB5B53,#E5354B);flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="1.6"><path d="M9 18V6l10-2v10" stroke-linecap="round"/><circle cx="7" cy="18" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/><circle cx="17" cy="16" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/></svg></div>
+          <div style="flex:1;min-width:0"><div style="font:600 15px 'Figtree';color:#211F1B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Îngerul</div><div style="font:500 12.5px 'Figtree';color:#8A8272">Carla's Dreams</div></div>
+          <div style="text-align:right"><div style="font:400 24px/1 'Instrument Serif',serif;color:#C23C2F">342</div><div style="font:600 10px 'Figtree';color:#A9A196;margin-top:2px">plays</div></div>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid #ECE6DB;border-radius:18px;padding:14px 16px;box-shadow:0 1px 2px rgba(31,29,25,.04),0 10px 26px -16px rgba(31,29,25,.18)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font:400 20px 'Instrument Serif',serif;color:#211F1B">Weekly report</span><span style="font:600 11.5px 'Figtree';color:#A9A196">3 songs</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #F1EBE0"><div style="flex:1;min-width:0"><div style="font:600 13.5px 'Figtree';color:#33302B">Îngerul</div><div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="font:500 11px 'Figtree';color:#8A8272">342 plays</span><span style="font:700 10px 'Figtree';color:#0F9D6B;background:rgba(15,157,107,.1);padding:1px 6px;border-radius:5px">▲ 18%</span></div><div style="display:flex;align-items:center;gap:4px;margin-top:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C23C2F" stroke-width="2"><circle cx="12" cy="14" r="2"/><path d="M7 9a7 7 0 0 1 10 0" stroke-linecap="round"/></svg><span style="font:600 10.5px 'Figtree';color:#C23C2F">New on Kiss FM</span></div></div><span style="font:400 20px 'Instrument Serif',serif;color:#211F1B">342</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #F1EBE0"><div style="flex:1;min-width:0"><div style="font:600 13.5px 'Figtree';color:#33302B">Ecou</div><div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="font:500 11px 'Figtree';color:#8A8272">214 plays</span><span style="font:700 10px 'Figtree';color:#0F9D6B;background:rgba(15,157,107,.1);padding:1px 6px;border-radius:5px">▲ 6%</span></div></div><span style="font:400 20px 'Instrument Serif',serif;color:#211F1B">214</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #F1EBE0"><div style="flex:1;min-width:0"><div style="font:600 13.5px 'Figtree';color:#33302B">Alcool</div><div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="font:500 11px 'Figtree';color:#8A8272">168 plays</span><span style="font:700 10px 'Figtree';color:#A9A196;background:#F1EBE0;padding:1px 6px;border-radius:5px">▼ 3%</span></div></div><span style="font:400 20px 'Instrument Serif',serif;color:#211F1B">168</span></div>
+      </div>
+    </div>
+    <div style="background:#FBF9F5;border-top:1px solid #E8E1D6">
+      <div style="height:3px;background:#E8E1D6;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:60%;background:#FB5B53"></div><div style="position:absolute;left:83%;top:-3px;bottom:-3px;width:2px;background:#C99A00"></div></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 16px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#FB5B53"><rect x="2" y="9" width="2.4" height="6" rx="1"/><rect x="6.5" y="6" width="2.4" height="12" rx="1"/><rect x="11" y="3" width="2.4" height="18" rx="1"/><rect x="15.5" y="7" width="2.4" height="10" rx="1"/><rect x="20" y="10" width="2.4" height="4" rx="1"/></svg>
+        <div style="flex:1;min-width:0"><div style="font:700 12.5px 'Figtree';color:#211F1B">Broadcast Proof</div><div style="font:500 10px 'IBM Plex Mono';color:#A9A196;margin-top:1px">0:18 / 0:30</div></div>
+        <span style="display:inline-flex;align-items:center;gap:4px;margin-right:4px"><span style="width:5px;height:5px;border-radius:50%;background:#C99A00"></span><span style="font:700 10px 'Figtree';color:#C99A00">in 7s</span></span>
+        <span style="width:34px;height:34px;border-radius:50%;background:#211F1B;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+      </div>
+    </div>
+    <div style="background:rgba(246,243,238,.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid #E8E1D6;display:flex;justify-content:space-around;padding:9px 8px 26px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C23C2F" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="12" width="4" height="8" rx="1.2"/><rect x="10" y="6" width="4" height="14" rx="1.2"/><rect x="17" y="9" width="4" height="11" rx="1.2"/></svg><span style="font:700 10px 'Figtree';color:#C23C2F">Dashboard</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A9A196" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span style="font:600 10px 'Figtree';color:#A9A196">My Songs</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A9A196" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="2.2"/><path d="M7.5 8.5a6 6 0 0 1 9 0M4.8 5.8a10 10 0 0 1 14.4 0"/></svg><span style="font:600 10px 'Figtree';color:#A9A196">Detections</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A9A196" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14M5 16h14"/><circle cx="15" cy="8" r="2.6" fill="#F6F3EE"/><circle cx="9" cy="16" r="2.6" fill="#F6F3EE"/></svg><span style="font:600 10px 'Figtree';color:#A9A196">Settings</span></div>
+    </div>
+  </div>
+</x-import>
+</div>
+
+<div class="dv-opt" id="1d">
+<div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a> Pulse — vivid glassy gradient, energetic consumer-app feel, Sora</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+  <div style="height:100%;display:flex;flex-direction:column;background:radial-gradient(125% 55% at 50% -8%,rgba(251,91,83,.38),rgba(200,50,110,.14) 42%,transparent 70%),#08070A;font-family:'Sora',sans-serif;overflow:hidden">
+    <div style="flex:1;min-height:0;padding:58px 16px 0;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div style="font:700 16px 'Sora';color:#F4F1F5;letter-spacing:-.01em">onair<span style="color:#FB5B53">.</span><span style="color:#8A8494;font-weight:500">music</span></div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12)"><span style="width:6px;height:6px;border-radius:50%;background:#FB5B53"></span><span style="font:600 10px 'Sora';letter-spacing:.06em;color:#FB7A72">LIVE</span></span>
+          <span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#FB5B53,#FF3D8B);display:flex;align-items:center;justify-content:center;font:700 13px 'Sora';color:#fff">C</span>
+        </div>
+      </div>
+      <div style="font:700 30px/1 'Sora';color:#F4F1F5;letter-spacing:-.02em;margin-bottom:16px">Dashboard</div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:18px;margin-bottom:13px;display:flex;align-items:center;gap:18px">
+        <div style="position:relative;width:88px;height:88px;flex:none">
+          <svg width="88" height="88" viewBox="0 0 88 88"><defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FB5B53"/><stop offset="1" stop-color="#FF3D8B"/></linearGradient></defs><circle cx="44" cy="44" r="35" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="7"/><circle cx="44" cy="44" r="35" fill="none" stroke="url(#pg)" stroke-width="7" stroke-linecap="round" stroke-dasharray="219.9" stroke-dashoffset="66" transform="rotate(-90 44 44)"/></svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font:800 23px/1 'Sora';color:#F4F1F5">142</span><span style="font:600 9px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#8A8494;margin-top:3px">today</span></div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font:600 10px 'Sora';letter-spacing:.1em;text-transform:uppercase;color:#8A8494">Airplay</div>
+          <div style="display:flex;align-items:baseline;gap:7px;margin-top:7px"><span style="font:800 30px/1 'Sora';color:#F4F1F5">968</span><span style="font:500 12px 'Sora';color:#A9A3B0">this week</span></div>
+          <div style="display:inline-flex;align-items:center;gap:5px;margin-top:11px;padding:3px 9px;border-radius:999px;background:rgba(52,211,153,.15)"><span style="font:700 11px 'Sora';color:#34D399">▲ 12% vs yesterday</span></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:14px;margin-bottom:13px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FB5B53"><path d="M3 7l5 4 4-6 4 6 5-4v11H3z"/></svg><span style="font:600 11px 'Sora';letter-spacing:.08em;text-transform:uppercase;color:#A9A3B0">Most played</span></div>
+        <div style="display:flex;align-items:center;gap:13px">
+          <div style="width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#FB5B53,#FF3D8B);flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="1.6"><path d="M9 18V6l10-2v10" stroke-linecap="round"/><circle cx="7" cy="18" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/><circle cx="17" cy="16" r="2.5" fill="rgba(255,255,255,.95)" stroke="none"/></svg></div>
+          <div style="flex:1;min-width:0"><div style="font:700 15px 'Sora';color:#F4F1F5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Îngerul</div><div style="font:400 12.5px 'Sora';color:#A9A3B0">Carla's Dreams</div></div>
+          <div style="text-align:right"><div style="font:800 20px/1 'Sora';background:linear-gradient(135deg,#FB5B53,#FF3D8B);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#FB5B53">342</div><div style="font:500 10px 'Sora';color:#6E6878;margin-top:3px">plays</div></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.055);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,.11);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);padding:14px 16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font:700 15px 'Sora';color:#F4F1F5">Weekly report</span><span style="font:500 11.5px 'Sora';color:#6E6878">3 songs</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#ECEAEF">Îngerul</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A9A3B0">342 plays</span><span style="font:700 10px 'Sora';color:#34D399;background:rgba(52,211,153,.15);padding:1px 6px;border-radius:5px">▲ 18%</span></div><div style="display:flex;align-items:center;gap:4px;margin-top:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FB5B53" stroke-width="2"><circle cx="12" cy="14" r="2"/><path d="M7 9a7 7 0 0 1 10 0" stroke-linecap="round"/></svg><span style="font:600 10.5px 'Sora';color:#FB5B53">New on Kiss FM</span></div></div><span style="font:800 17px 'Sora';color:#F4F1F5">342</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#ECEAEF">Ecou</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A9A3B0">214 plays</span><span style="font:700 10px 'Sora';color:#34D399;background:rgba(52,211,153,.15);padding:1px 6px;border-radius:5px">▲ 6%</span></div></div><span style="font:800 17px 'Sora';color:#F4F1F5">214</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><div style="font:600 13px 'Sora';color:#ECEAEF">Alcool</div><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font:400 11px 'Sora';color:#A9A3B0">168 plays</span><span style="font:700 10px 'Sora';color:#8A8494;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:5px">▼ 3%</span></div></div><span style="font:800 17px 'Sora';color:#F4F1F5">168</span></div>
+      </div>
+    </div>
+    <div style="background:rgba(20,16,24,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.09)">
+      <div style="height:3px;background:rgba(255,255,255,.1);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:60%;background:linear-gradient(90deg,#FB5B53,#FF3D8B)"></div><div style="position:absolute;left:83%;top:-3px;bottom:-3px;width:2px;background:#FF6B35"></div></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 16px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#FB5B53"><rect x="2" y="9" width="2.4" height="6" rx="1"/><rect x="6.5" y="6" width="2.4" height="12" rx="1"/><rect x="11" y="3" width="2.4" height="18" rx="1"/><rect x="15.5" y="7" width="2.4" height="10" rx="1"/><rect x="20" y="10" width="2.4" height="4" rx="1"/></svg>
+        <div style="flex:1;min-width:0"><div style="font:700 12px 'Sora';color:#F4F1F5">Broadcast Proof</div><div style="font:500 10px 'IBM Plex Mono';color:#6E6878;margin-top:1px">0:18 / 0:30</div></div>
+        <span style="display:inline-flex;align-items:center;gap:4px;margin-right:4px"><span style="width:5px;height:5px;border-radius:50%;background:#FF6B35"></span><span style="font:600 10px 'Sora';color:#FF6B35">in 7s</span></span>
+        <span style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="#F4F1F5"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+      </div>
+    </div>
+    <div style="background:rgba(8,7,10,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-around;padding:9px 8px 26px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FB5B53" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="12" width="4" height="8" rx="1.2"/><rect x="10" y="6" width="4" height="14" rx="1.2"/><rect x="17" y="9" width="4" height="11" rx="1.2"/></svg><span style="font:700 10px 'Sora';color:#FB5B53">Dashboard</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6E6878" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span style="font:500 10px 'Sora';color:#6E6878">My Songs</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6E6878" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="2.2"/><path d="M7.5 8.5a6 6 0 0 1 9 0M4.8 5.8a10 10 0 0 1 14.4 0"/></svg><span style="font:500 10px 'Sora';color:#6E6878">Detections</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6E6878" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14M5 16h14"/><circle cx="15" cy="8" r="2.6" fill="#08070A"/><circle cx="9" cy="16" r="2.6" fill="#08070A"/></svg><span style="font:500 10px 'Sora';color:#6E6878">Settings</span></div>
+    </div>
+  </div>
+</x-import>
+</div>
+
+</div>
+<p class="dv-next">Reply with a direction to build out the full app in it — e.g. <a class="dv-oid" href="#1a">1a</a> · or “<a class="dv-oid" href="#1a">1a</a> but keep the teal accent”, “show <a class="dv-oid" href="#1d">1d</a> in light too”, “more screens of <a class="dv-oid" href="#1b">1b</a> (My Songs, Detections, Song detail)”, or “new directions”.</p>
+</section>
+</x-dc>
+</body>
+</html>

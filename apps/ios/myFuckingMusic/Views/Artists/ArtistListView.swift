@@ -8,8 +8,8 @@ struct ArtistListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.rbBackground
-                    .ignoresSafeArea()
+                Color.clear
+                    .onairGlow(subtle: true)
 
                 if viewModel.isLoading && viewModel.artists.isEmpty {
                     loadingState
@@ -57,7 +57,8 @@ struct ArtistListView: View {
                     .buttonStyle(ArtistRowButtonStyle())
 
                     Divider()
-                        .overlay(Color.rbSurfaceLight.opacity(0.5))
+                        .overlay(Color.rbHairline)
+                        .padding(.leading, 84)
                 }
             }
         }
@@ -71,7 +72,7 @@ struct ArtistListView: View {
                 .tint(Color.rbAccent)
                 .scaleEffect(1.2)
             Text("Loading artists...")
-                .font(.subheadline)
+                .font(.sora(14))
                 .foregroundStyle(Color.rbTextSecondary)
         }
     }
@@ -83,19 +84,18 @@ struct ArtistListView: View {
                 .foregroundStyle(Color.rbError)
 
             Text("Failed to load artists")
-                .font(.headline)
+                .font(.sora(17, .semibold))
                 .foregroundStyle(Color.rbTextPrimary)
 
             Text(error)
-                .font(.caption)
+                .font(.sora(12))
                 .foregroundStyle(Color.rbTextSecondary)
                 .multilineTextAlignment(.center)
 
             Button("Retry") {
                 Task { await viewModel.loadArtists() }
             }
-            .buttonStyle(.borderedProminent)
-            .tint(Color.rbAccent)
+            .buttonStyle(RBAccentButtonStyle())
         }
         .padding()
     }
@@ -107,11 +107,11 @@ struct ArtistListView: View {
                 .foregroundStyle(Color.rbTextTertiary)
 
             Text("No artists found")
-                .font(.headline)
+                .font(.sora(17, .semibold))
                 .foregroundStyle(Color.rbTextPrimary)
 
             Text("Try a different search term")
-                .font(.subheadline)
+                .font(.sora(14))
                 .foregroundStyle(Color.rbTextSecondary)
         }
     }
@@ -123,11 +123,11 @@ struct ArtistListView: View {
                 .foregroundStyle(Color.rbTextTertiary)
 
             Text("No artists yet")
-                .font(.headline)
+                .font(.sora(17, .semibold))
                 .foregroundStyle(Color.rbTextPrimary)
 
             Text("Artists will appear once airplay events are detected")
-                .font(.subheadline)
+                .font(.sora(14))
                 .foregroundStyle(Color.rbTextSecondary)
                 .multilineTextAlignment(.center)
         }
@@ -149,22 +149,22 @@ private struct ArtistRowView: View {
             // Artist info
             VStack(alignment: .leading, spacing: 3) {
                 Text(artist.name)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.sora(15, .semibold))
                     .foregroundStyle(Color.rbTextPrimary)
                     .lineLimit(1)
 
                 HStack(spacing: 8) {
                     Label("\(artist.playCount)", systemImage: "play.fill")
-                        .font(.caption)
+                        .font(.mono(11))
                         .foregroundStyle(Color.rbAccent)
 
                     Label("\(artist.songCount) song\(artist.songCount == 1 ? "" : "s")", systemImage: "music.note")
-                        .font(.caption)
+                        .font(.sora(11))
                         .foregroundStyle(Color.rbTextSecondary)
                 }
 
                 Text(DateFormatters.relativeTime(artist.lastDetectedAt))
-                    .font(.caption2)
+                    .font(.mono(10))
                     .foregroundStyle(Color.rbTextTertiary)
             }
 
@@ -191,15 +191,16 @@ private struct ArtistRowView: View {
                     .aspectRatio(contentMode: .fill)
             } else {
                 ZStack {
-                    Color.rbSurface
+                    LinearGradient.rbAccentGradient.opacity(0.25)
                     Image(systemName: "person.fill")
                         .font(.system(size: 20))
-                        .foregroundStyle(Color.rbTextTertiary)
+                        .foregroundStyle(Color.rbAccentLight)
                 }
             }
         }
         .frame(width: 56, height: 56)
         .clipShape(Circle())
+        .overlay(Circle().strokeBorder(Color.rbGlassBorder, lineWidth: 1))
     }
 }
 

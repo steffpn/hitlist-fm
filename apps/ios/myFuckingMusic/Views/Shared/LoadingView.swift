@@ -12,11 +12,11 @@ struct LoadingView: View {
                 .tint(Color.rbAccent)
 
             Text(message)
-                .font(.subheadline)
+                .font(.sora(14, .medium))
                 .foregroundStyle(Color.rbTextSecondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.rbBackground)
+        .onairGlow(subtle: true)
     }
 }
 

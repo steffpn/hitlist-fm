@@ -15,9 +15,6 @@ struct NewSongsView: View {
 
     var body: some View {
         ZStack {
-            Color.rbBackground
-                .ignoresSafeArea()
-
             if viewModel.isLoading && viewModel.newSongs.isEmpty {
                 LoadingView()
             } else if let errorMessage = viewModel.error, viewModel.newSongs.isEmpty {
@@ -45,8 +42,8 @@ struct NewSongsView: View {
                                 newSongRow(song)
 
                                 Divider()
-                                    .overlay(Color.rbSurfaceLight.opacity(0.5))
-                                    .padding(.leading, 16)
+                                    .overlay(Color.rbHairline)
+                                    .padding(.leading, 74)
                             }
                         }
                     }
@@ -57,6 +54,7 @@ struct NewSongsView: View {
                 }
             }
         }
+        .onairGlow(subtle: true)
         .navigationTitle("New Songs")
         .navigationBarTitleDisplayMode(.large)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -73,36 +71,36 @@ struct NewSongsView: View {
         HStack(spacing: 14) {
             // Song icon with NEW badge overlay
             ZStack(alignment: .topTrailing) {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.rbSurface)
-                    .frame(width: 44, height: 44)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(LinearGradient.rbAccentGradient)
+                    .frame(width: 46, height: 46)
                     .overlay {
                         Image(systemName: "music.note")
                             .font(.system(size: 18))
-                            .foregroundStyle(Color.rbAccent)
+                            .foregroundStyle(.white)
                     }
 
                 // NEW badge
                 Text("NEW")
-                    .font(.system(size: 7, weight: .black))
+                    .font(.sora(7, .black))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 4)
                     .padding(.vertical, 2)
                     .background(
                         Capsule()
-                            .fill(.green)
+                            .fill(Color.rbLive)
                     )
                     .offset(x: 4, y: -4)
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(song.songTitle)
-                    .font(.subheadline.weight(.medium))
+                    .font(.sora(14, .semibold))
                     .foregroundStyle(Color.rbTextPrimary)
                     .lineLimit(1)
 
                 Text(song.artistName)
-                    .font(.caption)
+                    .font(.sora(12))
                     .foregroundStyle(Color.rbTextSecondary)
                     .lineLimit(1)
 
@@ -112,7 +110,7 @@ struct NewSongsView: View {
                         .foregroundStyle(Color.rbTextTertiary)
 
                     Text(formatFirstPlayed(song.firstPlayedAt))
-                        .font(.caption2)
+                        .font(.mono(10))
                         .foregroundStyle(Color.rbTextTertiary)
                 }
             }
@@ -132,11 +130,11 @@ struct NewSongsView: View {
                 .foregroundStyle(Color.rbTextTertiary)
 
             Text("No New Songs")
-                .font(.title3.weight(.semibold))
+                .font(.sora(20, .semibold))
                 .foregroundStyle(Color.rbTextPrimary)
 
             Text("New songs detected for the first time will appear here")
-                .font(.subheadline)
+                .font(.sora(14))
                 .foregroundStyle(Color.rbTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)

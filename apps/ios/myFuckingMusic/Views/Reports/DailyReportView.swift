@@ -14,7 +14,7 @@ struct DailyReportView: View {
                             .tint(Color.rbAccent)
                         Spacer()
                     }
-                    .listRowBackground(Color.rbSurface)
+                    .listRowBackground(Color.rbGlassTint)
                 }
             } else if let report = viewModel.todayReport {
                 // Today's stats
@@ -33,7 +33,7 @@ struct DailyReportView: View {
                             StatRow(
                                 label: "Week over Week",
                                 value: "\(weekPercent > 0 ? "+" : "")\(weekPercent)%",
-                                valueColor: weekPercent >= 0 ? .green : Color.rbError
+                                valueColor: weekPercent >= 0 ? Color.rbLive : Color.rbError
                             )
                         }
                         if let uniqueSongs = content.uniqueSongs {
@@ -47,8 +47,10 @@ struct DailyReportView: View {
                         }
                     }
                 } header: {
-                    Text("Today's Report")
-                        .foregroundStyle(Color.rbTextSecondary)
+                    Text("TODAY'S REPORT")
+                        .font(.sora(10, .semibold))
+                        .tracking(1.4)
+                        .foregroundStyle(Color.rbTextTertiary)
                 }
 
                 // Tips
@@ -56,11 +58,13 @@ struct DailyReportView: View {
                     Section {
                         ForEach(Array(report.tips.enumerated()), id: \.offset) { _, tip in
                             TipCard(tip: tip)
-                                .listRowBackground(Color.rbSurface)
+                                .listRowBackground(Color.rbGlassTint)
                         }
                     } header: {
-                        Text("Tips & Insights")
-                            .foregroundStyle(Color.rbTextSecondary)
+                        Text("TIPS & INSIGHTS")
+                            .font(.sora(10, .semibold))
+                            .tracking(1.4)
+                            .foregroundStyle(Color.rbTextTertiary)
                     }
                 }
             } else {
@@ -74,16 +78,16 @@ struct DailyReportView: View {
                                 .foregroundStyle(Color.rbTextTertiary)
                             Text("No report yet")
                                 .foregroundStyle(Color.rbTextSecondary)
-                                .font(.headline)
+                                .font(.sora(17, .semibold))
                             Text("Your daily report will appear here once it's generated.")
                                 .foregroundStyle(Color.rbTextTertiary)
-                                .font(.subheadline)
+                                .font(.sora(14))
                                 .multilineTextAlignment(.center)
                         }
                         .padding(.vertical, 32)
                         Spacer()
                     }
-                    .listRowBackground(Color.rbSurface)
+                    .listRowBackground(Color.rbGlassTint)
                 }
             }
 
@@ -98,26 +102,28 @@ struct DailyReportView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(formattedDate(report.reportDate))
                                         .foregroundStyle(Color.rbTextPrimary)
-                                        .fontWeight(.medium)
+                                        .font(.sora(14, .medium))
                                     if let plays = report.content.totalPlays {
                                         Text("\(plays) total plays")
                                             .foregroundStyle(Color.rbTextSecondary)
-                                            .font(.caption)
+                                            .font(.mono(12))
                                     }
                                 }
                                 Spacer()
                                 if report.isPremium {
                                     Image(systemName: "star.fill")
-                                        .foregroundStyle(Color.rbWarm)
+                                        .foregroundStyle(Color.rbAccentLight)
                                         .font(.caption)
                                 }
                             }
                         }
-                        .listRowBackground(Color.rbSurface)
+                        .listRowBackground(Color.rbGlassTint)
                     }
                 } header: {
-                    Text("Past Reports")
-                        .foregroundStyle(Color.rbTextSecondary)
+                    Text("PAST REPORTS")
+                        .font(.sora(10, .semibold))
+                        .tracking(1.4)
+                        .foregroundStyle(Color.rbTextTertiary)
                 }
             }
 
@@ -126,12 +132,12 @@ struct DailyReportView: View {
                     Text(error)
                         .foregroundStyle(Color.rbError)
                         .font(.caption)
-                        .listRowBackground(Color.rbSurface)
+                        .listRowBackground(Color.rbGlassTint)
                 }
             }
         }
         .scrollContentBackground(.hidden)
-        .background(Color.rbBackground)
+        .onairGlow(subtle: true)
         .navigationTitle("Reports")
         .toolbarColorScheme(.dark, for: .navigationBar)
         .preferredColorScheme(.dark)
@@ -163,12 +169,13 @@ private struct StatRow: View {
         HStack {
             Text(label)
                 .foregroundStyle(Color.rbTextPrimary)
+                .font(.sora(14))
             Spacer()
             Text(value)
                 .foregroundStyle(valueColor)
-                .fontWeight(.semibold)
+                .font(.mono(14, .medium))
         }
-        .listRowBackground(Color.rbSurface)
+        .listRowBackground(Color.rbGlassTint)
     }
 }
 
@@ -181,12 +188,12 @@ private struct TipCard: View {
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "lightbulb.fill")
-                .foregroundStyle(Color.rbWarm)
+                .foregroundStyle(Color.rbAccent)
                 .font(.subheadline)
                 .padding(.top, 2)
             Text(tip)
                 .foregroundStyle(Color.rbTextPrimary)
-                .font(.subheadline)
+                .font(.sora(14))
         }
         .padding(.vertical, 4)
     }
@@ -214,7 +221,7 @@ private struct PastReportDetailView: View {
                     StatRow(
                         label: "Week over Week",
                         value: "\(weekPercent > 0 ? "+" : "")\(weekPercent)%",
-                        valueColor: weekPercent >= 0 ? .green : Color.rbError
+                        valueColor: weekPercent >= 0 ? Color.rbLive : Color.rbError
                     )
                 }
                 if let uniqueSongs = report.content.uniqueSongs {
@@ -227,24 +234,28 @@ private struct PastReportDetailView: View {
                     StatRow(label: "Discovery Score", value: "\(discovery)%")
                 }
             } header: {
-                Text("Stats")
-                    .foregroundStyle(Color.rbTextSecondary)
+                Text("STATS")
+                    .font(.sora(10, .semibold))
+                    .tracking(1.4)
+                    .foregroundStyle(Color.rbTextTertiary)
             }
 
             if !report.tips.isEmpty {
                 Section {
                     ForEach(Array(report.tips.enumerated()), id: \.offset) { _, tip in
                         TipCard(tip: tip)
-                            .listRowBackground(Color.rbSurface)
+                            .listRowBackground(Color.rbGlassTint)
                     }
                 } header: {
-                    Text("Tips & Insights")
-                        .foregroundStyle(Color.rbTextSecondary)
+                    Text("TIPS & INSIGHTS")
+                        .font(.sora(10, .semibold))
+                        .tracking(1.4)
+                        .foregroundStyle(Color.rbTextTertiary)
                 }
             }
         }
         .scrollContentBackground(.hidden)
-        .background(Color.rbBackground)
+        .onairGlow(subtle: true)
         .navigationTitle(formattedDate(report.reportDate))
         .toolbarColorScheme(.dark, for: .navigationBar)
         .preferredColorScheme(.dark)

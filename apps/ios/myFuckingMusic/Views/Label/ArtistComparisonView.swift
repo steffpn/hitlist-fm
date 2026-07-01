@@ -7,17 +7,17 @@ struct ArtistComparisonView: View {
     @State private var viewModel = ArtistComparisonViewModel()
     @State private var artistListViewModel = LabelArtistListViewModel()
 
-    /// Color palette for artist series differentiation — high-contrast, vibrant.
+    /// Color palette for artist series differentiation — on-brand violet family.
     private let seriesColors: [Color] = [
         .rbAccent,
-        Color(red: 1, green: 0.42, blue: 0.42),
-        Color(red: 0.3, green: 0.8, blue: 0.77)
+        .rbAccentGradEnd,
+        .rbAccentLight
     ]
 
     var body: some View {
         ZStack {
-            Color.rbBackground
-                .ignoresSafeArea()
+            Color.clear
+                .onairGlow(subtle: true)
 
             ScrollView {
                 VStack(spacing: 20) {
@@ -30,8 +30,8 @@ struct ArtistComparisonView: View {
                     // Error display
                     if let errorMessage = viewModel.error {
                         Text(errorMessage)
-                            .font(.caption)
-                            .foregroundStyle(.red)
+                            .font(.sora(12, .medium))
+                            .foregroundStyle(Color.rbError)
                             .padding(.horizontal, 16)
                     }
 
@@ -71,13 +71,13 @@ struct ArtistComparisonView: View {
                     .foregroundStyle(Color.rbAccent)
 
                 Text("Select Artists")
-                    .font(.headline)
+                    .font(.sora(16, .bold))
                     .foregroundStyle(Color.rbTextPrimary)
 
                 Spacer()
 
                 Text("\(viewModel.selectedArtistIds.count)/3 selected")
-                    .font(.caption)
+                    .font(.mono(11))
                     .foregroundStyle(
                         viewModel.selectedArtistIds.count >= 2
                             ? Color.rbAccent
@@ -98,13 +98,13 @@ struct ArtistComparisonView: View {
                                 .foregroundStyle(isSelected ? Color.rbAccent : Color.rbTextTertiary)
 
                             Text(artist.artistName)
-                                .font(.subheadline)
+                                .font(.sora(14, .medium))
                                 .foregroundStyle(Color.rbTextPrimary)
 
                             Spacer()
 
                             Text("\(artist.totalPlays) plays")
-                                .font(.caption)
+                                .font(.mono(11))
                                 .foregroundStyle(Color.rbTextSecondary)
                         }
                         .padding(.vertical, 10)
@@ -115,25 +115,12 @@ struct ArtistComparisonView: View {
 
                     if artist.id != artistListViewModel.artists.last?.id {
                         Divider()
-                            .overlay(Color.rbSurfaceLight.opacity(0.5))
+                            .overlay(Color.rbHairline)
                     }
                 }
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.rbSurfaceLight, lineWidth: 1)
-        )
+        .rbCard(radius: 18)
         .padding(.horizontal, 16)
     }
 
@@ -146,17 +133,17 @@ struct ArtistComparisonView: View {
             HStack {
                 Image(systemName: "chart.bar.xaxis")
                 Text("Compare")
-                    .fontWeight(.semibold)
             }
+            .font(.sora(16, .bold))
             .foregroundStyle(viewModel.selectedArtistIds.count >= 2 ? .white : Color.rbTextTertiary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(
                         viewModel.selectedArtistIds.count >= 2
                             ? AnyShapeStyle(LinearGradient.rbAccentGradient)
-                            : AnyShapeStyle(Color.rbSurface)
+                            : AnyShapeStyle(Color.rbSurfaceLight)
                     )
             )
         }
@@ -193,15 +180,7 @@ private struct ComparisonChartCard: View {
             chartContent
             chartLegend
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial).opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
+        .rbCard(radius: 22)
     }
 
     private var chartHeader: some View {
@@ -210,7 +189,7 @@ private struct ComparisonChartCard: View {
                 .font(.system(size: 14))
                 .foregroundStyle(Color.rbAccent)
             Text("Daily Plays Comparison")
-                .font(.headline)
+                .font(.sora(16, .bold))
                 .foregroundStyle(Color.rbTextPrimary)
         }
     }
@@ -238,17 +217,17 @@ private struct ComparisonChartCard: View {
         .chartXAxis {
             AxisMarks { _ in
                 AxisValueLabel()
-                    .foregroundStyle(Color.rbTextTertiary)
-                    .font(.caption2)
+                    .foregroundStyle(Color.rbTextSecondary)
+                    .font(.mono(9))
             }
         }
         .chartYAxis {
             AxisMarks { _ in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                    .foregroundStyle(Color.rbSurfaceLight)
+                    .foregroundStyle(Color.rbHairline)
                 AxisValueLabel()
-                    .foregroundStyle(Color.rbTextTertiary)
-                    .font(.caption2)
+                    .foregroundStyle(Color.rbTextSecondary)
+                    .font(.mono(9))
             }
         }
         .frame(height: 260)
@@ -262,7 +241,7 @@ private struct ComparisonChartCard: View {
                         .fill(seriesColors[index % seriesColors.count])
                         .frame(width: 10, height: 10)
                     Text(artist.artistName)
-                        .font(.caption2)
+                        .font(.sora(11, .medium))
                         .foregroundStyle(Color.rbTextSecondary)
                         .lineLimit(1)
                 }

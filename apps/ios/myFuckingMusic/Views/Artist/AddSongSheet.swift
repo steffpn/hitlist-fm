@@ -27,9 +27,6 @@ struct AddSongSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.rbBackground
-                    .ignoresSafeArea()
-
                 ScrollView {
                     VStack(spacing: 24) {
                         // Header icon
@@ -41,8 +38,8 @@ struct AddSongSheet: View {
                         // Error message
                         if let errorMessage {
                             Text(errorMessage)
-                                .font(.caption)
-                                .foregroundStyle(.red)
+                                .font(.sora(12))
+                                .foregroundStyle(Color.rbError)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
                         }
@@ -56,6 +53,7 @@ struct AddSongSheet: View {
                     .padding(.top, 24)
                 }
             }
+            .onairGlow()
             .navigationTitle("Add Song")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarColorScheme(.dark, for: .navigationBar)
@@ -76,23 +74,18 @@ struct AddSongSheet: View {
 
     private var headerSection: some View {
         VStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [.rbAccent.opacity(0.3), .rbSurface],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(LinearGradient.rbAccentGradient)
                 .frame(width: 72, height: 72)
                 .overlay {
-                    Image(systemName: "plus.circle")
-                        .font(.system(size: 30, weight: .light))
-                        .foregroundStyle(Color.rbAccent)
+                    Image(systemName: "plus")
+                        .font(.system(size: 30, weight: .semibold))
+                        .foregroundStyle(.white)
                 }
+                .shadow(color: Color.rbAccent.opacity(0.5), radius: 14, y: 8)
 
             Text("Track a new song across radio stations")
-                .font(.subheadline)
+                .font(.sora(14))
                 .foregroundStyle(Color.rbTextSecondary)
                 .multilineTextAlignment(.center)
         }
@@ -121,14 +114,15 @@ struct AddSongSheet: View {
                         .font(.system(size: 12))
                         .foregroundStyle(Color.rbTextTertiary)
 
-                    Text("Artist Name")
-                        .font(.caption)
+                    Text("ARTIST NAME")
+                        .font(.sora(10, .semibold))
+                        .tracking(1.4)
                         .foregroundStyle(Color.rbTextTertiary)
                 }
 
                 HStack {
                     Text(artistName.isEmpty ? "Your Name" : artistName)
-                        .font(.subheadline)
+                        .font(.sora(14))
                         .foregroundStyle(Color.rbTextSecondary)
 
                     Spacer()
@@ -139,12 +133,12 @@ struct AddSongSheet: View {
                 }
                 .padding(14)
                 .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.rbSurface.opacity(0.6))
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color.white.opacity(0.04))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .strokeBorder(Color.rbSurfaceLight.opacity(0.5), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(Color.rbGlassBorder.opacity(0.6), lineWidth: 1)
                 )
             }
 
@@ -162,7 +156,7 @@ struct AddSongSheet: View {
             }
 
             Text("ISRC (International Standard Recording Code) uniquely identifies your recording.")
-                .font(.caption2)
+                .font(.sora(11))
                 .foregroundStyle(Color.rbTextTertiary)
                 .padding(.horizontal, 4)
         }
@@ -180,20 +174,23 @@ struct AddSongSheet: View {
                     .font(.system(size: 12))
                     .foregroundStyle(Color.rbTextTertiary)
 
-                Text(label)
-                    .font(.caption)
+                Text(label.uppercased())
+                    .font(.sora(10, .semibold))
+                    .tracking(1.4)
                     .foregroundStyle(Color.rbTextTertiary)
             }
 
             content()
+                .font(.sora(14))
+                .tint(Color.rbAccent)
                 .padding(14)
                 .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.rbSurface)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color.white.opacity(0.06))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .strokeBorder(Color.rbSurfaceLight, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(Color.rbGlassBorder, lineWidth: 1)
                 )
         }
     }
@@ -207,23 +204,30 @@ struct AddSongSheet: View {
             HStack(spacing: 10) {
                 if isSubmitting {
                     ProgressView()
-                        .tint(.black)
+                        .tint(.white)
                 } else {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 16, weight: .semibold))
                 }
                 Text("Add Song")
-                    .font(.headline)
+                    .font(.sora(16, .bold))
             }
-            .foregroundStyle(.black)
+            .foregroundStyle(isFormValid ? .white : Color.rbTextTertiary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(
-                isFormValid
-                    ? Color.rbAccent
-                    : Color.rbSurfaceLight
-            )
+            .background {
+                if isFormValid {
+                    LinearGradient.rbAccentGradient
+                } else {
+                    Color.white.opacity(0.06)
+                }
+            }
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(Color.rbGlassBorder, lineWidth: isFormValid ? 0 : 1)
+            )
+            .shadow(color: Color.rbAccent.opacity(isFormValid ? 0.5 : 0), radius: 14, y: 8)
         }
         .disabled(!isFormValid || isSubmitting)
         .padding(.top, 8)

@@ -28,9 +28,8 @@ struct SnippetPlayerView: View {
 
                 // Time display: "0:02 / 0:05"
                 Text("\(formatTime(currentTime)) / \(formatTime(duration))")
-                    .font(.caption)
+                    .font(.mono(12))
                     .foregroundStyle(Color.rbTextTertiary)
-                    .monospacedDigit()
 
                 Spacer()
 
@@ -46,7 +45,8 @@ struct SnippetPlayerView: View {
         .padding(.horizontal)
         .padding(.vertical, 6)
         .frame(height: 40)
-        .background(Color.rbSurface)
+        .background(.ultraThinMaterial)
+        .background(Color.rbGlassTint)
         .transition(.opacity.combined(with: .move(edge: .top)))
     }
 

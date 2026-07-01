@@ -13,9 +13,10 @@ struct ChartAlertsView: View {
                     "Show Unread Only",
                     isOn: Bindable(viewModel).showUnreadOnly
                 )
+                .font(.sora(14))
                 .foregroundStyle(Color.rbTextPrimary)
                 .tint(Color.rbAccent)
-                .listRowBackground(Color.rbSurface)
+                .listRowBackground(Color.rbGlassTint)
             }
 
             // Alerts list
@@ -27,7 +28,7 @@ struct ChartAlertsView: View {
                             .tint(Color.rbAccent)
                         Spacer()
                     }
-                    .listRowBackground(Color.rbSurface)
+                    .listRowBackground(Color.rbGlassTint)
                 }
             } else if viewModel.filteredAlerts.isEmpty {
                 Section {
@@ -39,16 +40,16 @@ struct ChartAlertsView: View {
                                 .foregroundStyle(Color.rbTextTertiary)
                             Text("No chart alerts yet")
                                 .foregroundStyle(Color.rbTextSecondary)
-                                .font(.headline)
+                                .font(.sora(17, .semibold))
                             Text("When your songs appear on charts, you'll see alerts here.")
                                 .foregroundStyle(Color.rbTextTertiary)
-                                .font(.subheadline)
+                                .font(.sora(14))
                                 .multilineTextAlignment(.center)
                         }
                         .padding(.vertical, 32)
                         Spacer()
                     }
-                    .listRowBackground(Color.rbSurface)
+                    .listRowBackground(Color.rbGlassTint)
                 }
             } else {
                 Section {
@@ -64,17 +65,19 @@ struct ChartAlertsView: View {
                                     .tint(Color.rbAccent)
                                 }
                             }
-                            .listRowBackground(Color.rbSurface)
+                            .listRowBackground(Color.rbGlassTint)
                     }
                 } header: {
                     HStack {
-                        Text("Alerts")
-                            .foregroundStyle(Color.rbTextSecondary)
+                        Text("ALERTS")
+                            .font(.sora(10, .semibold))
+                            .tracking(1.4)
+                            .foregroundStyle(Color.rbTextTertiary)
                         Spacer()
                         if viewModel.unreadCount > 0 {
                             Text("\(viewModel.unreadCount) unread")
-                                .font(.caption)
-                                .foregroundStyle(Color.rbAccent)
+                                .font(.mono(11))
+                                .foregroundStyle(Color.rbAccentLight)
                         }
                     }
                 }
@@ -85,12 +88,12 @@ struct ChartAlertsView: View {
                     Text(error)
                         .foregroundStyle(Color.rbError)
                         .font(.caption)
-                        .listRowBackground(Color.rbSurface)
+                        .listRowBackground(Color.rbGlassTint)
                 }
             }
         }
         .scrollContentBackground(.hidden)
-        .background(Color.rbBackground)
+        .onairGlow(subtle: true)
         .navigationTitle("Chart Alerts")
         .toolbarColorScheme(.dark, for: .navigationBar)
         .preferredColorScheme(.dark)
@@ -125,17 +128,17 @@ private struct ChartAlertRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(alert.songTitle)
                     .foregroundStyle(Color.rbTextPrimary)
-                    .fontWeight(.medium)
+                    .font(.sora(14, .semibold))
                     .lineLimit(1)
 
                 Text(alert.artistName)
                     .foregroundStyle(Color.rbTextSecondary)
-                    .font(.subheadline)
+                    .font(.sora(13))
                     .lineLimit(1)
 
                 Text(alert.message)
                     .foregroundStyle(Color.rbTextTertiary)
-                    .font(.caption)
+                    .font(.sora(11))
                     .lineLimit(2)
             }
 
@@ -144,9 +147,8 @@ private struct ChartAlertRow: View {
             // Position + country
             VStack(alignment: .trailing, spacing: 4) {
                 Text("#\(alert.position)")
-                    .foregroundStyle(Color.rbAccent)
-                    .fontWeight(.bold)
-                    .font(.headline)
+                    .foregroundStyle(LinearGradient.rbAccentGradient)
+                    .font(.mono(17, .medium))
 
                 Text(flagEmoji(for: alert.country))
                     .font(.title3)

@@ -23,7 +23,7 @@ struct SummaryCardsView: View {
                 title: "Songs",
                 value: totals.map { "\($0.uniqueSongs)" } ?? "--",
                 icon: "music.note",
-                color: .purple,
+                color: .rbAccentLight,
                 onTap: onSongsTapped
             )
 
@@ -31,7 +31,7 @@ struct SummaryCardsView: View {
                 title: "Artists",
                 value: totals.map { "\($0.uniqueArtists)" } ?? "--",
                 icon: "person.2.fill",
-                color: .rbWarm,
+                color: .rbAccentDark,
                 onTap: onArtistsTapped
             )
         }
@@ -53,28 +53,20 @@ private struct SummaryCard: View {
     var body: some View {
         VStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.title3)
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(color)
 
             Text(value)
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundStyle(Color.rbTextPrimary)
+                .font(.sora(28, .heavy))
+                .foregroundStyle(LinearGradient.rbAccentGradient)
 
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(Color.rbTextSecondary)
+            Text(title.uppercased())
+                .font(.sora(10, .semibold))
+                .tracking(1.4)
+                .foregroundStyle(Color.rbTextTertiary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.rbSurface)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(Color.rbSurfaceLight, lineWidth: 1)
-        )
+        .rbCard(radius: 18)
         .scaleEffect(isPressed ? 0.95 : 1.0)
         .animation(.easeInOut(duration: 0.15), value: isPressed)
         .onTapGesture {

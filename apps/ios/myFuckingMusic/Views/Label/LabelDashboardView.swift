@@ -7,8 +7,8 @@ struct LabelDashboardView: View {
 
     var body: some View {
         ZStack {
-            Color.rbBackground
-                .ignoresSafeArea()
+            Color.clear
+                .onairGlow()
 
             if viewModel.isLoading && viewModel.dashboard == nil {
                 LoadingView()
@@ -62,36 +62,17 @@ struct LabelDashboardView: View {
                 .foregroundStyle(Color.rbAccent)
 
             Text("\(totalPlays)")
-                .font(.system(size: 48, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.rbTextPrimary)
+                .font(.sora(46, .heavy))
+                .foregroundStyle(LinearGradient.rbAccentGradient)
 
-            Text("Total Plays Across All Artists")
-                .font(.subheadline)
-                .foregroundStyle(Color.rbTextSecondary)
+            Text("TOTAL PLAYS ACROSS ALL ARTISTS")
+                .font(.sora(10, .semibold))
+                .tracking(1.4)
+                .foregroundStyle(Color.rbTextTertiary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
-        .padding(.horizontal, 16)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [Color.rbAccent.opacity(0.4), Color.rbSurfaceLight],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-        )
+        .padding(.vertical, 12)
+        .rbCard(radius: 22)
         .padding(.horizontal, 16)
     }
 
@@ -106,13 +87,13 @@ struct LabelDashboardView: View {
                     .foregroundStyle(Color.rbAccent)
 
                 Text("Your Artists")
-                    .font(.headline)
+                    .font(.sora(16, .bold))
                     .foregroundStyle(Color.rbTextPrimary)
 
                 Spacer()
 
                 Text("\(artists.count) artists")
-                    .font(.caption)
+                    .font(.mono(11))
                     .foregroundStyle(Color.rbTextTertiary)
             }
             .padding(.horizontal, 16)
@@ -159,7 +140,7 @@ struct LabelDashboardView: View {
                 }
 
                 Text(artist.artistName)
-                    .font(.headline)
+                    .font(.sora(15, .bold))
                     .foregroundStyle(Color.rbTextPrimary)
                     .lineLimit(1)
             }
@@ -167,19 +148,21 @@ struct LabelDashboardView: View {
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(artist.songCount)")
-                        .font(.title3.weight(.bold))
+                        .font(.sora(18, .bold))
                         .foregroundStyle(Color.rbAccent)
-                    Text("Songs")
-                        .font(.caption2)
+                    Text("SONGS")
+                        .font(.sora(9, .semibold))
+                        .tracking(1.0)
                         .foregroundStyle(Color.rbTextTertiary)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(artist.totalPlays)")
-                        .font(.title3.weight(.bold))
-                        .foregroundStyle(Color.rbWarm)
-                    Text("Plays")
-                        .font(.caption2)
+                        .font(.sora(18, .bold))
+                        .foregroundStyle(LinearGradient.rbAccentGradient)
+                    Text("PLAYS")
+                        .font(.sora(9, .semibold))
+                        .tracking(1.0)
                         .foregroundStyle(Color.rbTextTertiary)
                 }
             }
@@ -188,30 +171,17 @@ struct LabelDashboardView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "crown.fill")
                         .font(.system(size: 10))
-                        .foregroundStyle(Color.rbWarm)
+                        .foregroundStyle(Color.rbAccent)
 
                     Text(topSong)
-                        .font(.caption)
+                        .font(.sora(12, .medium))
                         .foregroundStyle(Color.rbTextSecondary)
                         .lineLimit(1)
                 }
             }
         }
-        .padding(14)
         .frame(width: 180, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.rbSurfaceLight, lineWidth: 1)
-        )
+        .rbCard(radius: 18)
     }
 
     // MARK: - Catalog Songs Section
@@ -225,13 +195,13 @@ struct LabelDashboardView: View {
                     .foregroundStyle(Color.rbAccent)
 
                 Text("Catalog")
-                    .font(.headline)
+                    .font(.sora(16, .bold))
                     .foregroundStyle(Color.rbTextPrimary)
 
                 Spacer()
 
                 Text("\(songs.count) songs")
-                    .font(.caption)
+                    .font(.mono(11))
                     .foregroundStyle(Color.rbTextTertiary)
             }
             .padding(.horizontal, 16)
@@ -242,41 +212,32 @@ struct LabelDashboardView: View {
 
                     if index < songs.count - 1 {
                         Divider()
-                            .overlay(Color.rbSurfaceLight.opacity(0.5))
+                            .overlay(Color.rbHairline)
                             .padding(.leading, 52)
                     }
                 }
             }
             .padding(.horizontal, 16)
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
+        .rbCard(radius: 22)
         .padding(.horizontal, 16)
     }
 
     private func catalogSongRow(_ song: LabelCatalogSong, rank: Int) -> some View {
         HStack(spacing: 12) {
             Text("\(rank)")
-                .font(.headline)
+                .font(.mono(14, .medium))
                 .foregroundStyle(Color.rbTextTertiary)
                 .frame(width: 28, alignment: .trailing)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(song.songTitle)
-                    .font(.subheadline.weight(.medium))
+                    .font(.sora(14, .semibold))
                     .foregroundStyle(Color.rbTextPrimary)
                     .lineLimit(1)
 
                 Text(song.artistName)
-                    .font(.caption)
+                    .font(.sora(12, .medium))
                     .foregroundStyle(Color.rbTextSecondary)
                     .lineLimit(1)
             }
@@ -285,11 +246,11 @@ struct LabelDashboardView: View {
 
             VStack(alignment: .trailing, spacing: 3) {
                 Text("\(song.totalPlays)")
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(Color.rbAccent)
+                    .font(.sora(16, .bold))
+                    .foregroundStyle(LinearGradient.rbAccentGradient)
 
                 Text("\(song.stationCount) station\(song.stationCount == 1 ? "" : "s")")
-                    .font(.caption2)
+                    .font(.mono(10))
                     .foregroundStyle(Color.rbTextTertiary)
             }
         }

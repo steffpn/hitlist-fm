@@ -42,7 +42,10 @@ struct DigestDetailView: View {
                 }
             }
         }
+        .onairGlow()
         .navigationTitle("Digest")
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .preferredColorScheme(.dark)
         .task {
             await loadDigest()
         }
@@ -57,33 +60,39 @@ struct DigestDetailView: View {
                 // Header
                 VStack(spacing: 4) {
                     Text(digestTitle)
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
+                        .font(.sora(16, .bold))
+                        .foregroundStyle(Color.rbTextPrimary)
                     Text(formattedDate)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(.sora(13))
+                        .foregroundStyle(Color.rbTextSecondary)
                 }
                 .padding(.top)
 
                 // Hero stat: total play count
                 VStack(spacing: 4) {
                     Text("\(digest.playCount)")
-                        .font(.system(size: 64, weight: .bold, design: .rounded))
-                    Text("Total Plays")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(.sora(64, .heavy))
+                        .foregroundStyle(LinearGradient.rbAccentGradient)
+                    Text("TOTAL PLAYS")
+                        .font(.sora(10, .semibold))
+                        .tracking(1.4)
+                        .foregroundStyle(Color.rbTextTertiary)
                 }
                 .padding()
 
                 // Week-over-week change (weekly only)
                 if type == "weekly", let change = digest.weekOverWeekChange {
-                    HStack {
+                    HStack(spacing: 4) {
                         Image(systemName: change >= 0 ? "arrow.up.right" : "arrow.down.right")
                         Text(String(format: "%+.1f%%", change))
                     }
-                    .font(.title3.bold())
-                    .foregroundStyle(change >= 0 ? .green : .red)
-                    .padding(.horizontal)
+                    .font(.sora(15, .bold))
+                    .foregroundStyle(change >= 0 ? Color.rbLive : Color.rbError)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule().fill((change >= 0 ? Color.rbLive : Color.rbError).opacity(0.16))
+                    )
                 }
 
                 // Top Song card
@@ -112,14 +121,13 @@ struct DigestDetailView: View {
                 if type == "weekly", let newStations = digest.newStationsCount, newStations > 0 {
                     HStack {
                         Image(systemName: "star.fill")
-                            .foregroundStyle(.yellow)
+                            .foregroundStyle(Color.rbAccentLight)
                         Text("\(newStations) new station\(newStations == 1 ? "" : "s") played your music")
-                            .font(.subheadline)
+                            .font(.sora(14))
+                            .foregroundStyle(Color.rbTextPrimary)
                     }
-                    .padding()
                     .frame(maxWidth: .infinity)
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .rbCard(radius: 18)
                     .padding(.horizontal)
                 }
             }
@@ -132,29 +140,29 @@ struct DigestDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundStyle(.blue)
-                Text(title)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.rbAccent)
+                Text(title.uppercased())
+                    .font(.sora(10, .semibold))
+                    .tracking(1.4)
+                    .foregroundStyle(Color.rbTextTertiary)
                 Spacer()
                 Text("\(count) plays")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.mono(12))
+                    .foregroundStyle(Color.rbTextSecondary)
             }
 
             Text(primary)
-                .font(.headline)
+                .font(.sora(16, .bold))
+                .foregroundStyle(Color.rbTextPrimary)
 
             if let secondary {
                 Text(secondary)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.sora(14))
+                    .foregroundStyle(Color.rbTextSecondary)
             }
         }
-        .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .rbCard(radius: 18)
         .padding(.horizontal)
     }
 

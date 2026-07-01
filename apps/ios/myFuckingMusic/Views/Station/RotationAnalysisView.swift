@@ -8,9 +8,6 @@ struct RotationAnalysisView: View {
 
     var body: some View {
         ZStack {
-            Color.rbBackground
-                .ignoresSafeArea()
-
             if viewModel.isLoading && viewModel.rotationAnalysis == nil {
                 LoadingView()
             } else if let errorMessage = viewModel.error, viewModel.rotationAnalysis == nil {
@@ -51,6 +48,7 @@ struct RotationAnalysisView: View {
                 }
             }
         }
+        .onairGlow(subtle: true)
         .navigationTitle("Rotation Analysis")
         .navigationBarTitleDisplayMode(.large)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -71,28 +69,17 @@ struct RotationAnalysisView: View {
                 .foregroundStyle(Color.rbAccent)
 
             Text(String(format: "%.1f", average))
-                .font(.system(size: 40, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.rbTextPrimary)
+                .font(.sora(42, .heavy))
+                .foregroundStyle(LinearGradient.rbAccentGradient)
 
-            Text("Avg. Unique Songs / Hour")
-                .font(.subheadline)
-                .foregroundStyle(Color.rbTextSecondary)
+            Text("AVG. UNIQUE SONGS / HOUR")
+                .font(.sora(10, .semibold))
+                .tracking(1.4)
+                .foregroundStyle(Color.rbTextTertiary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.rbSurfaceLight, lineWidth: 1)
-        )
+        .padding(.vertical, 12)
+        .rbCard()
         .padding(.horizontal, 16)
     }
 
@@ -107,7 +94,7 @@ struct RotationAnalysisView: View {
                     .foregroundStyle(Color.rbAccent)
 
                 Text("Unique Songs per Hour")
-                    .font(.headline)
+                    .font(.sora(16, .bold))
                     .foregroundStyle(Color.rbTextPrimary)
             }
 
@@ -118,46 +105,34 @@ struct RotationAnalysisView: View {
                 )
                 .foregroundStyle(
                     LinearGradient(
-                        colors: [.rbAccent, .rbAccent.opacity(0.6)],
+                        colors: [Color(hex: "7C5CF6"), Color(hex: "B84DF0")],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
-                .cornerRadius(3)
+                .cornerRadius(4)
             }
             .chartXAxis {
                 AxisMarks(values: .automatic(desiredCount: 8)) { _ in
                     AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                        .foregroundStyle(Color.rbSurfaceLight)
+                        .foregroundStyle(Color.rbHairline)
                     AxisValueLabel()
-                        .foregroundStyle(Color.rbTextTertiary)
-                        .font(.caption2)
+                        .foregroundStyle(Color.rbTextSecondary)
+                        .font(.mono(9))
                 }
             }
             .chartYAxis {
                 AxisMarks { _ in
                     AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                        .foregroundStyle(Color.rbSurfaceLight)
+                        .foregroundStyle(Color.rbHairline)
                     AxisValueLabel()
-                        .foregroundStyle(Color.rbTextTertiary)
+                        .foregroundStyle(Color.rbTextSecondary)
+                        .font(.mono(9))
                 }
             }
             .frame(height: 200)
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.rbSurfaceLight, lineWidth: 1)
-        )
+        .rbCard()
         .padding(.horizontal, 16)
     }
 
@@ -169,16 +144,16 @@ struct RotationAnalysisView: View {
             HStack {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 14))
-                    .foregroundStyle(Color.rbWarm)
+                    .foregroundStyle(Color.rbWarning)
 
                 Text("Over-Rotated Songs")
-                    .font(.headline)
+                    .font(.sora(16, .bold))
                     .foregroundStyle(Color.rbTextPrimary)
 
                 Spacer()
 
                 Text("\(songs.count) songs")
-                    .font(.caption)
+                    .font(.mono(11))
                     .foregroundStyle(Color.rbTextTertiary)
             }
 
@@ -188,16 +163,16 @@ struct RotationAnalysisView: View {
                         // Warning indicator
                         Image(systemName: "exclamationmark.circle.fill")
                             .font(.system(size: 18))
-                            .foregroundStyle(Color.rbWarm)
+                            .foregroundStyle(Color.rbWarning)
 
                         VStack(alignment: .leading, spacing: 3) {
                             Text(song.songTitle)
-                                .font(.subheadline.weight(.medium))
+                                .font(.sora(14, .semibold))
                                 .foregroundStyle(Color.rbTextPrimary)
                                 .lineLimit(1)
 
                             Text(song.artistName)
-                                .font(.caption)
+                                .font(.sora(12))
                                 .foregroundStyle(Color.rbTextSecondary)
                                 .lineLimit(1)
                         }
@@ -206,11 +181,11 @@ struct RotationAnalysisView: View {
 
                         VStack(alignment: .trailing, spacing: 2) {
                             Text("\(song.playCount) plays")
-                                .font(.caption.weight(.bold))
-                                .foregroundStyle(Color.rbWarm)
+                                .font(.mono(12, .bold))
+                                .foregroundStyle(Color.rbWarning)
 
                             Text("max \(song.expectedMax)")
-                                .font(.caption2)
+                                .font(.mono(10))
                                 .foregroundStyle(Color.rbTextTertiary)
                         }
                     }
@@ -218,25 +193,16 @@ struct RotationAnalysisView: View {
 
                     if song.id != songs.last?.id {
                         Divider()
-                            .overlay(Color.rbSurfaceLight.opacity(0.5))
+                            .overlay(Color.rbHairline)
                             .padding(.leading, 30)
                     }
                 }
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
+        .rbCard()
         .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.rbWarm.opacity(0.3), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(Color.rbWarning.opacity(0.3), lineWidth: 1)
         )
         .padding(.horizontal, 16)
     }

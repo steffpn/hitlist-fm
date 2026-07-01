@@ -16,7 +16,7 @@ struct SubscriptionView: View {
                             .tint(Color.rbAccent)
                         Spacer()
                     }
-                    .listRowBackground(Color.rbSurface)
+                    .listRowBackground(Color.rbGlassTint)
                 }
             } else if viewModel.isFreeTier {
                 // Free tier - upgrade CTA
@@ -36,13 +36,15 @@ struct SubscriptionView: View {
                                 .font(.subheadline)
                             Text(feature)
                                 .foregroundStyle(Color.rbTextPrimary)
-                                .font(.subheadline)
+                                .font(.sora(14))
                         }
-                        .listRowBackground(Color.rbSurface)
+                        .listRowBackground(Color.rbGlassTint)
                     }
                 } header: {
-                    Text("What's Included")
-                        .foregroundStyle(Color.rbTextSecondary)
+                    Text("WHAT'S INCLUDED")
+                        .font(.sora(10, .semibold))
+                        .tracking(1.4)
+                        .foregroundStyle(Color.rbTextTertiary)
                 }
             }
 
@@ -51,12 +53,12 @@ struct SubscriptionView: View {
                     Text(error)
                         .foregroundStyle(Color.rbError)
                         .font(.caption)
-                        .listRowBackground(Color.rbSurface)
+                        .listRowBackground(Color.rbGlassTint)
                 }
             }
         }
         .scrollContentBackground(.hidden)
-        .background(Color.rbBackground)
+        .onairGlow(subtle: true)
         .navigationTitle("Subscription")
         .toolbarColorScheme(.dark, for: .navigationBar)
         .preferredColorScheme(.dark)
@@ -76,18 +78,28 @@ struct SubscriptionView: View {
     private var freeUserSection: some View {
         Section {
             VStack(spacing: 16) {
-                Image(systemName: "star.circle.fill")
-                    .font(.system(size: 48))
-                    .foregroundStyle(Color.rbWarm)
+                ZStack {
+                    Circle()
+                        .fill(LinearGradient.rbAccentGradient)
+                        .frame(width: 64, height: 64)
+                        .shadow(color: Color.rbAccent.opacity(0.5), radius: 14, y: 8)
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 26))
+                        .foregroundStyle(.white)
+                }
 
-                Text("Upgrade to Premium")
-                    .foregroundStyle(Color.rbTextPrimary)
-                    .font(.title2)
-                    .fontWeight(.bold)
+                VStack(spacing: 6) {
+                    Text("Upgrade to ")
+                        .foregroundStyle(Color.rbTextPrimary)
+                        .font(.sora(22, .bold))
+                    + Text("Premium")
+                        .foregroundStyle(Color.rbAccentLight)
+                        .font(.sora(22, .bold))
+                }
 
                 Text("Unlock advanced analytics, daily reports, chart alerts, and more.")
                     .foregroundStyle(Color.rbTextSecondary)
-                    .font(.subheadline)
+                    .font(.sora(14))
                     .multilineTextAlignment(.center)
 
                 Button {
@@ -97,20 +109,17 @@ struct SubscriptionView: View {
                     }
                 } label: {
                     Text("Upgrade Now")
-                        .fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Color.rbAccent)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(RBAccentButtonStyle())
             }
             .padding(.vertical, 16)
-            .listRowBackground(Color.rbSurface)
+            .listRowBackground(Color.rbGlassTint)
         } header: {
-            Text("Current Plan: Free")
-                .foregroundStyle(Color.rbTextSecondary)
+            Text("CURRENT PLAN: FREE")
+                .font(.sora(10, .semibold))
+                .tracking(1.4)
+                .foregroundStyle(Color.rbTextTertiary)
         }
     }
 
@@ -123,68 +132,76 @@ struct SubscriptionView: View {
                     HStack {
                         Text("Plan")
                             .foregroundStyle(Color.rbTextPrimary)
+                            .font(.sora(14))
                         Spacer()
                         Text(plan.name)
-                            .foregroundStyle(Color.rbAccent)
-                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.rbAccentLight)
+                            .font(.sora(14, .semibold))
                     }
-                    .listRowBackground(Color.rbSurface)
+                    .listRowBackground(Color.rbGlassTint)
 
                     HStack {
                         Text("Tier")
                             .foregroundStyle(Color.rbTextPrimary)
+                            .font(.sora(14))
                         Spacer()
                         Text(plan.tier.capitalized)
                             .foregroundStyle(Color.rbTextSecondary)
+                            .font(.sora(14))
                     }
-                    .listRowBackground(Color.rbSurface)
+                    .listRowBackground(Color.rbGlassTint)
                 }
 
                 if let sub = viewModel.subscriptionInfo?.subscription {
                     HStack {
                         Text("Status")
                             .foregroundStyle(Color.rbTextPrimary)
+                            .font(.sora(14))
                         Spacer()
-                        Text(sub.status.capitalized)
-                            .foregroundStyle(sub.status == "active" ? .green : Color.rbWarm)
-                            .fontWeight(.medium)
+                        statusPill(sub.status)
                     }
-                    .listRowBackground(Color.rbSurface)
+                    .listRowBackground(Color.rbGlassTint)
 
                     HStack {
                         Text("Billing")
                             .foregroundStyle(Color.rbTextPrimary)
+                            .font(.sora(14))
                         Spacer()
                         Text(sub.billingInterval.capitalized)
                             .foregroundStyle(Color.rbTextSecondary)
+                            .font(.sora(14))
                     }
-                    .listRowBackground(Color.rbSurface)
+                    .listRowBackground(Color.rbGlassTint)
 
                     if let periodEnd = sub.currentPeriodEnd {
                         HStack {
                             Text("Renews")
                                 .foregroundStyle(Color.rbTextPrimary)
+                                .font(.sora(14))
                             Spacer()
                             Text(formattedDate(periodEnd))
                                 .foregroundStyle(Color.rbTextSecondary)
+                                .font(.mono(13))
                         }
-                        .listRowBackground(Color.rbSurface)
+                        .listRowBackground(Color.rbGlassTint)
                     }
 
                     if sub.cancelAtPeriodEnd {
-                        HStack {
+                        HStack(spacing: 6) {
                             Image(systemName: "exclamationmark.triangle")
-                                .foregroundStyle(Color.rbWarm)
+                                .foregroundStyle(Color.rbWarning)
                             Text("Cancels at end of period")
-                                .foregroundStyle(Color.rbWarm)
-                                .font(.subheadline)
+                                .foregroundStyle(Color.rbWarning)
+                                .font(.sora(13))
                         }
-                        .listRowBackground(Color.rbSurface)
+                        .listRowBackground(Color.rbGlassTint)
                     }
                 }
             } header: {
-                Text("Your Plan")
-                    .foregroundStyle(Color.rbTextSecondary)
+                Text("YOUR PLAN")
+                    .font(.sora(10, .semibold))
+                    .tracking(1.4)
+                    .foregroundStyle(Color.rbTextTertiary)
             }
 
             // Manage billing
@@ -196,11 +213,11 @@ struct SubscriptionView: View {
                         Spacer()
                         Label("Manage Billing", systemImage: "creditcard")
                             .foregroundStyle(Color.rbAccent)
-                            .fontWeight(.medium)
+                            .font(.sora(14, .medium))
                         Spacer()
                     }
                 }
-                .listRowBackground(Color.rbSurface)
+                .listRowBackground(Color.rbGlassTint)
             }
         }
     }
@@ -210,6 +227,17 @@ struct SubscriptionView: View {
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
         return formatter.string(from: date)
+    }
+
+    /// Tinted status pill: green for active, amber otherwise.
+    private func statusPill(_ status: String) -> some View {
+        let color: Color = status == "active" ? Color.rbLive : Color.rbWarning
+        return Text(status.capitalized)
+            .font(.sora(12, .semibold))
+            .foregroundStyle(color)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(Capsule().fill(color.opacity(0.16)))
     }
 }
 

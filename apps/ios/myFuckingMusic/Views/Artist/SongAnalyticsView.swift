@@ -9,7 +9,8 @@ struct SongAnalyticsView: View {
 
     var body: some View {
         ZStack {
-            Color.rbBackground
+            Color.clear
+                .onairGlow()
                 .ignoresSafeArea()
 
             if viewModel.isLoading && viewModel.analytics == nil {
@@ -81,41 +82,36 @@ struct SongAnalyticsView: View {
     // MARK: - Song Header
 
     private var songHeader: some View {
-        VStack(spacing: 12) {
-            // Album art placeholder
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [.rbAccent.opacity(0.25), .rbSurface],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: 100, height: 100)
+        VStack(spacing: 16) {
+            // Album art placeholder (gradient — 184pt hero per spec 3d)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(LinearGradient.rbAccentGradient)
+                .frame(width: 184, height: 184)
                 .overlay {
                     Image(systemName: "music.note")
-                        .font(.system(size: 36, weight: .light))
-                        .foregroundStyle(Color.rbAccent.opacity(0.7))
+                        .font(.system(size: 46, weight: .light))
+                        .foregroundStyle(.white.opacity(0.9))
                 }
-                .shadow(color: Color.rbAccent.opacity(0.2), radius: 16, x: 0, y: 8)
+                .shadow(color: Color(hex: "7C5CF6").opacity(0.55), radius: 30, x: 0, y: 14)
+                .shadow(color: .black.opacity(0.35), radius: 20, x: 0, y: 10)
                 .scaleEffect(appearAnimation ? 1.0 : 0.9)
                 .opacity(appearAnimation ? 1.0 : 0.0)
 
             VStack(spacing: 6) {
                 Text(song.songTitle)
-                    .font(.title2.weight(.bold))
+                    .font(.sora(22, .bold))
                     .foregroundStyle(Color.rbTextPrimary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
 
                 Text(song.artistName)
-                    .font(.subheadline)
+                    .font(.sora(16, .medium))
                     .foregroundStyle(Color.rbTextSecondary)
 
                 HStack(spacing: 8) {
                     Text(song.isrc)
-                        .font(.caption)
-                        .foregroundStyle(Color.rbTextTertiary)
+                        .font(.mono(12))
+                        .foregroundStyle(Color.rbTextQuaternary)
 
                     if let trend = song.trend {
                         TrendBadge(
@@ -142,7 +138,7 @@ struct SongAnalyticsView: View {
 
             Divider()
                 .frame(height: 40)
-                .overlay(Color.rbSurfaceLight)
+                .overlay(Color.rbHairline)
 
             statItem(
                 value: "\(analytics.stationCount)",
@@ -152,7 +148,7 @@ struct SongAnalyticsView: View {
 
             Divider()
                 .frame(height: 40)
-                .overlay(Color.rbSurfaceLight)
+                .overlay(Color.rbHairline)
 
             if let trend = viewModel.trend {
                 statItem(
@@ -168,16 +164,7 @@ struct SongAnalyticsView: View {
                 )
             }
         }
-        .padding(.vertical, 16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
+        .rbCard(radius: 20)
         .opacity(appearAnimation ? 1.0 : 0.0)
         .offset(y: appearAnimation ? 0 : 12)
     }
@@ -189,11 +176,12 @@ struct SongAnalyticsView: View {
                 .foregroundStyle(Color.rbAccent)
 
             Text(value)
-                .font(.title3.weight(.bold))
-                .foregroundStyle(Color.rbTextPrimary)
+                .font(.sora(24, .heavy))
+                .foregroundStyle(LinearGradient.rbAccentGradient)
 
-            Text(label)
-                .font(.caption2)
+            Text(label.uppercased())
+                .font(.sora(10, .semibold))
+                .tracking(1.4)
                 .foregroundStyle(Color.rbTextTertiary)
         }
         .frame(maxWidth: .infinity)
@@ -209,12 +197,12 @@ struct SongAnalyticsView: View {
                     .foregroundStyle(Color.rbWarm)
 
                 Text("Peak Hours")
-                    .font(.headline)
+                    .font(.sora(16, .bold))
                     .foregroundStyle(Color.rbTextPrimary)
             }
 
             Text("When your song gets the most airplay")
-                .font(.caption)
+                .font(.sora(12))
                 .foregroundStyle(Color.rbTextTertiary)
 
             let topSlots = Array(viewModel.peakHours.prefix(5))
@@ -222,23 +210,14 @@ struct SongAnalyticsView: View {
                 peakHourRow(slot, rank: index + 1)
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
+        .rbCard(radius: 20)
     }
 
     private func peakHourRow(_ slot: PeakHourSlot, rank: Int) -> some View {
         HStack(spacing: 12) {
             // Rank circle
             Text("\(rank)")
-                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .font(.mono(12, .medium))
                 .foregroundStyle(rank <= 3 ? Color.rbWarm : Color.rbTextTertiary)
                 .frame(width: 28, height: 28)
                 .background(
@@ -249,11 +228,11 @@ struct SongAnalyticsView: View {
             // Time slot info
             VStack(alignment: .leading, spacing: 2) {
                 Text(slot.label)
-                    .font(.subheadline.weight(.medium))
+                    .font(.sora(14, .medium))
                     .foregroundStyle(Color.rbTextPrimary)
 
                 Text(formatHour(slot.hour))
-                    .font(.caption)
+                    .font(.sora(12))
                     .foregroundStyle(Color.rbTextTertiary)
             }
 
@@ -266,7 +245,7 @@ struct SongAnalyticsView: View {
                     .foregroundStyle(Color.rbAccent)
 
                 Text("\(slot.plays)")
-                    .font(.subheadline.weight(.semibold))
+                    .font(.mono(13, .medium))
                     .foregroundStyle(Color.rbAccent)
             }
             .padding(.horizontal, 10)

@@ -37,6 +37,7 @@ struct CompetitorDetailView: View {
                         }
                         .pickerStyle(.segmented)
                         .padding(.horizontal)
+                        .colorMultiply(.rbAccent)
 
                         if let detail = viewModel.detail {
                             // Top Songs section
@@ -56,7 +57,11 @@ struct CompetitorDetailView: View {
                 }
             }
         }
+        .onairGlow(subtle: true)
         .navigationTitle(stationName)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbarBackground(Color.rbBackground, for: .navigationBar)
+        .preferredColorScheme(.dark)
         .task(id: viewModel.selectedPeriod) {
             await viewModel.loadDetail()
         }
@@ -68,56 +73,57 @@ struct CompetitorDetailView: View {
     private func topSongsSection(_ songs: [CompetitorSong]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Top Songs")
-                .font(.title3)
-                .fontWeight(.semibold)
-                .padding(.horizontal)
+                .font(.sora(16, .bold))
+                .foregroundStyle(Color.rbTextPrimary)
 
             if songs.isEmpty {
                 Text("No songs detected")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.sora(14))
+                    .foregroundStyle(Color.rbTextSecondary)
                     .frame(maxWidth: .infinity)
                     .padding()
             } else {
                 LazyVStack(spacing: 0) {
                     ForEach(Array(songs.enumerated()), id: \.element.id) { index, song in
                         HStack(spacing: 12) {
-                            Text("\(index + 1).")
-                                .font(.headline)
-                                .foregroundStyle(.secondary)
+                            Text("\(index + 1)")
+                                .font(.mono(15, .bold))
+                                .foregroundStyle(index < 3 ? Color.rbWarm : Color.rbTextTertiary)
                                 .frame(width: 30, alignment: .trailing)
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(song.title)
-                                    .font(.body)
+                                    .font(.sora(14, .semibold))
+                                    .foregroundStyle(Color.rbTextPrimary)
                                     .lineLimit(1)
                                 Text(song.artist)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .font(.sora(12))
+                                    .foregroundStyle(Color.rbTextSecondary)
                                     .lineLimit(1)
                             }
 
                             Spacer()
 
                             Text("\(song.playCount)")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .padding(.horizontal, 8)
+                                .font(.mono(13, .bold))
+                                .foregroundStyle(Color.rbAccentLight)
+                                .padding(.horizontal, 10)
                                 .padding(.vertical, 4)
-                                .background(Color(.tertiarySystemBackground))
-                                .clipShape(Capsule())
+                                .background(Capsule().fill(Color.rbAccent.opacity(0.16)))
                         }
-                        .padding(.horizontal)
                         .padding(.vertical, 8)
 
                         if index < songs.count - 1 {
                             Divider()
-                                .padding(.leading, 54)
+                                .overlay(Color.rbHairline)
+                                .padding(.leading, 42)
                         }
                     }
                 }
             }
         }
+        .rbCard()
+        .padding(.horizontal, 16)
     }
 
     // MARK: - Recent Detections Section
@@ -126,45 +132,48 @@ struct CompetitorDetailView: View {
     private func recentDetectionsSection(_ detections: [CompetitorDetection]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Recent Detections")
-                .font(.title3)
-                .fontWeight(.semibold)
-                .padding(.horizontal)
+                .font(.sora(16, .bold))
+                .foregroundStyle(Color.rbTextPrimary)
 
             if detections.isEmpty {
                 Text("No recent detections")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.sora(14))
+                    .foregroundStyle(Color.rbTextSecondary)
                     .frame(maxWidth: .infinity)
                     .padding()
             } else {
                 LazyVStack(spacing: 0) {
-                    ForEach(detections.prefix(20)) { detection in
+                    ForEach(Array(detections.prefix(20).enumerated()), id: \.element.id) { index, detection in
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(detection.songTitle)
-                                    .font(.body)
+                                    .font(.sora(14, .semibold))
+                                    .foregroundStyle(Color.rbTextPrimary)
                                     .lineLimit(1)
                                 Text(detection.artistName)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .font(.sora(12))
+                                    .foregroundStyle(Color.rbTextSecondary)
                                     .lineLimit(1)
                             }
 
                             Spacer()
 
                             Text(formatDetectionTime(detection.startedAt))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .font(.mono(11))
+                                .foregroundStyle(Color.rbTextTertiary)
                         }
-                        .padding(.horizontal)
                         .padding(.vertical, 8)
 
-                        Divider()
-                            .padding(.leading)
+                        if index < min(detections.count, 20) - 1 {
+                            Divider()
+                                .overlay(Color.rbHairline)
+                        }
                     }
                 }
             }
         }
+        .rbCard()
+        .padding(.horizontal, 16)
     }
 
     // MARK: - Play Count Comparison Section
@@ -173,27 +182,27 @@ struct CompetitorDetailView: View {
     private func comparisonSection(_ comparisons: [CompetitorComparison]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Play Count Comparison")
-                .font(.title3)
-                .fontWeight(.semibold)
-                .padding(.horizontal)
+                .font(.sora(16, .bold))
+                .foregroundStyle(Color.rbTextPrimary)
 
             if comparisons.isEmpty {
                 Text("No overlapping songs")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.sora(14))
+                    .foregroundStyle(Color.rbTextSecondary)
                     .frame(maxWidth: .infinity)
                     .padding()
             } else {
                 LazyVStack(spacing: 0) {
-                    ForEach(comparisons) { comparison in
+                    ForEach(Array(comparisons.enumerated()), id: \.element.id) { index, comparison in
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(comparison.songTitle)
-                                    .font(.body)
+                                    .font(.sora(14, .semibold))
+                                    .foregroundStyle(Color.rbTextPrimary)
                                     .lineLimit(1)
                                 Text(comparison.artistName)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .font(.sora(12))
+                                    .foregroundStyle(Color.rbTextSecondary)
                                     .lineLimit(1)
                             }
 
@@ -201,23 +210,26 @@ struct CompetitorDetailView: View {
 
                             VStack(alignment: .trailing, spacing: 2) {
                                 Text("Theirs: \(comparison.theirPlays)")
-                                    .font(.caption)
-                                    .foregroundStyle(comparison.theirPlays > comparison.yourPlays ? .red : .secondary)
+                                    .font(.mono(11, .medium))
+                                    .foregroundStyle(comparison.theirPlays > comparison.yourPlays ? Color.rbWarm : Color.rbTextTertiary)
 
                                 Text("Yours: \(comparison.yourPlays)")
-                                    .font(.caption)
-                                    .foregroundStyle(comparison.yourPlays > comparison.theirPlays ? .green : .secondary)
+                                    .font(.mono(11, .medium))
+                                    .foregroundStyle(comparison.yourPlays > comparison.theirPlays ? Color.rbLive : Color.rbTextTertiary)
                             }
                         }
-                        .padding(.horizontal)
                         .padding(.vertical, 8)
 
-                        Divider()
-                            .padding(.leading)
+                        if index < comparisons.count - 1 {
+                            Divider()
+                                .overlay(Color.rbHairline)
+                        }
                     }
                 }
             }
         }
+        .rbCard()
+        .padding(.horizontal, 16)
     }
 
     // MARK: - Helpers

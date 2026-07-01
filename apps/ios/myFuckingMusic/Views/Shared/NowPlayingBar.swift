@@ -22,11 +22,11 @@ struct NowPlayingBar: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Broadcast Proof")
-                            .font(.caption2.weight(.semibold))
+                            .font(.sora(12, .semibold))
                             .foregroundStyle(Color.rbTextPrimary)
                         Text(timeLabel)
                             .font(.system(size: 10, design: .monospaced))
-                            .foregroundStyle(Color.rbTextTertiary)
+                            .foregroundStyle(Color.rbAccent)
                     }
 
                     Spacer()
@@ -37,9 +37,10 @@ struct NowPlayingBar: View {
                         if player.isPlaying { player.pause() } else { player.resume() }
                     } label: {
                         Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 16))
-                            .foregroundStyle(Color.rbTextPrimary)
-                            .frame(width: 32, height: 32)
+                            .font(.system(size: 15))
+                            .foregroundStyle(.white)
+                            .frame(width: 34, height: 34)
+                            .background(Color.white.opacity(0.10), in: Circle())
                     }
 
                     Button { player.stop() } label: {
@@ -52,7 +53,9 @@ struct NowPlayingBar: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
             }
-            .background(Color.rbSurface)
+            .background(Color.rbBackground.opacity(0.72))
+            .background(.ultraThinMaterial)
+            .overlay(alignment: .top) { Color.rbHairline.frame(height: 1) }
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
@@ -70,7 +73,7 @@ struct NowPlayingBar: View {
                 Color.rbSurfaceLight
 
                 // Progress fill - no animation while seeking
-                Color.rbAccent
+                LinearGradient.rbAccentGradientH
                     .frame(width: geo.size.width * CGFloat(displayProgress))
 
                 // Detection marker

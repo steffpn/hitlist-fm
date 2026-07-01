@@ -8,14 +8,15 @@ struct PlayCountChartView: View {
     let period: TimePeriod
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Play Count Trend")
-                .font(.headline)
-                .foregroundStyle(Color.rbTextPrimary)
-                .padding(.horizontal)
+        VStack(alignment: .leading, spacing: 12) {
+            Text("PLAY COUNT TREND")
+                .font(.sora(10, .semibold))
+                .tracking(1.4)
+                .foregroundStyle(Color.rbTextTertiary)
 
             if data.isEmpty {
                 Text("No data")
+                    .font(.sora(13))
                     .foregroundStyle(Color.rbTextTertiary)
                     .frame(maxWidth: .infinity, minHeight: 200)
             } else {
@@ -25,51 +26,65 @@ struct PlayCountChartView: View {
                         y: .value("Plays", item.playCount)
                     )
                     .foregroundStyle(
-                        LinearGradient(
-                            colors: [.rbAccent, .rbAccentDark],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
+                        item.isHighlight
+                            ? LinearGradient(
+                                colors: [.rbAccentLight, .rbAccent],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                            : LinearGradient(
+                                colors: [.rbGradientStart, .rbGradientEnd],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
                     )
                     .cornerRadius(4)
                 }
                 .chartXAxis {
                     AxisMarks(values: .automatic) { _ in
                         AxisGridLine()
-                            .foregroundStyle(Color.rbSurfaceLight)
+                            .foregroundStyle(Color.rbHairline)
                         AxisValueLabel(format: xAxisFormat)
+                            .font(.mono(10))
                             .foregroundStyle(Color.rbTextSecondary)
                     }
                 }
                 .chartYAxis {
                     AxisMarks(position: .leading) { _ in
                         AxisGridLine()
-                            .foregroundStyle(Color.rbSurfaceLight)
+                            .foregroundStyle(Color.rbHairline)
                         AxisValueLabel()
+                            .font(.mono(10))
                             .foregroundStyle(Color.rbTextSecondary)
                     }
                 }
                 .chartPlotStyle { plotArea in
                     plotArea
-                        .background(Color.rbSurface.opacity(0.3))
+                        .background(Color.clear)
                 }
                 .frame(height: 200)
-                .padding(.horizontal)
             }
         }
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.rbSurface)
-        )
-        .padding(.horizontal)
+        .rbCard(radius: 20)
     }
 
     /// Filter buckets to only those with parseable dates.
-    private var chartData: [(bucket: String, date: Date, playCount: Int)] {
-        data.compactMap { bucket in
+    /// The peak-count bar and the most-recent (last) bar are flagged for a
+    /// lighter highlight fill.
+    private var chartData: [(bucket: String, date: Date, playCount: Int, isHighlight: Bool)] {
+        let parsed: [(bucket: String, date: Date, playCount: Int)] = data.compactMap { bucket in
             guard let date = bucket.date else { return nil }
             return (bucket: bucket.bucket, date: date, playCount: bucket.playCount)
+        }
+        let peak = parsed.map(\.playCount).max()
+        let lastBucket = parsed.last?.bucket
+        return parsed.map { item in
+            (
+                bucket: item.bucket,
+                date: item.date,
+                playCount: item.playCount,
+                isHighlight: item.bucket == lastBucket || (peak != nil && item.playCount == peak)
+            )
         }
     }
 
@@ -97,4 +112,5 @@ struct PlayCountChartView: View {
     )
     .padding()
     .background(Color.rbBackground)
+    .preferredColorScheme(.dark)
 }

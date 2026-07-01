@@ -12,12 +12,12 @@ struct StationBreakdownView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Station Breakdown")
-                .font(.headline)
+                .font(.sora(16, .bold))
                 .foregroundStyle(Color.rbTextPrimary)
 
             if stations.isEmpty {
                 Text("No station data")
-                    .font(.subheadline)
+                    .font(.sora(14, .regular))
                     .foregroundStyle(Color.rbTextTertiary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 20)
@@ -42,30 +42,26 @@ struct StationBreakdownView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
                                 Text(station.stationName)
-                                    .font(.subheadline.weight(.medium))
+                                    .font(.sora(14, .medium))
                                     .foregroundStyle(Color.rbTextPrimary)
                                     .lineLimit(1)
 
                                 Spacer()
 
                                 Text("\(station.playCount)")
-                                    .font(.subheadline.weight(.bold))
-                                    .foregroundStyle(Color.rbAccent)
+                                    .font(.mono(14, .semibold))
+                                    .foregroundStyle(Color.rbAccentLight)
                             }
 
                             // Progress bar
                             GeometryReader { geo in
                                 ZStack(alignment: .leading) {
                                     RoundedRectangle(cornerRadius: 3)
-                                        .fill(Color.rbSurfaceLight.opacity(0.3))
+                                        .fill(Color.white.opacity(0.08))
                                         .frame(height: 6)
 
                                     RoundedRectangle(cornerRadius: 3)
-                                        .fill(LinearGradient(
-                                            colors: [.rbAccent, .rbAccent.opacity(0.6)],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        ))
+                                        .fill(LinearGradient.rbAccentGradientH)
                                         .frame(
                                             width: geo.size.width * CGFloat(station.playCount) / CGFloat(maxPlays),
                                             height: 6
@@ -79,16 +75,7 @@ struct StationBreakdownView: View {
                 }
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
+        .rbCard(radius: 18)
     }
 
     private var stationFallbackIcon: some View {
@@ -97,7 +84,7 @@ struct StationBreakdownView: View {
             .overlay {
                 Image(systemName: "antenna.radiowaves.left.and.right")
                     .font(.system(size: 14))
-                    .foregroundStyle(Color.rbAccent.opacity(0.6))
+                    .foregroundStyle(Color.rbAccent.opacity(0.7))
             }
     }
 }

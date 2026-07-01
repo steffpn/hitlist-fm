@@ -49,6 +49,7 @@ struct SongDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .preferredColorScheme(.dark)
         .task {
             await viewModel.loadArtwork(artist: event.artistName, title: event.songTitle)
             withAnimation(.easeOut(duration: 0.6)) {
@@ -60,16 +61,20 @@ struct SongDetailView: View {
     // MARK: - Background Gradient
 
     private var backgroundGradient: some View {
+        // Immersive top gradient: violet → deep violet → rbBackground (top→bottom).
+        // When real artwork loads, blend its dominant colors over the violet base so
+        // the hero still reads as part of the "Pulse" system.
         LinearGradient(
             stops: [
-                .init(color: viewModel.dominantColors[0].opacity(0.7), location: 0.0),
-                .init(color: viewModel.dominantColors[safe: 1]?.opacity(0.4) ?? .rbSurface.opacity(0.4), location: 0.3),
-                .init(color: viewModel.dominantColors[safe: 2]?.opacity(0.2) ?? .rbBackground.opacity(0.2), location: 0.55),
-                .init(color: .rbBackground, location: 0.85),
+                .init(color: viewModel.dominantColors[0].opacity(0.55), location: 0.0),
+                .init(color: viewModel.dominantColors[safe: 1]?.opacity(0.32) ?? .rbAccentDark.opacity(0.32), location: 0.28),
+                .init(color: .rbBackground.opacity(0.85), location: 0.55),
+                .init(color: .rbBackground, location: 0.8),
             ],
             startPoint: .top,
             endPoint: .bottom
         )
+        .background(Color.rbBackground)
         .animation(.easeInOut(duration: 0.8), value: viewModel.dominantColors.count)
     }
 
@@ -83,9 +88,9 @@ struct SongDetailView: View {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: 280, height: 280)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .shadow(color: viewModel.dominantColors[0].opacity(0.5), radius: 30, x: 0, y: 15)
+                    .frame(width: 184, height: 184)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .shadow(color: Color(hex: "7C5CF6").opacity(0.55), radius: 30, x: 0, y: 14)
                     .shadow(color: .black.opacity(0.4), radius: 20, x: 0, y: 10)
                     .scaleEffect(appearAnimation ? 1.0 : 0.9)
                     .opacity(appearAnimation ? 1.0 : 0.0)
@@ -96,12 +101,12 @@ struct SongDetailView: View {
     }
 
     private var artworkPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
+        RoundedRectangle(cornerRadius: 18, style: .continuous)
             .fill(Color.rbSurfaceLight)
-            .frame(width: 280, height: 280)
+            .frame(width: 184, height: 184)
             .overlay {
                 Image(systemName: "music.note")
-                    .font(.system(size: 60))
+                    .font(.system(size: 48))
                     .foregroundStyle(Color.rbTextTertiary)
                     .opacity(0.5)
             }
@@ -109,26 +114,16 @@ struct SongDetailView: View {
     }
 
     private var artworkFallback: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(
-                LinearGradient(
-                    colors: [.rbSurfaceLight, .rbSurface],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .frame(width: 280, height: 280)
+        RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .fill(LinearGradient.rbAccentGradient)
+            .frame(width: 184, height: 184)
             .overlay {
-                VStack(spacing: 12) {
-                    Image(systemName: "music.note")
-                        .font(.system(size: 50, weight: .light))
-                        .foregroundStyle(Color.rbAccent.opacity(0.6))
-                    Text("No Artwork")
-                        .font(.caption)
-                        .foregroundStyle(Color.rbTextTertiary)
-                }
+                Image(systemName: "music.note")
+                    .font(.system(size: 46, weight: .light))
+                    .foregroundStyle(.white.opacity(0.9))
             }
-            .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
+            .shadow(color: Color(hex: "7C5CF6").opacity(0.55), radius: 30, x: 0, y: 14)
+            .shadow(color: .black.opacity(0.35), radius: 20, x: 0, y: 10)
     }
 
     // MARK: - Song Info Section
@@ -136,21 +131,20 @@ struct SongDetailView: View {
     private var songInfoSection: some View {
         VStack(spacing: 8) {
             Text(event.songTitle)
-                .font(.title2)
-                .fontWeight(.bold)
+                .font(.sora(22, .bold))
                 .foregroundStyle(Color.rbTextPrimary)
                 .multilineTextAlignment(.center)
                 .lineLimit(3)
 
             Text(event.artistName)
-                .font(.title3)
+                .font(.sora(16, .medium))
                 .foregroundStyle(Color.rbTextSecondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
 
             if let albumTitle = viewModel.deezerTrack?.album?.title {
                 Text(albumTitle)
-                    .font(.subheadline)
+                    .font(.sora(13))
                     .foregroundStyle(Color.rbTextTertiary)
                     .multilineTextAlignment(.center)
                     .lineLimit(1)
@@ -207,8 +201,7 @@ struct SongDetailView: View {
                     .clipShape(Circle())
 
                 Text(title)
-                    .font(.caption2)
-                    .fontWeight(.medium)
+                    .font(.sora(11, .medium))
                     .foregroundStyle(Color.rbTextSecondary)
             }
         }
@@ -255,7 +248,8 @@ struct SongDetailView: View {
                     icon: "barcode",
                     title: "ISRC",
                     value: isrc,
-                    subtitle: nil
+                    subtitle: nil,
+                    monoValue: true
                 )
             }
 
@@ -273,44 +267,35 @@ struct SongDetailView: View {
         .offset(y: appearAnimation ? 0 : 15)
     }
 
-    private func metadataCard(icon: String, title: String, value: String, subtitle: String?) -> some View {
+    private func metadataCard(icon: String, title: String, value: String, subtitle: String?, monoValue: Bool = false) -> some View {
         HStack(spacing: 14) {
             Image(systemName: icon)
                 .font(.system(size: 16))
                 .foregroundStyle(Color.rbAccent)
                 .frame(width: 36, height: 36)
                 .background(Color.rbAccent.opacity(0.12))
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.caption)
+                Text(title.uppercased())
+                    .font(.sora(10, .semibold))
+                    .tracking(1.4)
                     .foregroundStyle(Color.rbTextTertiary)
 
                 Text(value)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(monoValue ? .mono(14, .medium) : .sora(15, .medium))
                     .foregroundStyle(Color.rbTextPrimary)
 
                 if let subtitle {
                     Text(subtitle)
-                        .font(.caption2)
+                        .font(.sora(11))
                         .foregroundStyle(Color.rbTextTertiary)
                 }
             }
 
             Spacer()
         }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
+        .rbCard(radius: 16)
     }
 
     // MARK: - Snippet Play Button
@@ -329,14 +314,14 @@ struct SongDetailView: View {
                 }
 
                 Text(isPlaying ? "Playing Broadcast" : "Play Broadcast Proof")
-                    .font(.subheadline.weight(.semibold))
+                    .font(.sora(15, .semibold))
             }
-            .foregroundStyle(.black)
+            .foregroundStyle(.white)
             .padding(.horizontal, 32)
             .padding(.vertical, 14)
             .background(LinearGradient.rbAccentGradient)
             .clipShape(Capsule())
-            .shadow(color: Color.rbAccent.opacity(0.4), radius: 12, x: 0, y: 6)
+            .shadow(color: Color.rbAccent.opacity(0.5), radius: 14, x: 0, y: 8)
         }
         .opacity(appearAnimation ? 1.0 : 0.0)
         .scaleEffect(appearAnimation ? 1.0 : 0.9)

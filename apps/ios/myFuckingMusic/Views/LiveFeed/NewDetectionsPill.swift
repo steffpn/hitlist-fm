@@ -11,16 +11,16 @@ struct NewDetectionsPill: View {
         Button(action: onTap) {
             HStack(spacing: 4) {
                 Image(systemName: "arrow.up")
-                    .font(.caption.bold())
+                    .font(.sora(11, .bold))
                 Text(count == 1 ? "1 new detection" : "\(count) new detections")
-                    .font(.caption.bold())
+                    .font(.sora(11, .bold))
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 14)
             .padding(.vertical, 8)
-            .background(.blue)
+            .background(LinearGradient.rbAccentGradient)
             .foregroundStyle(.white)
             .clipShape(Capsule())
-            .shadow(radius: 4)
+            .shadow(color: Color.rbAccent.opacity(0.5), radius: 12, y: 6)
         }
     }
 }

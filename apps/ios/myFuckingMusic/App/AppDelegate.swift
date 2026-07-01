@@ -1,5 +1,6 @@
 import UIKit
 import UserNotifications
+import CoreText
 
 /// UIApplicationDelegate for APNS token registration and notification handling.
 /// Wired into SwiftUI via @UIApplicationDelegateAdaptor in myFuckingMusicApp.
@@ -12,7 +13,21 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = self
+        Self.registerBundledFonts()
         return true
+    }
+
+    /// Registers every bundled .ttf/.otf with CoreText at launch, so `Font.sora` /
+    /// `Font.mono` resolve without needing UIAppFonts in Info.plist (this target uses a
+    /// generated Info.plist). No-op if no font files are bundled yet.
+    static func registerBundledFonts() {
+        let exts = ["ttf", "otf"]
+        for ext in exts {
+            let urls = Bundle.main.urls(forResourcesWithExtension: ext, subdirectory: nil) ?? []
+            for url in urls {
+                CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+            }
+        }
     }
 
     /// Called when APNS successfully registers and provides a device token.

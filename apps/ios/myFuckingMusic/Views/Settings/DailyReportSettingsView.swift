@@ -47,6 +47,7 @@ struct DailyReportSettingsView: View {
         List {
             Section {
                 Toggle("Enable Daily Report", isOn: Bindable(viewModel).dailyReportEnabled)
+                    .font(.sora(14.5, .medium))
                     .foregroundStyle(Color.rbTextPrimary)
                     .tint(Color.rbAccent)
                     .onChange(of: viewModel.dailyReportEnabled) {
@@ -54,16 +55,20 @@ struct DailyReportSettingsView: View {
                     }
                     .listRowBackground(Color.rbSurface)
             } header: {
-                Text("Daily Report")
-                    .foregroundStyle(Color.rbTextSecondary)
+                Text("Daily Report".uppercased())
+                    .font(.sora(10, .semibold))
+                    .tracking(1.4)
+                    .foregroundStyle(Color.rbTextTertiary)
             } footer: {
                 Text("Receive a daily summary of your play stats, tips, and insights.")
+                    .font(.sora(11.5, .regular))
                     .foregroundStyle(Color.rbTextTertiary)
             }
 
             if viewModel.dailyReportEnabled {
                 Section {
                     DatePicker("Delivery Time", selection: timeBinding, displayedComponents: .hourAndMinute)
+                        .font(.sora(14.5, .medium))
                         .foregroundStyle(Color.rbTextPrimary)
                         .tint(Color.rbAccent)
                         .listRowBackground(Color.rbSurface)
@@ -74,28 +79,32 @@ struct DailyReportSettingsView: View {
                                 .tag(tz)
                         }
                     }
+                    .font(.sora(14.5, .medium))
                     .foregroundStyle(Color.rbTextPrimary)
+                    .tint(Color.rbAccent)
                     .onChange(of: viewModel.dailyReportTimezone) {
                         Task { await viewModel.updateDailyReportSettings() }
                     }
                     .listRowBackground(Color.rbSurface)
                 } header: {
-                    Text("Schedule")
-                        .foregroundStyle(Color.rbTextSecondary)
+                    Text("Schedule".uppercased())
+                        .font(.sora(10, .semibold))
+                        .tracking(1.4)
+                        .foregroundStyle(Color.rbTextTertiary)
                 }
             }
 
             if let error = viewModel.error {
                 Section {
                     Text(error)
+                        .font(.sora(12, .regular))
                         .foregroundStyle(Color.rbError)
-                        .font(.caption)
                         .listRowBackground(Color.rbSurface)
                 }
             }
         }
         .scrollContentBackground(.hidden)
-        .background(Color.rbBackground)
+        .onairGlow(subtle: true)
         .navigationTitle("Daily Report")
         .toolbarColorScheme(.dark, for: .navigationBar)
         .preferredColorScheme(.dark)

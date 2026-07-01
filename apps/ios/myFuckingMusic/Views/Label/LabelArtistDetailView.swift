@@ -18,8 +18,8 @@ struct LabelArtistDetailView: View {
 
     var body: some View {
         ZStack {
-            Color.rbBackground
-                .ignoresSafeArea()
+            Color.clear
+                .onairGlow(subtle: true)
 
             if viewModel.isLoading && viewModel.songs.isEmpty {
                 LoadingView()
@@ -61,7 +61,7 @@ struct LabelArtistDetailView: View {
                             }
 
                             Divider()
-                                .overlay(Color.rbSurfaceLight.opacity(0.5))
+                                .overlay(Color.rbHairline)
                                 .padding(.leading, 16)
                         }
                     }
@@ -127,12 +127,12 @@ struct LabelArtistDetailView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(artistName)
-                    .font(.title3.weight(.bold))
+                    .font(.sora(20, .bold))
                     .foregroundStyle(Color.rbTextPrimary)
 
                 let monitoredCount = viewModel.songs.filter(\.isMonitored).count
                 Text("\(viewModel.songs.count) songs \u{2022} \(monitoredCount) monitored")
-                    .font(.subheadline)
+                    .font(.sora(14))
                     .foregroundStyle(Color.rbTextSecondary)
             }
 
@@ -148,24 +148,24 @@ struct LabelArtistDetailView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 12) {
                 // Song icon
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(song.isMonitored ? Color.rbAccent.opacity(0.15) : Color.rbSurface)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(song.isMonitored ? AnyShapeStyle(LinearGradient.rbAccentGradient) : AnyShapeStyle(Color.rbSurfaceLight))
                     .frame(width: 40, height: 40)
                     .overlay {
                         Image(systemName: song.isMonitored ? "waveform" : "music.note")
                             .font(.system(size: 16))
-                            .foregroundStyle(song.isMonitored ? Color.rbAccent : Color.rbTextTertiary)
+                            .foregroundStyle(song.isMonitored ? .white : Color.rbTextTertiary)
                     }
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(song.songTitle)
-                        .font(.subheadline.weight(.medium))
+                        .font(.sora(14, .semibold))
                         .foregroundStyle(Color.rbTextPrimary)
                         .lineLimit(1)
 
                     Text(song.isrc)
-                        .font(.caption)
-                        .foregroundStyle(Color.rbTextTertiary)
+                        .font(.mono(11))
+                        .foregroundStyle(Color.rbTextQuaternary)
                         .lineLimit(1)
                 }
 
@@ -188,17 +188,17 @@ struct LabelArtistDetailView: View {
             if song.isMonitored {
                 HStack(spacing: 16) {
                     Label("\(song.totalPlays) plays", systemImage: "play.fill")
-                        .font(.caption)
+                        .font(.mono(11, .medium))
                         .foregroundStyle(Color.rbAccent)
 
                     Label("\(song.stationCount) station\(song.stationCount == 1 ? "" : "s")", systemImage: "antenna.radiowaves.left.and.right")
-                        .font(.caption)
+                        .font(.sora(12, .medium))
                         .foregroundStyle(Color.rbTextSecondary)
 
                     Spacer()
 
                     Image(systemName: "chevron.right")
-                        .font(.caption2)
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(Color.rbTextTertiary)
                 }
                 .padding(.horizontal, 16)
@@ -217,11 +217,11 @@ struct LabelArtistDetailView: View {
                 .foregroundStyle(Color.rbTextTertiary)
 
             Text("No Songs Found")
-                .font(.title3.weight(.semibold))
+                .font(.sora(20, .bold))
                 .foregroundStyle(Color.rbTextPrimary)
 
             Text("Songs for this artist will appear here once they are registered")
-                .font(.subheadline)
+                .font(.sora(14))
                 .foregroundStyle(Color.rbTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)

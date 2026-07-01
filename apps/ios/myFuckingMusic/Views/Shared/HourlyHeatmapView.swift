@@ -11,11 +11,11 @@ struct HourlyHeatmapView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Broadcast Heatmap")
-                .font(.headline)
+                .font(.sora(16, .bold))
                 .foregroundStyle(Color.rbTextPrimary)
 
             Text("Days x Hours")
-                .font(.caption)
+                .font(.sora(11, .regular))
                 .foregroundStyle(Color.rbTextTertiary)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -81,16 +81,7 @@ struct HourlyHeatmapView: View {
                     .foregroundStyle(Color.rbTextTertiary)
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
+        .rbCard(radius: 18)
     }
 
     // MARK: - Helpers
@@ -102,7 +93,7 @@ struct HourlyHeatmapView: View {
 
     private func cellColor(intensity: Double) -> Color {
         if intensity == 0 {
-            return Color.rbSurfaceLight.opacity(0.3)
+            return Color.white.opacity(0.05)
         }
         return accentColor.opacity(0.2 + intensity * 0.8)
     }

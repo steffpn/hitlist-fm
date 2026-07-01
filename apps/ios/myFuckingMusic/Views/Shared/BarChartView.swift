@@ -14,12 +14,12 @@ struct BarChartView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
-                .font(.headline)
+                .font(.sora(16, .bold))
                 .foregroundStyle(Color.rbTextPrimary)
 
             if data.isEmpty {
                 Text("No data available")
-                    .font(.subheadline)
+                    .font(.sora(14, .regular))
                     .foregroundStyle(Color.rbTextTertiary)
                     .frame(maxWidth: .infinity, minHeight: 200, alignment: .center)
             } else {
@@ -30,7 +30,7 @@ struct BarChartView: View {
                     )
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [accentColor, accentColor.opacity(0.6)],
+                            colors: [Color.rbGradientStart, Color.rbGradientEnd],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -40,34 +40,25 @@ struct BarChartView: View {
                 .chartYAxis {
                     AxisMarks(position: .leading) { _ in
                         AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [4]))
-                            .foregroundStyle(Color.rbSurfaceLight)
+                            .foregroundStyle(Color.rbHairline)
                         AxisValueLabel()
-                            .foregroundStyle(Color.rbTextTertiary)
+                            .foregroundStyle(Color.rbTextSecondary)
                     }
                 }
                 .chartXAxis {
                     AxisMarks { _ in
                         AxisValueLabel()
-                            .foregroundStyle(Color.rbTextTertiary)
+                            .foregroundStyle(Color.rbTextSecondary)
                     }
                 }
                 .chartPlotStyle { plotArea in
                     plotArea
-                        .background(Color.rbSurface.opacity(0.3))
+                        .background(Color.clear)
                 }
                 .frame(height: 200)
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
+        .rbCard(radius: 18)
     }
 }
 

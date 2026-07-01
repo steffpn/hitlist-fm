@@ -9,8 +9,8 @@ struct LabelArtistListView: View {
 
     var body: some View {
         ZStack {
-            Color.rbBackground
-                .ignoresSafeArea()
+            Color.clear
+                .onairGlow(subtle: true)
 
             if viewModel.isLoading && viewModel.artists.isEmpty {
                 LoadingView()
@@ -45,7 +45,7 @@ struct LabelArtistListView: View {
                             }
 
                             Divider()
-                                .overlay(Color.rbSurfaceLight.opacity(0.5))
+                                .overlay(Color.rbHairline)
                         }
                     }
                 }
@@ -65,7 +65,13 @@ struct LabelArtistListView: View {
                     showingArtistPicker = true
                 } label: {
                     Image(systemName: "plus")
-                        .foregroundStyle(Color.rbAccent)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 32, height: 32)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(LinearGradient.rbAccentGradient)
+                        )
                 }
             }
         }
@@ -115,17 +121,17 @@ struct LabelArtistListView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(artist.artistName)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.sora(14, .semibold))
                     .foregroundStyle(Color.rbTextPrimary)
                     .lineLimit(1)
 
                 HStack(spacing: 8) {
                     Label("\(artist.songCount) song\(artist.songCount == 1 ? "" : "s")", systemImage: "music.note")
-                        .font(.caption)
+                        .font(.sora(12, .medium))
                         .foregroundStyle(Color.rbTextSecondary)
 
                     Label("\(artist.totalPlays)", systemImage: "play.fill")
-                        .font(.caption)
+                        .font(.mono(11, .medium))
                         .foregroundStyle(Color.rbAccent)
                 }
 
@@ -133,10 +139,10 @@ struct LabelArtistListView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "crown.fill")
                             .font(.system(size: 9))
-                            .foregroundStyle(Color.rbWarm)
+                            .foregroundStyle(Color.rbAccent)
 
                         Text(topSong)
-                            .font(.caption2)
+                            .font(.sora(11, .medium))
                             .foregroundStyle(Color.rbTextTertiary)
                             .lineLimit(1)
                     }
@@ -146,7 +152,7 @@ struct LabelArtistListView: View {
             Spacer()
 
             Image(systemName: "chevron.right")
-                .font(.caption2)
+                .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Color.rbTextTertiary)
         }
         .padding(.horizontal, 16)
@@ -163,11 +169,11 @@ struct LabelArtistListView: View {
                 .foregroundStyle(Color.rbTextTertiary)
 
             Text("No Artists Yet")
-                .font(.title3.weight(.semibold))
+                .font(.sora(20, .bold))
                 .foregroundStyle(Color.rbTextPrimary)
 
             Text("Tap + to add artists to your label roster")
-                .font(.subheadline)
+                .font(.sora(14))
                 .foregroundStyle(Color.rbTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
@@ -181,7 +187,7 @@ struct LabelArtistListView: View {
 private struct LabelArtistRowButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .background(configuration.isPressed ? Color.rbSurfaceLight.opacity(0.3) : Color.clear)
+            .background(configuration.isPressed ? Color.rbAccent.opacity(0.09) : Color.clear)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
     }

@@ -9,8 +9,8 @@ struct TrendBadge: View {
 
     private var color: Color {
         switch direction {
-        case "up": return .green
-        case "down": return .red
+        case "up": return .rbLive
+        case "down": return .rbError
         default: return .rbTextTertiary
         }
     }
@@ -26,11 +26,11 @@ struct TrendBadge: View {
     var body: some View {
         HStack(spacing: 3) {
             Image(systemName: icon)
-                .font(.system(size: compact ? 8 : 10, weight: .bold))
+                .font(.sora(compact ? 8 : 10, .bold))
 
             if !compact {
                 Text(String(format: "%.0f%%", abs(percentChange)))
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.sora(11, .semibold))
             }
         }
         .foregroundStyle(color)
@@ -38,7 +38,7 @@ struct TrendBadge: View {
         .padding(.vertical, compact ? 3 : 4)
         .background(
             Capsule()
-                .fill(color.opacity(0.15))
+                .fill(color.opacity(0.16))
         )
     }
 }

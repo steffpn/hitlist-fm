@@ -29,6 +29,8 @@ struct LiveFeedView: View {
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: viewModel.newEventCount > 0)
+            .onairGlow(subtle: true)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationTitle("Live")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -36,6 +38,7 @@ struct LiveFeedView: View {
                 }
             }
         }
+        .preferredColorScheme(.dark)
         .task { await connectToFeed() }
         .onChange(of: scenePhase) { _, newPhase in
             handleScenePhaseChange(newPhase)
@@ -65,11 +68,11 @@ struct LiveFeedView: View {
             Spacer()
             Image(systemName: "waveform")
                 .font(.system(size: 40))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.rbAccent)
                 .symbolEffect(.variableColor.iterative, options: .repeating)
             Text("Listening for detections...")
-                .font(.headline)
-                .foregroundStyle(.secondary)
+                .font(.sora(17, .semibold))
+                .foregroundStyle(Color.rbTextSecondary)
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -82,13 +85,13 @@ struct LiveFeedView: View {
             Spacer()
             Image(systemName: "wifi.slash")
                 .font(.system(size: 40))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.rbTextTertiary)
             Text("Disconnected")
-                .font(.headline)
-                .foregroundStyle(.secondary)
+                .font(.sora(17, .semibold))
+                .foregroundStyle(Color.rbTextSecondary)
             Text("Return to the app to reconnect")
-                .font(.subheadline)
-                .foregroundStyle(.tertiary)
+                .font(.sora(14))
+                .foregroundStyle(Color.rbTextTertiary)
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -103,6 +106,7 @@ struct LiveFeedView: View {
                     DetectionRowView(event: event)
                         .id(event.id)
                         .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
                         .listRowSeparator(.visible)
                         .onAppear {
                             // Track if the first item is visible (user is at top)
@@ -119,6 +123,7 @@ struct LiveFeedView: View {
                 }
             }
             .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .onChange(of: scrollTarget) { _, target in
                 guard let target else { return }
                 withAnimation(.easeInOut(duration: 0.3)) {
@@ -139,8 +144,8 @@ struct LiveFeedView: View {
                 .frame(width: 8, height: 8)
             if viewModel.connectionState == .reconnecting || viewModel.connectionState == .connecting {
                 Text(viewModel.connectionState == .connecting ? "Connecting..." : "Reconnecting...")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .font(.sora(11))
+                    .foregroundStyle(Color.rbTextSecondary)
             }
         }
     }
@@ -148,11 +153,11 @@ struct LiveFeedView: View {
     private var connectionColor: Color {
         switch viewModel.connectionState {
         case .connected:
-            return .green
+            return .rbLive
         case .disconnected:
-            return .gray
+            return .rbTextTertiary
         case .connecting, .reconnecting:
-            return .orange
+            return .rbWarning
         }
     }
 

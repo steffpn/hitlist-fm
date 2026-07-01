@@ -7,9 +7,6 @@ struct StationDashboardView: View {
 
     var body: some View {
         ZStack {
-            Color.rbBackground
-                .ignoresSafeArea()
-
             if viewModel.isLoading && viewModel.overview == nil {
                 LoadingView()
             } else if let errorMessage = viewModel.error, viewModel.overview == nil {
@@ -47,6 +44,7 @@ struct StationDashboardView: View {
                 }
             }
         }
+        .onairGlow(subtle: true)
         .navigationTitle("My Station")
         .navigationBarTitleDisplayMode(.large)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -93,29 +91,17 @@ struct StationDashboardView: View {
                 .foregroundStyle(color)
 
             Text(value)
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundStyle(Color.rbTextPrimary)
+                .font(.sora(26, .heavy))
+                .foregroundStyle(LinearGradient.rbAccentGradient)
 
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(Color.rbTextSecondary)
+            Text(title.uppercased())
+                .font(.sora(10, .semibold))
+                .tracking(1.4)
+                .foregroundStyle(Color.rbTextTertiary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(Color.rbSurfaceLight, lineWidth: 1)
-        )
+        .padding(.vertical, 4)
+        .rbCard(radius: 18)
     }
 
     // MARK: - Top Songs
@@ -128,13 +114,13 @@ struct StationDashboardView: View {
                     .foregroundStyle(Color.rbAccent)
 
                 Text("Top Songs")
-                    .font(.headline)
+                    .font(.sora(16, .bold))
                     .foregroundStyle(Color.rbTextPrimary)
 
                 Spacer()
 
                 Text("\(viewModel.topSongs.count) songs")
-                    .font(.caption)
+                    .font(.mono(11))
                     .foregroundStyle(Color.rbTextTertiary)
             }
 
@@ -144,26 +130,13 @@ struct StationDashboardView: View {
 
                     if song.rank < viewModel.topSongs.count {
                         Divider()
-                            .overlay(Color.rbSurfaceLight.opacity(0.5))
+                            .overlay(Color.rbHairline)
                             .padding(.leading, 44)
                     }
                 }
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.rbSurface.opacity(0.5))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.rbSurfaceLight, lineWidth: 1)
-        )
+        .rbCard()
         .padding(.horizontal, 16)
     }
 
@@ -171,18 +144,18 @@ struct StationDashboardView: View {
         HStack(spacing: 12) {
             // Rank badge
             Text("\(song.rank)")
-                .font(.headline.weight(.bold))
+                .font(.mono(15, .bold))
                 .foregroundStyle(song.rank <= 3 ? Color.rbWarm : Color.rbTextTertiary)
                 .frame(width: 28, alignment: .center)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(song.songTitle)
-                    .font(.subheadline.weight(.medium))
+                    .font(.sora(14, .semibold))
                     .foregroundStyle(Color.rbTextPrimary)
                     .lineLimit(1)
 
                 Text(song.artistName)
-                    .font(.caption)
+                    .font(.sora(12))
                     .foregroundStyle(Color.rbTextSecondary)
                     .lineLimit(1)
             }
@@ -190,13 +163,13 @@ struct StationDashboardView: View {
             Spacer()
 
             Text("\(song.playCount)")
-                .font(.subheadline.weight(.bold))
-                .foregroundStyle(Color.rbAccent)
+                .font(.mono(13, .bold))
+                .foregroundStyle(Color.rbAccentLight)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
                 .background(
                     Capsule()
-                        .fill(Color.rbAccent.opacity(0.12))
+                        .fill(Color.rbAccent.opacity(0.16))
                 )
         }
         .padding(.vertical, 8)

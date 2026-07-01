@@ -13,6 +13,7 @@ struct NotificationsSettingsView: View {
             // Digest toggles
             Section {
                 Toggle("Daily Digest", isOn: $viewModel.dailyDigestEnabled)
+                    .font(.sora(14.5, .medium))
                     .foregroundStyle(Color.rbTextPrimary)
                     .tint(Color.rbAccent)
                     .onChange(of: viewModel.dailyDigestEnabled) {
@@ -21,6 +22,7 @@ struct NotificationsSettingsView: View {
                     .listRowBackground(Color.rbSurface)
 
                 Toggle("Weekly Digest", isOn: $viewModel.weeklyDigestEnabled)
+                    .font(.sora(14.5, .medium))
                     .foregroundStyle(Color.rbTextPrimary)
                     .tint(Color.rbAccent)
                     .onChange(of: viewModel.weeklyDigestEnabled) {
@@ -28,10 +30,13 @@ struct NotificationsSettingsView: View {
                     }
                     .listRowBackground(Color.rbSurface)
             } header: {
-                Text("Notifications")
-                    .foregroundStyle(Color.rbTextSecondary)
+                Text("Notifications".uppercased())
+                    .font(.sora(10, .semibold))
+                    .tracking(1.4)
+                    .foregroundStyle(Color.rbTextTertiary)
             } footer: {
                 Text("Digests are sent at 9:00 AM Romania time.")
+                    .font(.sora(11.5, .regular))
                     .foregroundStyle(Color.rbTextTertiary)
             }
 
@@ -40,7 +45,7 @@ struct NotificationsSettingsView: View {
                 Section {
                     Label {
                         Text("Push notifications are disabled. Enable them in iOS Settings to receive digests.")
-                            .font(.subheadline)
+                            .font(.sora(13, .regular))
                             .foregroundStyle(Color.rbTextSecondary)
                     } icon: {
                         Image(systemName: "exclamationmark.triangle")
@@ -54,14 +59,14 @@ struct NotificationsSettingsView: View {
             if let error = viewModel.error {
                 Section {
                     Text(error)
+                        .font(.sora(12, .regular))
                         .foregroundStyle(Color.rbError)
-                        .font(.caption)
                         .listRowBackground(Color.rbSurface)
                 }
             }
         }
         .scrollContentBackground(.hidden)
-        .background(Color.rbBackground)
+        .onairGlow(subtle: true)
         .navigationTitle("Notifications")
         .toolbarColorScheme(.dark, for: .navigationBar)
         .preferredColorScheme(.dark)

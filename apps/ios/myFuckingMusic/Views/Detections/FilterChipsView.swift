@@ -28,7 +28,7 @@ struct FilterChipsView: View {
             .padding(.horizontal)
             .padding(.vertical, 8)
         }
-        .background(Color.rbBackground)
+        .scrollIndicators(.hidden)
         .sheet(isPresented: $showDatePicker) {
             datePickerSheet
         }
@@ -40,7 +40,8 @@ struct FilterChipsView: View {
     // MARK: - Date Range Chip
 
     private var dateRangeChip: some View {
-        Button {
+        let isActive = startDate != nil
+        return Button {
             if let start = startDate {
                 tempStartDate = start
             }
@@ -49,27 +50,24 @@ struct FilterChipsView: View {
             }
             showDatePicker = true
         } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: 5) {
                 Image(systemName: "calendar")
-                    .font(.caption)
+                    .font(.sora(11, .medium))
 
                 if let start = startDate, let end = endDate {
                     Text("\(DateFormatters.dateOnly(start)) - \(DateFormatters.dateOnly(end))")
-                        .font(.caption)
+                        .font(.sora(12, .medium))
                 } else {
                     Text("Date Range")
-                        .font(.caption)
+                        .font(.sora(12, .medium))
+                }
+
+                if isActive {
+                    Image(systemName: "xmark")
+                        .font(.sora(9, .semibold))
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(startDate != nil ? Color.rbAccent.opacity(0.2) : Color.rbSurface)
-            .foregroundStyle(startDate != nil ? Color.rbAccent : Color.rbTextSecondary)
-            .clipShape(Capsule())
-            .overlay(
-                Capsule()
-                    .stroke(startDate != nil ? Color.rbAccent : Color.rbSurfaceLight, lineWidth: 1)
-            )
+            .chipStyle(isActive: isActive)
         }
         .buttonStyle(.plain)
     }
@@ -77,32 +75,30 @@ struct FilterChipsView: View {
     // MARK: - Station Chip
 
     private var stationChip: some View {
-        Button {
+        let isActive = selectedStationId != nil
+        return Button {
             showStationPicker = true
         } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: 5) {
                 Image(systemName: "antenna.radiowaves.left.and.right")
-                    .font(.caption)
+                    .font(.sora(11, .medium))
 
                 if let stationId = selectedStationId,
                    let station = stations.first(where: { $0.id == stationId }) {
                     Text(station.name)
-                        .font(.caption)
+                        .font(.sora(12, .medium))
                         .lineLimit(1)
                 } else {
                     Text("Station")
-                        .font(.caption)
+                        .font(.sora(12, .medium))
+                }
+
+                if isActive {
+                    Image(systemName: "xmark")
+                        .font(.sora(9, .semibold))
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(selectedStationId != nil ? Color.rbAccent.opacity(0.2) : Color.rbSurface)
-            .foregroundStyle(selectedStationId != nil ? Color.rbAccent : Color.rbTextSecondary)
-            .clipShape(Capsule())
-            .overlay(
-                Capsule()
-                    .stroke(selectedStationId != nil ? Color.rbAccent : Color.rbSurfaceLight, lineWidth: 1)
-            )
+            .chipStyle(isActive: isActive)
         }
         .buttonStyle(.plain)
     }
@@ -224,5 +220,37 @@ struct FilterChipsView: View {
         }
         .preferredColorScheme(.dark)
         .presentationDetents([.medium, .large])
+    }
+}
+
+// MARK: - Chip Style
+
+/// Glass capsule styling for filter chips.
+/// Inactive = glass tint + glass border + secondary text.
+/// Active = accent-tinted fill + accent border + light-accent text.
+private struct ChipStyle: ViewModifier {
+    let isActive: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .foregroundStyle(isActive ? Color.rbAccentLight : Color.rbTextSecondary)
+            .background(
+                Capsule().fill(isActive ? Color.rbAccent.opacity(0.16) : Color.rbGlassTint)
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(
+                        isActive ? Color.rbAccent.opacity(0.5) : Color.rbGlassBorder,
+                        lineWidth: 1
+                    )
+            )
+    }
+}
+
+private extension View {
+    func chipStyle(isActive: Bool) -> some View {
+        modifier(ChipStyle(isActive: isActive))
     }
 }

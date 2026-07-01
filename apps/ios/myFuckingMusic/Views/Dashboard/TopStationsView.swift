@@ -12,14 +12,15 @@ struct TopStationsView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Top Stations")
-                .font(.headline)
-                .foregroundStyle(Color.rbTextPrimary)
-                .padding(.horizontal)
+        VStack(alignment: .leading, spacing: 12) {
+            Text("TOP STATIONS")
+                .font(.sora(10, .semibold))
+                .tracking(1.4)
+                .foregroundStyle(Color.rbTextTertiary)
 
             if displayStations.isEmpty {
                 Text("No station data")
+                    .font(.sora(13))
                     .foregroundStyle(Color.rbTextTertiary)
                     .frame(maxWidth: .infinity, minHeight: 100)
             } else {
@@ -30,46 +31,42 @@ struct TopStationsView: View {
                     )
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [.rbAccent, .rbAccentDark],
+                            colors: [.rbGradientStart, .rbGradientEnd],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
                     .cornerRadius(4)
-                    .annotation(position: .trailing, alignment: .leading, spacing: 4) {
+                    .annotation(position: .trailing, alignment: .leading, spacing: 6) {
                         Text("\(station.playCount)")
-                            .font(.caption)
+                            .font(.mono(11, .medium))
                             .foregroundStyle(Color.rbTextSecondary)
                     }
                 }
                 .chartYAxis {
                     AxisMarks { _ in
                         AxisValueLabel()
+                            .font(.sora(11, .medium))
                             .foregroundStyle(Color.rbTextPrimary)
                     }
                 }
                 .chartXAxis {
                     AxisMarks(position: .bottom) { _ in
                         AxisGridLine()
-                            .foregroundStyle(Color.rbSurfaceLight)
+                            .foregroundStyle(Color.rbHairline)
                         AxisValueLabel()
+                            .font(.mono(10))
                             .foregroundStyle(Color.rbTextSecondary)
                     }
                 }
                 .chartPlotStyle { plotArea in
                     plotArea
-                        .background(Color.rbSurface.opacity(0.3))
+                        .background(Color.clear)
                 }
                 .frame(height: CGFloat(displayStations.count * 44))
-                .padding(.horizontal)
             }
         }
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.rbSurface)
-        )
-        .padding(.horizontal)
+        .rbCard(radius: 20)
     }
 }
 
@@ -83,4 +80,5 @@ struct TopStationsView: View {
     ])
     .padding()
     .background(Color.rbBackground)
+    .preferredColorScheme(.dark)
 }
