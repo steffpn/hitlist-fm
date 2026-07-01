@@ -114,6 +114,31 @@ async function authorizedFetch(
   return res;
 }
 
+/**
+ * Error thrown by apiFetch for non-2xx responses. Carries the HTTP status and,
+ * for premium-gated routes (403 {error:"Premium feature", featureKey}), the
+ * feature key — so UI like <PremiumGate> can distinguish paywalls from real
+ * errors. Extends Error, so existing `err instanceof Error` checks still work.
+ */
+export class ApiError extends Error {
+  status: number;
+  featureKey?: string;
+  detail?: string;
+
+  constructor(message: string, status: number, featureKey?: string, detail?: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.featureKey = featureKey;
+    this.detail = detail;
+  }
+}
+
+/** True when the error is the API's premium paywall (403 + featureKey). */
+export function isPremiumError(err: unknown): err is ApiError {
+  return err instanceof ApiError && err.status === 403 && !!err.featureKey;
+}
+
 export async function apiFetch<T>(
   path: string,
   opts: FetchOptions = {},
@@ -122,7 +147,12 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || body.message || `API error ${res.status}`);
+    throw new ApiError(
+      body.error || body.message || `API error ${res.status}`,
+      res.status,
+      body.featureKey,
+      body.message,
+    );
   }
 
   return res.json();
@@ -140,7 +170,12 @@ export async function apiDownload(
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || body.message || `Export failed (${res.status})`);
+    throw new ApiError(
+      body.error || body.message || `Export failed (${res.status})`,
+      res.status,
+      body.featureKey,
+      body.message,
+    );
   }
 
   // Prefer the server-provided filename when present.

@@ -9,7 +9,8 @@ import { getImpersonation } from "@/lib/impersonation";
 import { ViewAsRoleMenu, ImpersonationBanner } from "@/components/view-as-role";
 import { cn } from "@/lib/cn";
 
-const NO_SHELL_PATHS = ["/login"];
+// Pages rendered without shell/auth: login + the public marketing chart.
+const NO_SHELL_PATHS = ["/login", "/top"];
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -87,9 +88,10 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
             router.push("/login");
           }}
         />
+        <PortalMobileNav role={portalRole} pathname={pathname} />
         <div className="flex-1 flex">
           <PortalSidebar role={portalRole} pathname={pathname} />
-          <main className="flex-1 p-8 overflow-x-auto">{children}</main>
+          <main className="flex-1 p-4 md:p-8 overflow-x-auto min-w-0">{children}</main>
         </div>
       </div>
     );
@@ -198,8 +200,6 @@ function NavLink({ href, active, children }: { href: string; active: boolean; ch
 }
 
 // ─── Portal shell (per-role, /portal/*) ─────────────────────────────────
-// The per-role dashboards land in the next step; the nav structure is
-// prepared here so those pages only have to flip `soon: false`.
 
 type PortalRole = "ARTIST" | "LABEL" | "STATION";
 
@@ -211,21 +211,25 @@ const PORTAL_ROLE_LABELS: Record<PortalRole, string> = {
 
 const PORTAL_NAV: Record<
   PortalRole,
-  Array<{ label: string; items: Array<{ href: string; label: string; soon?: boolean }> }>
+  Array<{ label: string; items: Array<{ href: string; label: string }> }>
 > = {
   ARTIST: [
     {
       label: "Muzica ta",
       items: [
         { href: "/portal", label: "Acasă" },
-        { href: "/portal/airplay", label: "Difuzări", soon: true },
-        { href: "/portal/songs", label: "Piesele mele", soon: true },
-        { href: "/portal/charts", label: "Topuri", soon: true },
+        { href: "/portal/songs", label: "Piesele mele" },
+        { href: "/portal/airplay", label: "Difuzări" },
+        { href: "/portal/charts", label: "Topuri" },
       ],
     },
     {
       label: "Cont",
-      items: [{ href: "/portal/billing", label: "Abonament", soon: true }],
+      items: [
+        { href: "/portal/reports", label: "Rapoarte" },
+        { href: "/portal/billing", label: "Abonament" },
+        { href: "/portal/settings", label: "Setări" },
+      ],
     },
   ],
   LABEL: [
@@ -233,32 +237,45 @@ const PORTAL_NAV: Record<
       label: "Roster",
       items: [
         { href: "/portal", label: "Acasă" },
-        { href: "/portal/artists", label: "Artiști", soon: true },
-        { href: "/portal/airplay", label: "Difuzări", soon: true },
-        { href: "/portal/reports", label: "Rapoarte", soon: true },
+        { href: "/portal/artists", label: "Artiști" },
+        { href: "/portal/airplay", label: "Difuzări" },
+        { href: "/portal/insights", label: "Insights" },
+        { href: "/portal/charts", label: "Topuri" },
       ],
     },
     {
       label: "Cont",
-      items: [{ href: "/portal/billing", label: "Abonament", soon: true }],
+      items: [
+        { href: "/portal/reports", label: "Rapoarte" },
+        { href: "/portal/billing", label: "Abonament" },
+        { href: "/portal/settings", label: "Setări" },
+      ],
     },
   ],
   STATION: [
     {
       label: "Stația ta",
       items: [
-        { href: "/portal", label: "Acasă" },
-        { href: "/portal/playout", label: "Playout", soon: true },
-        { href: "/portal/competitors", label: "Competitori", soon: true },
-        { href: "/portal/reports", label: "Rapoarte", soon: true },
+        { href: "/portal", label: "Stația mea" },
+        { href: "/portal/competitors", label: "Competitori" },
+        { href: "/portal/analytics", label: "Analiză" },
+        { href: "/portal/airplay", label: "Difuzări" },
       ],
     },
     {
       label: "Cont",
-      items: [{ href: "/portal/billing", label: "Abonament", soon: true }],
+      items: [
+        { href: "/portal/reports", label: "Rapoarte" },
+        { href: "/portal/billing", label: "Abonament" },
+        { href: "/portal/settings", label: "Setări" },
+      ],
     },
   ],
 };
+
+function isPortalItemActive(href: string, pathname: string): boolean {
+  return href === "/portal" ? pathname === "/portal" : pathname.startsWith(href);
+}
 
 function PortalHeader({
   role,
@@ -292,7 +309,7 @@ function PortalHeader({
 
 function PortalSidebar({ role, pathname }: { role: PortalRole; pathname: string }) {
   return (
-    <aside className="w-56 shrink-0 bg-zinc-900/50 border-r border-zinc-800 p-6">
+    <aside className="w-56 shrink-0 bg-zinc-900/50 border-r border-zinc-800 p-6 hidden md:block">
       <nav className="flex flex-col gap-1">
         {PORTAL_NAV[role].map((group, idx) => (
           <div key={group.label} className={idx === 0 ? "" : "mt-4"}>
@@ -300,36 +317,49 @@ function PortalSidebar({ role, pathname }: { role: PortalRole; pathname: string 
               {group.label}
             </span>
             <div className="mt-1 flex flex-col gap-1">
-              {group.items.map((item) =>
-                item.soon ? (
-                  <span
-                    key={item.href}
-                    className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-zinc-600 cursor-default select-none"
-                  >
-                    {item.label}
-                    <span className="text-[9px] font-mono uppercase tracking-wider text-zinc-600 border border-zinc-800 rounded-full px-1.5 py-0.5">
-                      curând
-                    </span>
-                  </span>
-                ) : (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "block px-3 py-2 rounded-lg text-sm transition-colors",
-                      pathname === item.href
-                        ? "bg-brand-500/10 text-brand-400 font-medium"
-                        : "text-zinc-400 hover:text-white hover:bg-zinc-800/50",
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                ),
-              )}
+              {group.items.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "block px-3 py-2 rounded-lg text-sm transition-colors",
+                    isPortalItemActive(item.href, pathname)
+                      ? "bg-brand-500/10 text-brand-400 font-medium"
+                      : "text-zinc-400 hover:text-white hover:bg-zinc-800/50",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
             </div>
           </div>
         ))}
       </nav>
     </aside>
+  );
+}
+
+/** Horizontal scrollable nav for small screens (sidebar is hidden there). */
+function PortalMobileNav({ role, pathname }: { role: PortalRole; pathname: string }) {
+  const items = PORTAL_NAV[role].flatMap((g) => g.items);
+  return (
+    <nav className="md:hidden bg-zinc-950/90 border-b border-zinc-800 overflow-x-auto">
+      <div className="flex gap-1 px-3 py-2 w-max">
+        {items.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors",
+              isPortalItemActive(item.href, pathname)
+                ? "bg-brand-500/10 text-brand-400"
+                : "text-zinc-400 hover:text-white",
+            )}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </div>
+    </nav>
   );
 }
