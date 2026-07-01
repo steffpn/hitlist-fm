@@ -132,6 +132,7 @@ model DeviceToken {
   id          Int      @id @default(autoincrement())
   userId      Int      @map("user_id")
   token       String   @unique
+  platform    String   @default("ios") // ios | android — routes push to APNs vs FCM
   environment String   @default("production")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")

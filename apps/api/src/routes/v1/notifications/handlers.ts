@@ -72,13 +72,14 @@ export async function registerDeviceToken(
   request: FastifyRequest<{ Body: RegisterDeviceTokenBody }>,
   reply: FastifyReply,
 ): Promise<void> {
-  const { token, environment } = request.body;
+  const { token, platform, environment } = request.body;
   const userId = request.currentUser.id;
+  const resolvedPlatform = platform || "ios";
 
   await prisma.deviceToken.upsert({
     where: { token },
-    update: { userId, environment: environment || "production" },
-    create: { userId, token, environment: environment || "production" },
+    update: { userId, platform: resolvedPlatform, environment: environment || "production" },
+    create: { userId, token, platform: resolvedPlatform, environment: environment || "production" },
   });
 
   return reply.code(201).send({ success: true });

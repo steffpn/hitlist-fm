@@ -15,6 +15,7 @@ import { Notification, ApnsError } from "apns2";
 import { createRedisConnection } from "../lib/redis.js";
 import { prisma } from "../lib/prisma.js";
 import { getApnsClient } from "../lib/apns.js";
+import { sendPush } from "../lib/push.js";
 import pino from "pino";
 
 const logger = pino({ name: "chart-alerts-worker" });
@@ -347,31 +348,17 @@ async function createAndSendAlert(
     },
   });
 
-  // Send push notification
-  if (apns) {
-    for (const dt of deviceTokens) {
-      try {
-        const notification = new Notification(dt.token, {
-          alert: {
-            title: "Chart Alert! 📊",
-            body: message,
-          },
-          data: {
-            type: "chart_alert",
-            platform: entry.platform,
-            country: entry.country,
-          },
-        });
-        await apns.send(notification);
-      } catch (err) {
-        if (err instanceof ApnsError) {
-          if (err.reason === "BadDeviceToken" || err.reason === "Unregistered") {
-            await prisma.deviceToken.deleteMany({ where: { token: dt.token } });
-          }
-        }
-        logger.error({ userId, err }, "Failed to send chart alert push");
-      }
-    }
+  // Send push notification (routes to APNs/FCM per device platform)
+  for (const dt of deviceTokens) {
+    await sendPush(dt, {
+      title: "Chart Alert! 📊",
+      body: message,
+      data: {
+        type: "chart_alert",
+        platform: entry.platform,
+        country: entry.country,
+      },
+    });
   }
 }
 

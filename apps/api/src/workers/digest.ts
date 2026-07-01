@@ -14,6 +14,7 @@ import { Notification, ApnsError } from "apns2";
 import { createRedisConnection } from "../lib/redis.js";
 import { prisma } from "../lib/prisma.js";
 import { getApnsClient } from "../lib/apns.js";
+import { sendPush, type PushPayload } from "../lib/push.js";
 import pino from "pino";
 
 const logger = pino({ name: "digest-worker" });
@@ -271,6 +272,29 @@ export function buildWeeklyDigestNotification(
   });
 }
 
+// ---- Push payloads (platform-agnostic; sendPush routes to APNs/FCM) ----
+
+function dailyDigestPayload(digest: DailyDigest): PushPayload {
+  const today = new Date().toISOString().split("T")[0];
+  let body = `${digest.playCount} plays today.`;
+  if (digest.topSong && digest.topStation) {
+    body = `${digest.playCount} plays today. '${digest.topSong.title}' was #1 with ${digest.topSong.count} plays, mostly on ${digest.topStation.name}`;
+  } else if (digest.topSong) {
+    body = `${digest.playCount} plays today. '${digest.topSong.title}' was #1 with ${digest.topSong.count} plays`;
+  }
+  return { title: "Daily Airplay Digest", body, data: { type: "daily_digest", date: today } };
+}
+
+function weeklyDigestPayload(digest: WeeklyDigest): PushPayload {
+  const today = new Date().toISOString().split("T")[0];
+  const changeSign = digest.weekOverWeekChange >= 0 ? "+" : "";
+  let body = `${digest.playCount} plays (${changeSign}${Math.round(digest.weekOverWeekChange)}%).`;
+  if (digest.topSong) {
+    body = `${digest.playCount} plays (${changeSign}${Math.round(digest.weekOverWeekChange)}%). '${digest.topSong.title}' #1. ${digest.newStationsCount} new stations played your music this week`;
+  }
+  return { title: "Weekly Airplay Digest", body, data: { type: "weekly_digest", date: today } };
+}
+
 // ---- Process Functions ----
 
 /**
@@ -316,28 +340,9 @@ export async function processDailyDigests(): Promise<void> {
 
       const digest = await computeDailyDigest(stationIds);
 
-      if (!apns) {
-        logger.warn({ userId: user.id }, "APNS client unavailable, skipping push delivery");
-        continue;
-      }
-
+      const dailyPayload = dailyDigestPayload(digest);
       for (const dt of user.deviceTokens) {
-        try {
-          const notification = buildDailyDigestNotification(dt.token, digest);
-          await apns.send(notification);
-        } catch (err) {
-          if (err instanceof ApnsError) {
-            const reason = err.reason;
-            if (reason === "BadDeviceToken" || reason === "Unregistered") {
-              logger.info({ token: dt.token }, "Removing invalid device token");
-              await prisma.deviceToken.deleteMany({
-                where: { token: dt.token },
-              });
-              continue;
-            }
-          }
-          logger.error({ userId: user.id, err }, "Failed to send daily digest notification");
-        }
+        await sendPush(dt, dailyPayload);
       }
     } catch (err) {
       logger.error({ userId: user.id, err }, "Failed to process daily digest for user");
@@ -366,28 +371,9 @@ export async function processWeeklyDigests(): Promise<void> {
 
       const digest = await computeWeeklyDigest(stationIds);
 
-      if (!apns) {
-        logger.warn({ userId: user.id }, "APNS client unavailable, skipping push delivery");
-        continue;
-      }
-
+      const weeklyPayload = weeklyDigestPayload(digest);
       for (const dt of user.deviceTokens) {
-        try {
-          const notification = buildWeeklyDigestNotification(dt.token, digest);
-          await apns.send(notification);
-        } catch (err) {
-          if (err instanceof ApnsError) {
-            const reason = err.reason;
-            if (reason === "BadDeviceToken" || reason === "Unregistered") {
-              logger.info({ token: dt.token }, "Removing invalid device token");
-              await prisma.deviceToken.deleteMany({
-                where: { token: dt.token },
-              });
-              continue;
-            }
-          }
-          logger.error({ userId: user.id, err }, "Failed to send weekly digest notification");
-        }
+        await sendPush(dt, weeklyPayload);
       }
     } catch (err) {
       logger.error({ userId: user.id, err }, "Failed to process weekly digest for user");

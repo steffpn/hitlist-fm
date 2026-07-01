@@ -1,0 +1,5 @@
+<resources>
+    <color name="rb_background">#0A070E</color>
+    <color name="rb_surface">#16121F</color>
+    <color name="ic_launcher_background">#16121F</color>
+</resources>

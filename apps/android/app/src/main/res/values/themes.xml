@@ -1,0 +1,10 @@
+<resources>
+    <!-- Base activity theme. Compose owns the real UI; this only prevents a
+         white flash before the first frame and colors the system bars. -->
+    <style name="Theme.Onair" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/rb_background</item>
+        <item name="android:statusBarColor">@color/rb_background</item>
+        <item name="android:navigationBarColor">@color/rb_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

@@ -17,6 +17,7 @@ import { Notification, ApnsError } from "apns2";
 import { createRedisConnection } from "../lib/redis.js";
 import { prisma } from "../lib/prisma.js";
 import { getApnsClient } from "../lib/apns.js";
+import { sendPush } from "../lib/push.js";
 import pino from "pino";
 
 const logger = pino({ name: "daily-report-worker" });
@@ -480,30 +481,17 @@ async function processDailyReports(): Promise<void> {
         },
       });
 
-      // Send push notification
-      if (apns && user.deviceTokens.length > 0) {
+      // Send push notification (routes to APNs/FCM per device platform)
+      if (user.deviceTokens.length > 0) {
         for (const dt of user.deviceTokens) {
-          try {
-            const notification = new Notification(dt.token, {
-              alert: {
-                title: report.title,
-                body: report.body,
-              },
-              data: {
-                type: "daily_report",
-                date: today.toISOString().split("T")[0],
-              },
-            });
-            await apns.send(notification);
-          } catch (err) {
-            if (err instanceof ApnsError) {
-              if (err.reason === "BadDeviceToken" || err.reason === "Unregistered") {
-                await prisma.deviceToken.deleteMany({ where: { token: dt.token } });
-                continue;
-              }
-            }
-            logger.error({ userId: user.id, err }, "Failed to send daily report push");
-          }
+          await sendPush(dt, {
+            title: report.title,
+            body: report.body,
+            data: {
+              type: "daily_report",
+              date: today.toISOString().split("T")[0],
+            },
+          });
         }
       }
 

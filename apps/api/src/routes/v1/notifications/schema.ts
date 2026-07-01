@@ -11,6 +11,12 @@ export type UpdatePreferencesBody = Static<typeof UpdatePreferencesBodySchema>;
 
 export const RegisterDeviceTokenBodySchema = Type.Object({
   token: Type.String({ minLength: 1 }),
+  platform: Type.Optional(
+    Type.Union([
+      Type.Literal("ios"),
+      Type.Literal("android"),
+    ]),
+  ),
   environment: Type.Optional(
     Type.Union([
       Type.Literal("sandbox"),
