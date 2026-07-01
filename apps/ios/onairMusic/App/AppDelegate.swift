@@ -61,8 +61,14 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 
     // MARK: - UNUserNotificationCenterDelegate
 
+    /// Push types the app can route to a screen (see DeepLink in onairMusicApp).
+    private static let routablePushTypes: Set<String> = [
+        "daily_digest", "weekly_digest", "chart_alert", "daily_report",
+    ]
+
     /// Handle notification tap (user tapped a delivered notification).
-    /// Posts a local NotificationCenter event for digest deep linking.
+    /// Posts a local NotificationCenter event consumed by the DeepLink router
+    /// in onairMusicApp.
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
@@ -70,7 +76,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         let userInfo = response.notification.request.content.userInfo
 
         guard let type = userInfo["type"] as? String,
-              (type == "daily_digest" || type == "weekly_digest") else {
+              Self.routablePushTypes.contains(type) else {
             return
         }
 
@@ -78,7 +84,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 
         await MainActor.run {
             NotificationCenter.default.post(
-                name: .digestNotificationTapped,
+                name: .pushNotificationTapped,
                 object: nil,
                 userInfo: ["type": type, "date": date]
             )
@@ -86,18 +92,20 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     }
 
     /// Handle notification when app is in the foreground -- show banner.
+    /// No .badge: nothing in the app clears the badge count, so never set one.
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
-        return [.banner, .sound, .badge]
+        return [.banner, .sound]
     }
 }
 
 // MARK: - Notification Names
 
 extension Notification.Name {
-    /// Posted when user taps a digest push notification.
-    /// userInfo contains "type" (daily_digest/weekly_digest) and "date" (YYYY-MM-DD).
-    static let digestNotificationTapped = Notification.Name("digestNotificationTapped")
+    /// Posted when the user taps a routable push notification.
+    /// userInfo contains "type" (daily_digest/weekly_digest/chart_alert/daily_report)
+    /// and "date" (YYYY-MM-DD, digests only).
+    static let pushNotificationTapped = Notification.Name("pushNotificationTapped")
 }

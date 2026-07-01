@@ -6,6 +6,9 @@ struct CompetitorListView: View {
     @State private var viewModel = CompetitorListViewModel()
     @State private var showingStationPicker = false
 
+    /// Card pending removal confirmation.
+    @State private var cardToRemove: CompetitorCard?
+
     var body: some View {
         VStack(spacing: 0) {
             competitorsHeader
@@ -34,25 +37,43 @@ struct CompetitorListView: View {
                         .colorMultiply(.rbAccent)
 
                         // Competitor cards
+                        // NOTE: swipeActions only work inside List, and these cards
+                        // live in a LazyVStack — deletion is exposed via an explicit
+                        // trash button plus a long-press context menu instead.
                         LazyVStack(spacing: 12) {
                             ForEach(viewModel.cards) { card in
-                                NavigationLink {
-                                    CompetitorDetailView(
-                                        stationId: card.stationId,
-                                        stationName: card.stationName
-                                    )
-                                } label: {
-                                    CompetitorCardView(card: card)
-                                }
-                                .buttonStyle(.plain)
-                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                    Button(role: .destructive) {
-                                        Task {
-                                            await viewModel.removeStation(stationId: card.stationId)
-                                        }
+                                HStack(spacing: 10) {
+                                    NavigationLink {
+                                        CompetitorDetailView(
+                                            stationId: card.stationId,
+                                            stationName: card.stationName
+                                        )
                                     } label: {
-                                        Label("Remove", systemImage: "trash")
+                                        CompetitorCardView(card: card)
                                     }
+                                    .buttonStyle(.plain)
+                                    .contextMenu {
+                                        Button(role: .destructive) {
+                                            cardToRemove = card
+                                        } label: {
+                                            Label("Remove Station", systemImage: "trash")
+                                        }
+                                    }
+
+                                    Button {
+                                        cardToRemove = card
+                                    } label: {
+                                        Image(systemName: "trash")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundStyle(Color.rbError)
+                                            .frame(width: 36, height: 36)
+                                            .background(
+                                                Color.rbError.opacity(0.12),
+                                                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            )
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityLabel("Remove \(card.stationName)")
                                 }
                             }
                         }
@@ -73,6 +94,21 @@ struct CompetitorListView: View {
             NavigationStack {
                 CompetitorStationPickerView(viewModel: viewModel)
             }
+        }
+        .alert(
+            "Remove competitor?",
+            isPresented: Binding(
+                get: { cardToRemove != nil },
+                set: { if !$0 { cardToRemove = nil } }
+            ),
+            presenting: cardToRemove
+        ) { card in
+            Button("Remove", role: .destructive) {
+                Task { await viewModel.removeStation(stationId: card.stationId) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { card in
+            Text("Stop monitoring \(card.stationName)? You can add it back anytime.")
         }
         .task(id: viewModel.selectedPeriod) {
             await viewModel.loadSummary()

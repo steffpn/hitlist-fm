@@ -163,7 +163,7 @@ private struct ArtistRowView: View {
                         .foregroundStyle(Color.rbTextSecondary)
                 }
 
-                Text(DateFormatters.relativeTime(artist.lastDetectedAt))
+                Text(DateFormatters.relativeTime(artist.lastPlayAt))
                     .font(.mono(10))
                     .foregroundStyle(Color.rbTextTertiary)
             }

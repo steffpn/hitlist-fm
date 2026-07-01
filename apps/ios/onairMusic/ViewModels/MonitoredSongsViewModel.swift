@@ -45,4 +45,24 @@ final class MonitoredSongsViewModel {
             return false
         }
     }
+
+    /// Remove a monitored song (DELETE /artist/songs/:id — 204 on success, 404 if
+    /// it isn't the caller's song). Returns true on success.
+    @discardableResult
+    func deleteSong(id: Int) async -> Bool {
+        do {
+            let (_, response) = try await APIClient.shared.requestRaw(.deleteArtistSong(id: id))
+            if (200...299).contains(response.statusCode) {
+                songs.removeAll { $0.id == id }
+                return true
+            }
+            error = response.statusCode == 404
+                ? "Song not found — it may have been removed already."
+                : "Failed to remove song (HTTP \(response.statusCode))."
+            return false
+        } catch {
+            self.error = error.localizedDescription
+            return false
+        }
+    }
 }

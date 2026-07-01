@@ -25,6 +25,19 @@ struct SongTrend: Codable, Sendable {
     let lastWeek: Int?
 }
 
+// MARK: - Browse Tracks (catalog search)
+
+/// Response item from GET /artist/browse-tracks?q= (Deezer-backed catalog search).
+struct BrowseTrack: Codable, Identifiable, Sendable {
+    let title: String
+    let artist: String
+    let isrc: String?
+    let coverUrl: String?
+    let deezerTrackId: Int
+
+    var id: Int { deezerTrackId }
+}
+
 // MARK: - Artist Dashboard
 
 /// Response from GET /artist/dashboard

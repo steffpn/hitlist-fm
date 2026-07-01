@@ -138,6 +138,8 @@ actor SSEClient {
                                         confidence: nil,
                                         playCount: 1,
                                         snippetUrl: liveEvent.snippetUrl,
+                                        partialPlay: nil,
+                                        artworkUrl: nil,
                                         createdAt: publishedAt,
                                         station: AirplayEvent.StationInfo(name: liveEvent.stationName)
                                     )

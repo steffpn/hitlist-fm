@@ -5,6 +5,9 @@ import SwiftUI
 struct ChartAlertSettingsView: View {
     @State private var viewModel = SettingsViewModel()
 
+    /// Unread chart alerts count for the inbox badge.
+    @State private var unreadCount = 0
+
     private let availableCountries: [(code: String, name: String)] = [
         ("RO", "Romania"),
         ("US", "United States"),
@@ -31,6 +34,36 @@ struct ChartAlertSettingsView: View {
 
     var body: some View {
         List {
+            // Inbox: the actual alerts list
+            Section {
+                NavigationLink {
+                    ChartAlertsView()
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "bell.badge.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.rbAccent)
+
+                        Text("View Chart Alerts")
+                            .font(.sora(14.5, .medium))
+                            .foregroundStyle(Color.rbTextPrimary)
+
+                        Spacer()
+
+                        if unreadCount > 0 {
+                            Text("\(unreadCount)")
+                                .font(.sora(11, .bold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(Capsule().fill(Color.rbAccent))
+                                .accessibilityLabel("\(unreadCount) unread alerts")
+                        }
+                    }
+                }
+                .listRowBackground(Color.rbSurface)
+            }
+
             Section {
                 Toggle("Enable Chart Alerts", isOn: Bindable(viewModel).chartAlertsEnabled)
                     .font(.sora(14.5, .medium))
@@ -106,7 +139,16 @@ struct ChartAlertSettingsView: View {
         .preferredColorScheme(.dark)
         .task {
             await viewModel.loadSettings()
+            await loadUnreadCount()
         }
+    }
+
+    /// Refresh the unread badge from GET /chart-alerts?unreadOnly=true.
+    private func loadUnreadCount() async {
+        let unread: [ChartAlert]? = try? await APIClient.shared.request(
+            .chartAlerts(unreadOnly: true, limit: 100)
+        )
+        unreadCount = unread?.count ?? 0
     }
 
     private func toggleCountry(_ code: String) {

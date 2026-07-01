@@ -1,9 +1,22 @@
 import AVFoundation
 import Foundation
+import MediaPlayer
+import UIKit
+
+/// Metadata about the snippet being played, shown in the in-app NowPlayingBar
+/// and mirrored to the lock screen via MPNowPlayingInfoCenter.
+struct SnippetMetadata: Sendable, Equatable {
+    let title: String
+    let artist: String
+    let stationName: String?
+    let artworkUrl: String?
+}
 
 /// Manages single-active audio snippet playback via AVPlayer.
 /// Only one snippet can play at a time across the entire app.
 /// Uses presigned URLs fetched from the backend for each snippet.
+/// Publishes lock-screen metadata (MPNowPlayingInfoCenter) and handles
+/// play/pause remote commands (MPRemoteCommandCenter).
 @Observable
 @MainActor
 final class AudioPlayerManager {
@@ -11,6 +24,9 @@ final class AudioPlayerManager {
 
     /// ID of the event currently being played (or loading).
     var currentlyPlayingId: Int?
+
+    /// Metadata for the active snippet (title/station for NowPlayingBar + lock screen).
+    var currentMetadata: SnippetMetadata?
 
     /// Playback progress from 0.0 to 1.0.
     var playbackProgress: Double = 0
@@ -35,6 +51,8 @@ final class AudioPlayerManager {
     private var player: AVPlayer?
     private var timeObserver: Any?
     private var endObserver: NSObjectProtocol?
+    private var remoteCommandsConfigured = false
+    private var artworkTask: Task<Void, Never>?
 
     // MARK: - Public Methods
 
@@ -42,7 +60,8 @@ final class AudioPlayerManager {
     /// - If currently playing this event: pause.
     /// - If paused on this event: resume.
     /// - Otherwise: stop current, fetch presigned URL, and play new snippet.
-    func play(eventId: Int) async {
+    /// - Parameter metadata: song/station info for the NowPlayingBar and lock screen.
+    func play(eventId: Int, metadata: SnippetMetadata? = nil) async {
         // Toggle pause/resume if same event
         if currentlyPlayingId == eventId {
             if isPlaying {
@@ -59,6 +78,7 @@ final class AudioPlayerManager {
 
         // Start loading new snippet
         currentlyPlayingId = eventId
+        currentMetadata = metadata
         isLoadingSnippet = true
         error = nil
 
@@ -100,9 +120,14 @@ final class AudioPlayerManager {
                     let current = CMTimeGetSeconds(time)
                     let total = CMTimeGetSeconds(newPlayer.currentItem?.duration ?? .zero)
                     if total.isFinite && total > 0 {
+                        let durationWasUnknown = self.duration <= 0
                         self.currentTime = current
                         self.duration = total
                         self.playbackProgress = current / total
+                        if durationWasUnknown {
+                            // Duration became known -- push it to the lock screen.
+                            self.updateNowPlayingPlaybackState()
+                        }
                     }
                 }
             }
@@ -122,6 +147,11 @@ final class AudioPlayerManager {
             newPlayer.play()
             isPlaying = true
 
+            // Lock screen: metadata + remote play/pause
+            configureRemoteCommandsIfNeeded()
+            updateNowPlayingInfo()
+            loadLockScreenArtwork()
+
         } catch is CancellationError {
             // View disappeared during URL fetch -- silently stop
             stop()
@@ -137,12 +167,14 @@ final class AudioPlayerManager {
     func pause() {
         player?.pause()
         isPlaying = false
+        updateNowPlayingPlaybackState()
     }
 
     /// Resume paused playback.
     func resume() {
         player?.play()
         isPlaying = true
+        updateNowPlayingPlaybackState()
     }
 
     /// Seek to a specific progress point (0.0 to 1.0).
@@ -150,6 +182,7 @@ final class AudioPlayerManager {
         guard let player, duration > 0 else { return }
         let targetTime = CMTime(seconds: duration * progress, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
         player.seek(to: targetTime, toleranceBefore: .zero, toleranceAfter: .zero)
+        updateNowPlayingPlaybackState()
     }
 
     /// Stop playback and reset all state.
@@ -166,16 +199,105 @@ final class AudioPlayerManager {
         }
         endObserver = nil
 
+        // Cancel any in-flight artwork fetch
+        artworkTask?.cancel()
+        artworkTask = nil
+
         // Stop and release player
         player?.pause()
         player = nil
 
         // Reset state
         currentlyPlayingId = nil
+        currentMetadata = nil
         isPlaying = false
         playbackProgress = 0
         currentTime = 0
         duration = 0
         isLoadingSnippet = false
+
+        // Clear the lock screen entry
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+    }
+
+    // MARK: - Lock Screen (MPNowPlayingInfoCenter / MPRemoteCommandCenter)
+
+    /// Hook up lock-screen play/pause commands once per app lifetime.
+    private func configureRemoteCommandsIfNeeded() {
+        guard !remoteCommandsConfigured else { return }
+        remoteCommandsConfigured = true
+
+        let center = MPRemoteCommandCenter.shared()
+
+        center.playCommand.addTarget { [weak self] _ in
+            guard let self, self.player != nil else { return .commandFailed }
+            self.resume()
+            return .success
+        }
+
+        center.pauseCommand.addTarget { [weak self] _ in
+            guard let self, self.player != nil else { return .commandFailed }
+            self.pause()
+            return .success
+        }
+
+        center.togglePlayPauseCommand.addTarget { [weak self] _ in
+            guard let self, self.player != nil else { return .commandFailed }
+            if self.isPlaying { self.pause() } else { self.resume() }
+            return .success
+        }
+    }
+
+    /// Publish title/station metadata for the lock screen and Control Center.
+    private func updateNowPlayingInfo() {
+        var info: [String: Any] = [:]
+
+        info[MPMediaItemPropertyTitle] = currentMetadata?.title ?? "Broadcast Proof"
+        if let artist = currentMetadata?.artist {
+            info[MPMediaItemPropertyArtist] = artist
+        }
+        if let station = currentMetadata?.stationName {
+            info[MPMediaItemPropertyAlbumTitle] = station
+        }
+        if duration > 0 {
+            info[MPMediaItemPropertyPlaybackDuration] = duration
+        }
+        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime
+        info[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
+
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+    }
+
+    /// Refresh elapsed time / rate after pause, resume, or seek so the lock
+    /// screen scrubber stays in sync.
+    private func updateNowPlayingPlaybackState() {
+        guard var info = MPNowPlayingInfoCenter.default().nowPlayingInfo else { return }
+        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime
+        info[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
+        if duration > 0 {
+            info[MPMediaItemPropertyPlaybackDuration] = duration
+        }
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+    }
+
+    /// Fetch the album artwork (if any) and attach it to the lock-screen entry.
+    private func loadLockScreenArtwork() {
+        artworkTask?.cancel()
+        guard let urlString = currentMetadata?.artworkUrl,
+              let url = URL(string: urlString) else { return }
+
+        let eventId = currentlyPlayingId
+        artworkTask = Task { [weak self] in
+            guard let data = try? await URLSession.shared.data(from: url).0,
+                  let image = UIImage(data: data),
+                  !Task.isCancelled else { return }
+
+            guard let self, self.currentlyPlayingId == eventId else { return }
+
+            let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+            var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
+            info[MPMediaItemPropertyArtwork] = artwork
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        }
     }
 }

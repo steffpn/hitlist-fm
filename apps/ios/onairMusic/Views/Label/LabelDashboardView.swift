@@ -24,6 +24,9 @@ struct LabelDashboardView: View {
                             totalPlaysCard(dash.totalPlays)
                         }
 
+                        // Today's report shortcut
+                        todayReportCard
+
                         // Artist summary cards (horizontal scroll)
                         if let artists = viewModel.dashboard?.artistSummaries, !artists.isEmpty {
                             artistSummarySection(artists)
@@ -73,6 +76,46 @@ struct LabelDashboardView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
         .rbCard(radius: 22)
+        .padding(.horizontal, 16)
+    }
+
+    // MARK: - Today's Report Card
+
+    /// Shortcut into the daily reports screen (today + history).
+    private var todayReportCard: some View {
+        NavigationLink {
+            DailyReportView()
+        } label: {
+            HStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.rbAccent.opacity(0.15))
+                    .frame(width: 42, height: 42)
+                    .overlay {
+                        Image(systemName: "doc.text.fill")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(Color.rbAccentLight)
+                    }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Today's Report")
+                        .font(.sora(14.5, .semibold))
+                        .foregroundStyle(Color.rbTextPrimary)
+                    Text("Play stats, tips, and insights")
+                        .font(.sora(12))
+                        .foregroundStyle(Color.rbTextTertiary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.rbTextQuaternary)
+            }
+            .padding(12)
+            .rbCard(radius: 18)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
         .padding(.horizontal, 16)
     }
 

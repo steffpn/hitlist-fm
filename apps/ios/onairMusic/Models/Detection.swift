@@ -27,6 +27,10 @@ struct AirplayEvent: Codable, Identifiable, Sendable {
     let confidence: Double?
     let playCount: Int
     let snippetUrl: String?
+    /// Played < 30s (teaser/jingle). Optional: SSE live events don't carry it.
+    let partialPlay: Bool?
+    /// Server-side cached Deezer album artwork. Optional: SSE live events don't carry it.
+    let artworkUrl: String?
     let createdAt: Date
 
     /// Nested station info included by the airplay-events API.

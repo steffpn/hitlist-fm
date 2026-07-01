@@ -6,6 +6,11 @@ import SwiftUI
 struct DashboardView: View {
     @State private var viewModel = DashboardViewModel()
 
+    /// Tab-switch callbacks wired by MainTabView so summary cards navigate
+    /// to the matching tab instead of being dead tap targets.
+    var onOpenDetections: (() -> Void)? = nil
+    var onOpenArtists: (() -> Void)? = nil
+
     var body: some View {
         ZStack {
             if viewModel.isLoading && viewModel.summaryResponse == nil {
@@ -33,15 +38,9 @@ struct DashboardView: View {
                         // Summary cards
                         SummaryCardsView(
                             totals: viewModel.summaryResponse?.totals,
-                            onPlaysTapped: {
-                                print("Navigate to Detections tab (plays)")
-                            },
-                            onSongsTapped: {
-                                print("Navigate to Detections tab (songs)")
-                            },
-                            onArtistsTapped: {
-                                print("Navigate to Artists tab")
-                            }
+                            onPlaysTapped: onOpenDetections,
+                            onSongsTapped: onOpenDetections,
+                            onArtistsTapped: onOpenArtists
                         )
 
                         // Play count trend chart

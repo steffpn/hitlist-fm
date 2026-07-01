@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Main detections tab.
 /// Shows paginated airplay events with search bar, filter chips, infinite scroll,
+/// live SSE inserts (prepend at top / "N new detections" pill when scrolled down),
 /// and SSE connection status indicator.
 struct DetectionsView: View {
     @State private var viewModel = DetectionsViewModel()
@@ -9,6 +10,12 @@ struct DetectionsView: View {
     @State private var liveFeedViewModel = LiveFeedViewModel()
     @Environment(AudioPlayerManager.self) private var audioPlayer
     @Environment(\.scenePhase) private var scenePhase
+
+    /// Scroll-to-top request consumed by the ScrollViewReader in detectionsList.
+    @State private var scrollToTopRequest = false
+
+    /// Anchor id for the sentinel view at the very top of the list.
+    private static let topAnchorId = "detections-top"
 
     var body: some View {
         NavigationStack {
@@ -144,6 +151,10 @@ struct DetectionsView: View {
                 }
             }
             .task {
+                // Forward live SSE events into the list (prepend or pill).
+                liveFeedViewModel.onEvent = { [weak viewModel] event in
+                    viewModel?.handleLiveEvent(event)
+                }
                 await connectToSSE()
             }
             .onChange(of: scenePhase) { _, newPhase in
@@ -220,37 +231,73 @@ struct DetectionsView: View {
     // MARK: - Detections List
 
     private var detectionsList: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(Array(viewModel.detections.enumerated()), id: \.element.id) { index, event in
-                    DetectionRowView(event: event)
-
-                    Divider()
-                        .overlay(Color.rbHairline)
-                        .padding(.leading, 68)
-
-                    // Trigger load more when approaching the last 5 items
-                    if index >= viewModel.detections.count - 5 {
+        ZStack(alignment: .top) {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        // Sentinel tracking whether the user is at the top of the list.
+                        // Visible -> live events prepend in place; hidden -> pill counts.
                         Color.clear
-                            .frame(height: 0)
+                            .frame(height: 1)
+                            .id(Self.topAnchorId)
                             .onAppear {
-                                Task {
-                                    await viewModel.loadMore()
-                                }
+                                viewModel.isAtTop = true
+                                viewModel.resetLiveCounter()
                             }
-                    }
-                }
+                            .onDisappear {
+                                viewModel.isAtTop = false
+                            }
 
-                // Loading more indicator
-                if viewModel.isLoadingMore {
-                    ProgressView()
-                        .tint(Color.rbAccent)
-                        .padding()
+                        ForEach(Array(viewModel.detections.enumerated()), id: \.element.id) { index, event in
+                            DetectionRowView(event: event)
+
+                            Divider()
+                                .overlay(Color.rbHairline)
+                                .padding(.leading, 68)
+
+                            // Trigger load more when approaching the last 5 items
+                            if index >= viewModel.detections.count - 5 {
+                                Color.clear
+                                    .frame(height: 0)
+                                    .onAppear {
+                                        Task {
+                                            await viewModel.loadMore()
+                                        }
+                                    }
+                            }
+                        }
+
+                        // Loading more indicator
+                        if viewModel.isLoadingMore {
+                            ProgressView()
+                                .tint(Color.rbAccent)
+                                .padding()
+                        }
+                    }
+                    .animation(.easeInOut, value: audioPlayer.currentlyPlayingId)
+                }
+                .scrollContentBackground(.hidden)
+                .onChange(of: scrollToTopRequest) { _, requested in
+                    guard requested else { return }
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        proxy.scrollTo(Self.topAnchorId, anchor: .top)
+                    }
+                    scrollToTopRequest = false
                 }
             }
-            .animation(.easeInOut, value: audioPlayer.currentlyPlayingId)
+
+            // "N new detections" pill while scrolled down
+            if viewModel.newLiveEventCount > 0 {
+                NewDetectionsPill(count: viewModel.newLiveEventCount) {
+                    viewModel.resetLiveCounter()
+                    scrollToTopRequest = true
+                }
+                .padding(.top, 8)
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .zIndex(1)
+            }
         }
-        .scrollContentBackground(.hidden)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.newLiveEventCount > 0)
     }
 
     // MARK: - Empty State

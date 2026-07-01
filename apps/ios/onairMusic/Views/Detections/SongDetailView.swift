@@ -300,7 +300,17 @@ struct SongDetailView: View {
 
     private var snippetPlayButton: some View {
         Button {
-            Task { await audioPlayer.play(eventId: event.id) }
+            Task {
+                await audioPlayer.play(
+                    eventId: event.id,
+                    metadata: SnippetMetadata(
+                        title: event.songTitle,
+                        artist: event.artistName,
+                        stationName: event.station?.name,
+                        artworkUrl: event.artworkUrl
+                    )
+                )
+            }
         } label: {
             HStack(spacing: 12) {
                 if audioPlayer.currentlyPlayingId == event.id && audioPlayer.isLoadingSnippet {
@@ -377,6 +387,8 @@ private struct PulsingModifier: ViewModifier {
                 confidence: nil,
                 playCount: 3,
                 snippetUrl: nil,
+                partialPlay: nil,
+                artworkUrl: nil,
                 createdAt: Date(),
                 station: AirplayEvent.StationInfo(name: "Radio Capital")
             )

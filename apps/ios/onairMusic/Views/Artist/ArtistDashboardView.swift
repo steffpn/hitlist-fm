@@ -36,6 +36,9 @@ struct ArtistDashboardView: View {
                             mostPlayedCard(song)
                         }
 
+                        // Today's report shortcut
+                        todayReportCard
+
                         // Weekly digest
                         if let digest = viewModel.weeklyDigest, !digest.songs.isEmpty {
                             weeklyDigestSection(digest)
@@ -111,6 +114,45 @@ struct ArtistDashboardView: View {
     private var avatarInitial: String {
         let name = authManager.currentUser?.name ?? ""
         return name.first.map { String($0).uppercased() } ?? "♪"
+    }
+
+    // MARK: - Today's Report Card
+
+    /// Shortcut into the daily reports screen (today + history).
+    private var todayReportCard: some View {
+        NavigationLink {
+            DailyReportView()
+        } label: {
+            HStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.rbAccent.opacity(0.15))
+                    .frame(width: 42, height: 42)
+                    .overlay {
+                        Image(systemName: "doc.text.fill")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(Color.rbAccentLight)
+                    }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Today's Report")
+                        .font(.sora(14.5, .semibold))
+                        .foregroundStyle(Color.rbTextPrimary)
+                    Text("Play stats, tips, and insights")
+                        .font(.sora(12))
+                        .foregroundStyle(Color.rbTextTertiary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.rbTextQuaternary)
+            }
+            .padding(12)
+            .rbCard(radius: 18)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Airplay Gauge Card (hero)

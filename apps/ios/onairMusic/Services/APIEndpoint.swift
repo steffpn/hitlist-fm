@@ -9,6 +9,8 @@ enum APIEndpoint: Sendable {
     case login(email: String, password: String)
     case refresh(refreshToken: String)
     case logout(refreshToken: String)
+    case forgotPassword(email: String)
+    case deleteAccount
 
     // Dashboard
     case dashboardSummary(period: String)
@@ -44,6 +46,8 @@ enum APIEndpoint: Sendable {
     // MARK: - Artist Role
     case artistSongs
     case addArtistSong(songTitle: String, artistName: String, isrc: String)
+    case deleteArtistSong(id: Int)
+    case browseTracks(query: String)
     case artistDashboard
     case artistWeeklyDigest
     case songAnalytics(songId: Int)
@@ -87,10 +91,13 @@ enum APIEndpoint: Sendable {
     case chartAlerts(unreadOnly: Bool, limit: Int)
     case markChartAlertsRead(alertIds: [Int])
 
-    // MARK: - Subscriptions
+    // MARK: - Billing (self-service, impersonation-aware — NOT under /admin)
     case mySubscription
     case createCheckout(planId: Int, billingInterval: String, successUrl: String, cancelUrl: String)
     case createPortal(returnUrl: String)
+
+    // MARK: - Artists (admin global aggregation)
+    case artistsSummary(period: String, limit: Int)
 
     // MARK: - Admin
     case adminUsers
@@ -109,6 +116,10 @@ enum APIEndpoint: Sendable {
             return "/auth/refresh"
         case .logout:
             return "/auth/logout"
+        case .forgotPassword:
+            return "/auth/forgot-password"
+        case .deleteAccount:
+            return "/auth/account"
         case .dashboardSummary:
             return "/dashboard/summary"
         case .topStations:
@@ -143,6 +154,10 @@ enum APIEndpoint: Sendable {
         // Artist Role
         case .artistSongs, .addArtistSong:
             return "/artist/songs"
+        case .deleteArtistSong(let id):
+            return "/artist/songs/\(id)"
+        case .browseTracks:
+            return "/artist/browse-tracks"
         case .artistDashboard:
             return "/artist/dashboard"
         case .artistWeeklyDigest:
@@ -214,13 +229,18 @@ enum APIEndpoint: Sendable {
         case .markChartAlertsRead:
             return "/chart-alerts/mark-read"
 
-        // Subscriptions
+        // Billing — /billing/* (impersonation works there; /admin/subscriptions/*
+        // are deprecated aliases that bypass "view as role")
         case .mySubscription:
-            return "/admin/subscriptions/me"
+            return "/billing/me"
         case .createCheckout:
-            return "/admin/subscriptions/checkout"
+            return "/billing/checkout"
         case .createPortal:
-            return "/admin/subscriptions/portal"
+            return "/billing/portal"
+
+        // Artists summary (admin)
+        case .artistsSummary:
+            return "/artists/summary"
 
         // Admin
         case .adminUsers:
@@ -234,7 +254,8 @@ enum APIEndpoint: Sendable {
 
     var method: HTTPMethod {
         switch self {
-        case .register, .login, .refresh, .logout, .addWatchedStation, .registerDeviceToken,
+        case .register, .login, .refresh, .logout, .forgotPassword,
+             .addWatchedStation, .registerDeviceToken,
              .addArtistSong, .addLabelArtist, .toggleLabelSongMonitoring,
              .markChartAlertsRead, .createCheckout, .createPortal,
              .impersonationConfigure:
@@ -243,12 +264,13 @@ enum APIEndpoint: Sendable {
             return .PUT
         case .updateSettings:
             return .PATCH
-        case .removeWatchedStation, .deleteDeviceToken, .removeLabelArtist:
+        case .removeWatchedStation, .deleteDeviceToken, .removeLabelArtist,
+             .deleteArtistSong, .deleteAccount:
             return .DELETE
         case .health, .dashboardSummary, .topStations, .airplayEvents, .snippetUrl, .stations,
              .watchedStations, .ownStations, .competitorSummary, .competitorDetail,
              .exportCSV, .exportPDF, .notificationPreferences, .digestDetail,
-             .artistSongs, .artistDashboard, .artistWeeklyDigest,
+             .artistSongs, .artistDashboard, .artistWeeklyDigest, .browseTracks,
              .songAnalytics, .songStationBreakdown, .songHourlyHeatmap, .songPeakHours, .songTrend,
              .labelArtists, .labelArtistSongs, .labelDashboard, .labelComparison,
              .labelStationAffinity, .labelReleaseTracker,
@@ -256,7 +278,7 @@ enum APIEndpoint: Sendable {
              .stationOverview, .stationTopSongs, .stationNewSongs, .stationExclusiveSongs,
              .stationPlaylistOverlap, .stationGenreDistribution, .stationRotation, .stationDiscoveryScore,
              .userSettings, .dailyReports, .todayReport, .chartAlerts, .mySubscription,
-             .adminUsers, .impersonationOptions:
+             .artistsSummary, .adminUsers, .impersonationOptions:
             return .GET
         }
     }
@@ -280,6 +302,10 @@ enum APIEndpoint: Sendable {
         case .logout(let refreshToken):
             return try? encoder.encode(
                 LogoutRequest(refreshToken: refreshToken)
+            )
+        case .forgotPassword(let email):
+            return try? encoder.encode(
+                ForgotPasswordRequest(email: email)
             )
         case .addWatchedStation(let stationId):
             return try? encoder.encode(
@@ -415,6 +441,17 @@ enum APIEndpoint: Sendable {
         case .browseArtists(let q):
             return [URLQueryItem(name: "q", value: q), URLQueryItem(name: "limit", value: "30")]
 
+        // Browse Tracks (artist catalog search)
+        case .browseTracks(let q):
+            return [URLQueryItem(name: "q", value: q)]
+
+        // Artists summary (admin)
+        case .artistsSummary(let period, let limit):
+            return [
+                URLQueryItem(name: "period", value: period),
+                URLQueryItem(name: "limit", value: String(limit)),
+            ]
+
         // Daily Reports
         case .dailyReports(let limit):
             return [URLQueryItem(name: "limit", value: String(limit))]
@@ -436,7 +473,7 @@ enum APIEndpoint: Sendable {
     /// Logout requires a token (per backend: authenticate preHandler).
     var requiresAuth: Bool {
         switch self {
-        case .health, .register, .login, .refresh:
+        case .health, .register, .login, .refresh, .forgotPassword:
             return false
         default:
             return true
@@ -464,6 +501,10 @@ private struct RefreshRequest: Encodable {
 
 private struct LogoutRequest: Encodable {
     let refreshToken: String
+}
+
+private struct ForgotPasswordRequest: Encodable {
+    let email: String
 }
 
 private struct AddArtistSongRequest: Encodable {

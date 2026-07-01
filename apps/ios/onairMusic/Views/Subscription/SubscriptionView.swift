@@ -65,6 +65,10 @@ struct SubscriptionView: View {
         .task {
             await viewModel.loadSubscription()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .subscriptionStatusMayHaveChanged)) { _ in
+            // Back from Stripe Checkout/Portal via onairmusic:// — refresh state.
+            Task { await viewModel.loadSubscription() }
+        }
         .onChange(of: viewModel.checkoutURL) { _, url in
             if let url { openURL(url) }
         }
@@ -105,7 +109,7 @@ struct SubscriptionView: View {
                 Button {
                     Task {
                         // Default to plan 1 (premium monthly)
-                        await viewModel.createCheckout(planId: 1, billingInterval: "month")
+                        await viewModel.createCheckout(planId: 1, billingInterval: "monthly")
                     }
                 } label: {
                     Text("Upgrade Now")

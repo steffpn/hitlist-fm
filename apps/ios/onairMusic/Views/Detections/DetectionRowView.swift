@@ -1,12 +1,12 @@
 import SwiftUI
 
 /// Compact row displaying a single airplay detection.
-/// Shows album artwork thumbnail, song title, artist, station name, play button, and timestamp.
-/// Tapping navigates to SongDetailView. Play button plays snippet inline.
+/// Shows album artwork thumbnail (server-cached artworkUrl), song title, artist,
+/// station name, a discreet "partial play" marker (<30s teaser/jingle), play button,
+/// and timestamp. Tapping navigates to SongDetailView. Play button plays snippet inline.
 struct DetectionRowView: View {
     let event: AirplayEvent
     @Environment(AudioPlayerManager.self) private var audioPlayer
-    @State private var artworkImage: UIImage?
 
     private var isActiveRow: Bool {
         audioPlayer.currentlyPlayingId == event.id
@@ -22,10 +22,16 @@ struct DetectionRowView: View {
                     artworkThumbnail
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(event.songTitle)
-                            .font(.sora(14, .semibold))
-                            .foregroundStyle(Color.rbTextPrimary)
-                            .lineLimit(1)
+                        HStack(spacing: 5) {
+                            Text(event.songTitle)
+                                .font(.sora(14, .semibold))
+                                .foregroundStyle(Color.rbTextPrimary)
+                                .lineLimit(1)
+
+                            if event.partialPlay == true {
+                                partialPlayMarker
+                            }
+                        }
 
                         Text(event.artistName)
                             .font(.sora(12))
@@ -61,9 +67,18 @@ struct DetectionRowView: View {
                 .padding(.horizontal, 8)
         )
         .contentShape(Rectangle())
-        .task {
-            await loadArtwork()
-        }
+    }
+
+    // MARK: - Partial Play Marker
+
+    /// Discreet warning marker for events that played under 30 seconds
+    /// (teaser/jingle) — excluded from aggregations server-side.
+    private var partialPlayMarker: some View {
+        Image(systemName: "exclamationmark.triangle.fill")
+            .font(.system(size: 9))
+            .foregroundStyle(Color.rbWarning)
+            .help("Partial play — under 30 seconds")
+            .accessibilityLabel("Partial play, under 30 seconds")
     }
 
     // MARK: - Snippet Play Button
@@ -72,7 +87,17 @@ struct DetectionRowView: View {
     private var snippetButton: some View {
         if event.snippetUrl != nil {
             Button {
-                Task { await audioPlayer.play(eventId: event.id) }
+                Task {
+                    await audioPlayer.play(
+                        eventId: event.id,
+                        metadata: SnippetMetadata(
+                            title: event.songTitle,
+                            artist: event.artistName,
+                            stationName: event.station?.name,
+                            artworkUrl: event.artworkUrl
+                        )
+                    )
+                }
             } label: {
                 if isActiveRow && audioPlayer.isLoadingSnippet {
                     ProgressView()
@@ -90,63 +115,37 @@ struct DetectionRowView: View {
 
     // MARK: - Artwork Thumbnail
 
+    /// Uses the server-cached Deezer artwork URL from the API (no per-row
+    /// client-side Deezer search anymore). Falls back to a placeholder.
     private var artworkThumbnail: some View {
         Group {
-            if let image = artworkImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } else {
-                ZStack {
-                    Color.rbAccent.opacity(0.15)
-                    Image(systemName: "music.note")
-                        .font(.system(size: 16))
-                        .foregroundStyle(Color.rbAccentLight)
+            if let urlString = event.artworkUrl, let url = URL(string: urlString) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    default:
+                        artworkPlaceholder
+                    }
                 }
+            } else {
+                artworkPlaceholder
             }
         }
         .frame(width: 48, height: 48)
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
-    // MARK: - Load Artwork
-
-    private func loadArtwork() async {
-        let query = "artist:\"\(event.artistName)\" track:\"\(event.songTitle)\""
-            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        let urlString = "https://api.deezer.com/search?q=\(query)&limit=1"
-
-        guard let url = URL(string: urlString) else { return }
-
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let result = try JSONDecoder().decode(DeezerSearchResult.self, from: data)
-
-            if let coverUrl = result.data?.first?.album?.cover_medium,
-               let imageUrl = URL(string: coverUrl) {
-                let (imageData, _) = try await URLSession.shared.data(from: imageUrl)
-                if let image = UIImage(data: imageData) {
-                    await MainActor.run {
-                        self.artworkImage = image
-                    }
-                }
-            }
-        } catch {}
+    private var artworkPlaceholder: some View {
+        ZStack {
+            Color.rbAccent.opacity(0.15)
+            Image(systemName: "music.note")
+                .font(.system(size: 16))
+                .foregroundStyle(Color.rbAccentLight)
+        }
     }
-}
-
-// MARK: - Deezer Search Models
-
-private struct DeezerSearchResult: Codable {
-    let data: [DeezerSearchTrack]?
-}
-
-private struct DeezerSearchTrack: Codable {
-    let album: DeezerSearchAlbum?
-}
-
-private struct DeezerSearchAlbum: Codable {
-    let cover_medium: String?
 }
 
 // MARK: - Button Style

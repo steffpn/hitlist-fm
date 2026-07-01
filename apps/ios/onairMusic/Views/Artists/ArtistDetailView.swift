@@ -46,6 +46,8 @@ struct ArtistDetailView: View {
             withAnimation(.easeOut(duration: 0.6)) {
                 appearAnimation = true
             }
+            // Detail events are fetched on demand (summary comes pre-aggregated).
+            await viewModel.loadEvents(for: artist.name)
         }
         .preferredColorScheme(.dark)
     }
@@ -110,7 +112,7 @@ struct ArtistDetailView: View {
                 .multilineTextAlignment(.center)
                 .lineLimit(3)
 
-            if let topSong = artist.topSong {
+            if let topSong {
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill")
                         .font(.caption2)
@@ -142,7 +144,7 @@ struct ArtistDetailView: View {
                 .frame(height: 40)
                 .overlay(Color.rbHairline)
 
-            statItem(value: "\(artist.stationNames.count)", label: "Stations", icon: "antenna.radiowaves.left.and.right")
+            statItem(value: "\(artist.stationCount)", label: "Stations", icon: "antenna.radiowaves.left.and.right")
         }
         .padding(.vertical, 16)
         .background(
@@ -191,7 +193,7 @@ struct ArtistDetailView: View {
             let events = viewModel.events(for: artist.name)
 
             if events.isEmpty {
-                Text("No songs found")
+                Text("No recent detections found")
                     .font(.sora(14))
                     .foregroundStyle(Color.rbTextTertiary)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -267,6 +269,14 @@ struct ArtistDetailView: View {
 
     // MARK: - Helpers
 
+    /// Most played song derived from the lazily loaded recent events.
+    private var topSong: String? {
+        let events = viewModel.events(for: artist.name)
+        guard !events.isEmpty else { return nil }
+        let counts = Dictionary(events.map { ($0.songTitle, $0.playCount) }, uniquingKeysWith: +)
+        return counts.max(by: { $0.value < $1.value })?.key
+    }
+
     private func extractColors() {
         if let image = viewModel.artistImages[artist.name] {
             dominantColors = ColorExtractor.extractColors(from: image, count: 3)
@@ -297,13 +307,11 @@ private struct ArtistSongRowButtonStyle: ButtonStyle {
     NavigationStack {
         ArtistDetailView(
             artist: ArtistSummary(
-                id: "The Weeknd",
-                name: "The Weeknd",
+                artistName: "The Weeknd",
                 playCount: 42,
                 songCount: 8,
-                lastDetectedAt: Date(),
-                topSong: "Blinding Lights",
-                stationNames: ["Radio Capital", "Kiss FM"]
+                stationCount: 2,
+                lastPlayAt: Date()
             ),
             viewModel: ArtistsViewModel()
         )

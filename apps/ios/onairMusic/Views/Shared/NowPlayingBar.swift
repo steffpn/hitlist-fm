@@ -21,12 +21,14 @@ struct NowPlayingBar: View {
                         .foregroundStyle(Color.rbAccent)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Broadcast Proof")
+                        Text(player.currentMetadata?.title ?? "Broadcast Proof")
                             .font(.sora(12, .semibold))
                             .foregroundStyle(Color.rbTextPrimary)
-                        Text(timeLabel)
+                            .lineLimit(1)
+                        Text(subtitleLabel)
                             .font(.system(size: 10, design: .monospaced))
                             .foregroundStyle(Color.rbAccent)
+                            .lineLimit(1)
                     }
 
                     Spacer()
@@ -134,6 +136,14 @@ struct NowPlayingBar: View {
         let current = Int(player.currentTime)
         let total = Int(max(player.duration, 1))
         return String(format: "%d:%02d / %d:%02d", current / 60, current % 60, total / 60, total % 60)
+    }
+
+    /// "Kiss FM · 0:12 / 0:30" when the station is known, otherwise just the time.
+    private var subtitleLabel: String {
+        if let station = player.currentMetadata?.stationName {
+            return "\(station) · \(timeLabel)"
+        }
+        return timeLabel
     }
 
     private var secondsUntilDetection: Int {

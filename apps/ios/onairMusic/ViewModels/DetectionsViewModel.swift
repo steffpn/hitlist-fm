@@ -1,7 +1,9 @@
 import Foundation
 import Observation
+import SwiftUI
 
-/// ViewModel managing detections list state: search, filters, cursor-based pagination.
+/// ViewModel managing detections list state: search, filters, cursor-based pagination,
+/// plus live SSE inserts (prepend when scrolled to top, "N new detections" pill otherwise).
 /// Uses @Observable macro (iOS 17+) per project convention.
 @Observable
 @MainActor
@@ -11,6 +13,42 @@ final class DetectionsViewModel {
 
     var detections: [AirplayEvent] = []
     var stations: [Station] = []
+
+    // MARK: - Live Feed (SSE inserts)
+
+    /// Whether the user is currently scrolled to the top of the list.
+    var isAtTop = true
+
+    /// Live events that arrived while the user was scrolled down.
+    /// Drives the "N new detections" pill.
+    var newLiveEventCount = 0
+
+    /// Live inserts only make sense on the unfiltered list; with an active
+    /// search/filter a fresh event may simply not match it.
+    private var canAcceptLiveEvents: Bool {
+        searchQuery.isEmpty && startDate == nil && endDate == nil && selectedStationId == nil
+    }
+
+    /// Handle a live SSE event: prepend when the user is at the top of the
+    /// unfiltered list, otherwise insert silently and bump the pill counter.
+    func handleLiveEvent(_ event: AirplayEvent) {
+        guard canAcceptLiveEvents, !isLoading else { return }
+        guard !detections.contains(where: { $0.id == event.id }) else { return }
+
+        if isAtTop {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                detections.insert(event, at: 0)
+            }
+        } else {
+            detections.insert(event, at: 0)
+            newLiveEventCount += 1
+        }
+    }
+
+    /// Reset the "new detections" counter (user scrolled back to top).
+    func resetLiveCounter() {
+        newLiveEventCount = 0
+    }
 
     // MARK: - Loading State
 
@@ -46,6 +84,7 @@ final class DetectionsViewModel {
         error = nil
         nextCursor = nil
         detections = []
+        newLiveEventCount = 0
 
         do {
             let response = try await fetchPage(cursor: nil)

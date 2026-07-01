@@ -6,6 +6,20 @@ struct SettingsView: View {
 
     @State private var isLoggingOut = false
 
+    /// Real plan name loaded from GET /billing/me (nil while loading/on error).
+    @State private var planName: String?
+
+    // Delete account: two-step confirmation
+    @State private var showDeleteConfirmStep1 = false
+    @State private var showDeleteConfirmStep2 = false
+    @State private var isDeletingAccount = false
+    @State private var deleteError: String?
+
+    /// App marketing version from the bundle (falls back for previews).
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
@@ -105,7 +119,7 @@ struct SettingsView: View {
                             icon: "creditcard.fill",
                             iconColors: [Color.rbGradientStart, Color.rbGradientEnd],
                             title: "Subscription",
-                            detail: "Premium"
+                            detail: planName
                         )
                     }
                     .buttonStyle(.plain)
@@ -120,12 +134,40 @@ struct SettingsView: View {
                             .font(.sora(14.5, .medium))
                             .foregroundStyle(Color.rbTextPrimary)
                         Spacer()
-                        Text("1.0")
+                        Text(appVersion)
                             .font(.mono(13, .medium))
                             .foregroundStyle(Color.rbTextSecondary)
                     }
                     .padding(.vertical, 11)
                     .padding(.horizontal, 14)
+                }
+
+                // Account (danger zone)
+                SettingsSection(
+                    header: "Account",
+                    footer: "Deleting your account permanently removes your profile, monitored songs, and settings. This cannot be undone."
+                ) {
+                    Button {
+                        showDeleteConfirmStep1 = true
+                    } label: {
+                        HStack(spacing: 12) {
+                            SettingsIconTile(icon: "trash.fill",
+                                             colors: [Color.rbError.opacity(0.85), Color.rbError])
+                            Text("Delete Account")
+                                .font(.sora(14.5, .medium))
+                                .foregroundStyle(Color.rbError)
+                            Spacer()
+                            if isDeletingAccount {
+                                ProgressView()
+                                    .tint(Color.rbError)
+                            }
+                        }
+                        .padding(.vertical, 11)
+                        .padding(.horizontal, 14)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isDeletingAccount)
                 }
 
                 // Log out
@@ -158,7 +200,7 @@ struct SettingsView: View {
                 .disabled(isLoggingOut)
 
                 // Footer
-                Text("onair.music · version 1.0")
+                Text("onair.music · version \(appVersion)")
                     .font(.sora(11, .regular))
                     .foregroundStyle(Color.rbTextTertiary)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -174,6 +216,62 @@ struct SettingsView: View {
         .toolbar(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .preferredColorScheme(.dark)
+        .task {
+            await loadPlan()
+        }
+        // Delete account: step 1 — intent check
+        .alert("Delete account?", isPresented: $showDeleteConfirmStep1) {
+            Button("Continue", role: .destructive) {
+                showDeleteConfirmStep2 = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will permanently delete your onair.music account.")
+        }
+        // Delete account: step 2 — explicit, final confirmation
+        .alert("This cannot be undone", isPresented: $showDeleteConfirmStep2) {
+            Button("Permanently Delete My Account", role: .destructive) {
+                Task { await deleteAccount() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Your profile, monitored songs, reports, and settings will be erased immediately. Are you absolutely sure?")
+        }
+        .alert(
+            "Couldn't delete account",
+            isPresented: Binding(
+                get: { deleteError != nil },
+                set: { if !$0 { deleteError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            if let deleteError {
+                Text(deleteError)
+            }
+        }
+    }
+
+    // MARK: - Actions
+
+    /// Load the real plan from /billing/me for the Subscription row detail.
+    private func loadPlan() async {
+        let info: SubscriptionInfo? = try? await APIClient.shared.request(.mySubscription)
+        guard let info else { return }
+        planName = info.plan?.name ?? "Free"
+    }
+
+    /// DELETE /auth/account, then clear all local state (logout).
+    private func deleteAccount() async {
+        isDeletingAccount = true
+        defer { isDeletingAccount = false }
+
+        do {
+            try await authManager.deleteAccount()
+        } catch {
+            deleteError = (error as? APIError)?.errorDescription
+                ?? "Something went wrong. Please try again."
+        }
     }
 
     // MARK: Profile card

@@ -1,19 +1,19 @@
 import Foundation
 import SwiftUI
 
-/// ViewModel for the live feed tab.
-/// Manages SSE connection lifecycle, 50-item event buffer, scroll-aware new event counting,
-/// and background disconnect scheduling.
+/// Manages the SSE live-feed connection lifecycle for the Detections tab.
+/// The dedicated Live screen was removed; incoming events are forwarded via
+/// `onEvent` so DetectionsViewModel can prepend them (or count them for the
+/// "N new detections" pill). Also drives the Live/Offline toolbar indicator.
 @MainActor
 @Observable
 final class LiveFeedViewModel {
-    var events: [AirplayEvent] = []
     var connectionState: ConnectionState = .disconnected
-    var newEventCount = 0   // Events arrived while user is scrolled down
-    var isAtTop = true      // Track if user is at top of list
+
+    /// Called on the main actor for every live detection received over SSE.
+    var onEvent: ((AirplayEvent) -> Void)?
 
     private let sseClient = SSEClient()
-    private let maxEvents = 50
     private var disconnectTask: Task<Void, Never>?
     private var connectTask: Task<Void, Never>?
     private var retryCount = 0
@@ -26,8 +26,7 @@ final class LiveFeedViewModel {
     // MARK: - Connect
 
     /// Connect to the SSE live-feed endpoint and start receiving events.
-    /// Events are inserted at the top of the list with animation when user is at top,
-    /// or silently when scrolled down (incrementing newEventCount).
+    /// Each event is forwarded to `onEvent`.
     func connect(token: String) async {
         connectionState = .connecting
         connectTask?.cancel()
@@ -49,21 +48,7 @@ final class LiveFeedViewModel {
         let task = Task {
             for await event in stream {
                 if Task.isCancelled { break }
-
-                if isAtTop {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        events.insert(event, at: 0)
-                        if events.count > maxEvents {
-                            events.removeLast(events.count - maxEvents)
-                        }
-                    }
-                } else {
-                    events.insert(event, at: 0)
-                    if events.count > maxEvents {
-                        events.removeLast(events.count - maxEvents)
-                    }
-                    newEventCount += 1
-                }
+                onEvent?(event)
             }
 
             // Stream ended
@@ -90,13 +75,6 @@ final class LiveFeedViewModel {
         retryCount = 0
         connectionState = .reconnecting
         await connect(token: token)
-    }
-
-    // MARK: - Scroll Management
-
-    /// Reset new event counter when user scrolls to top.
-    func scrollToTop() {
-        newEventCount = 0
     }
 
     // MARK: - Background Disconnect Scheduling

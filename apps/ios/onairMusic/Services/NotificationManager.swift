@@ -53,7 +53,11 @@ final class NotificationManager {
     }
 
     /// Request permission only if not yet determined.
-    /// Called on first launch after successful registration.
+    /// Called every time the user becomes authenticated (app launch with stored
+    /// tokens, or right after a successful login/register).
+    ///
+    /// When permission was already granted, re-registers with APNS on every call
+    /// so the device token stays fresh (Apple can rotate it between launches).
     func requestPermissionIfNeeded() async {
         let center = UNUserNotificationCenter.current()
         let settings = await center.notificationSettings()
@@ -61,6 +65,9 @@ final class NotificationManager {
             await requestPermission()
         } else {
             await checkPermissionStatus()
+            if pushPermissionGranted {
+                UIApplication.shared.registerForRemoteNotifications()
+            }
         }
     }
 }

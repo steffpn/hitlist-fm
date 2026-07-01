@@ -67,7 +67,8 @@ private struct SummaryCard: View {
         }
         .frame(maxWidth: .infinity)
         .rbCard(radius: 18)
-        .scaleEffect(isPressed ? 0.95 : 1.0)
+        // Only behave like a button when a tap action is actually wired up.
+        .scaleEffect(isPressed && onTap != nil ? 0.95 : 1.0)
         .animation(.easeInOut(duration: 0.15), value: isPressed)
         .onTapGesture {
             onTap?()

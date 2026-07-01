@@ -63,12 +63,10 @@
 		A10000010000000000000031 /* DetectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000031 /* DetectionsView.swift */; };
 		A10000010000000000000032 /* DetectionRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000032 /* DetectionRowView.swift */; };
 		A10000010000000000000033 /* FilterChipsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000033 /* FilterChipsView.swift */; };
-		A10000010000000000000034 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000034 /* SearchView.swift */; };
 		A10000010000000000000035 /* AudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000035 /* AudioPlayerManager.swift */; };
 		A10000010000000000000036 /* SnippetPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000036 /* SnippetPlayerView.swift */; };
 		A10000010000000000000037 /* SSEClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000037 /* SSEClient.swift */; };
 		A10000010000000000000038 /* LiveFeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000038 /* LiveFeedViewModel.swift */; };
-		A10000010000000000000039 /* LiveFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000039 /* LiveFeedView.swift */; };
 		A10000010000000000000040 /* NewDetectionsPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000040 /* NewDetectionsPill.swift */; };
 		A10000010000000000000041 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000041 /* ExportService.swift */; };
 		A10000010000000000000042 /* ExportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000042 /* ExportViewModel.swift */; };
@@ -180,12 +178,10 @@
 		A20000010000000000000031 /* DetectionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionsView.swift; sourceTree = "<group>"; };
 		A20000010000000000000032 /* DetectionRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionRowView.swift; sourceTree = "<group>"; };
 		A20000010000000000000033 /* FilterChipsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterChipsView.swift; sourceTree = "<group>"; };
-		A20000010000000000000034 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		A20000010000000000000035 /* AudioPlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerManager.swift; sourceTree = "<group>"; };
 		A20000010000000000000036 /* SnippetPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetPlayerView.swift; sourceTree = "<group>"; };
 		A20000010000000000000037 /* SSEClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSEClient.swift; sourceTree = "<group>"; };
 		A20000010000000000000038 /* LiveFeedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveFeedViewModel.swift; sourceTree = "<group>"; };
-		A20000010000000000000039 /* LiveFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveFeedView.swift; sourceTree = "<group>"; };
 		A20000010000000000000040 /* NewDetectionsPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewDetectionsPill.swift; sourceTree = "<group>"; };
 		A20000010000000000000041 /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
 		A20000010000000000000042 /* ExportViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportViewModel.swift; sourceTree = "<group>"; };
@@ -387,10 +383,8 @@
 				A50000010000000000000018 /* Competitors */,
 				A50000010000000000000012 /* Dashboard */,
 				A50000010000000000000014 /* Detections */,
-				A50000010000000000000016 /* LiveFeed */,
 				A50000010000000000000017 /* Notifications */,
 				EE1B2C3D4E5F607182930A02 /* Reports */,
-				A50000010000000000000015 /* Search */,
 				A50000010000000000000011 /* Settings */,
 				A50000010000000000000013 /* Shared */,
 				EE1B2C3D4E5F607182930A03 /* Subscription */,
@@ -496,27 +490,11 @@
 				A20000010000000000000031 /* DetectionsView.swift */,
 				A20000010000000000000032 /* DetectionRowView.swift */,
 				A20000010000000000000033 /* FilterChipsView.swift */,
+				A20000010000000000000040 /* NewDetectionsPill.swift */,
 				A20000010000000000000036 /* SnippetPlayerView.swift */,
 				A20000010000000000000055 /* SongDetailView.swift */,
 			);
 			path = Detections;
-			sourceTree = "<group>";
-		};
-		A50000010000000000000015 /* Search */ = {
-			isa = PBXGroup;
-			children = (
-				A20000010000000000000034 /* SearchView.swift */,
-			);
-			path = Search;
-			sourceTree = "<group>";
-		};
-		A50000010000000000000016 /* LiveFeed */ = {
-			isa = PBXGroup;
-			children = (
-				A20000010000000000000039 /* LiveFeedView.swift */,
-				A20000010000000000000040 /* NewDetectionsPill.swift */,
-			);
-			path = LiveFeed;
 			sourceTree = "<group>";
 		};
 		A50000010000000000000017 /* Notifications */ = {
@@ -686,12 +664,10 @@
 				A10000010000000000000031 /* DetectionsView.swift in Sources */,
 				A10000010000000000000032 /* DetectionRowView.swift in Sources */,
 				A10000010000000000000033 /* FilterChipsView.swift in Sources */,
-				A10000010000000000000034 /* SearchView.swift in Sources */,
 				A10000010000000000000035 /* AudioPlayerManager.swift in Sources */,
 				A10000010000000000000036 /* SnippetPlayerView.swift in Sources */,
 				A10000010000000000000037 /* SSEClient.swift in Sources */,
 				A10000010000000000000038 /* LiveFeedViewModel.swift in Sources */,
-				A10000010000000000000039 /* LiveFeedView.swift in Sources */,
 				A10000010000000000000040 /* NewDetectionsPill.swift in Sources */,
 				A10000010000000000000041 /* ExportService.swift in Sources */,
 				A10000010000000000000042 /* ExportViewModel.swift in Sources */,
@@ -898,6 +874,7 @@
 				DEVELOPMENT_TEAM = 3H8V5R5YP3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = onair.music;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -929,6 +906,7 @@
 				DEVELOPMENT_TEAM = 3H8V5R5YP3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = onair.music;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

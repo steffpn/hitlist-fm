@@ -7,6 +7,9 @@ struct MonitoredSongsView: View {
     @State private var viewModel = MonitoredSongsViewModel()
     @State private var showingAddSheet = false
 
+    /// Song pending delete confirmation.
+    @State private var songToDelete: MonitoredSong?
+
     var body: some View {
         ZStack {
             if viewModel.isLoading && viewModel.songs.isEmpty {
@@ -33,6 +36,15 @@ struct MonitoredSongsView: View {
                                 songRow(song)
                             }
                             .buttonStyle(SongRowButtonStyle())
+                            // Rows live in a LazyVStack, so swipeActions don't apply —
+                            // long-press context menu handles deletion instead.
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    songToDelete = song
+                                } label: {
+                                    Label("Stop Monitoring", systemImage: "trash")
+                                }
+                            }
                         }
                     }
                     .padding(.horizontal, 16)
@@ -69,6 +81,21 @@ struct MonitoredSongsView: View {
         }
         .sheet(isPresented: $showingAddSheet) {
             AddSongSheet(viewModel: viewModel)
+        }
+        .alert(
+            "Stop monitoring?",
+            isPresented: Binding(
+                get: { songToDelete != nil },
+                set: { if !$0 { songToDelete = nil } }
+            ),
+            presenting: songToDelete
+        ) { song in
+            Button("Stop Monitoring", role: .destructive) {
+                Task { await viewModel.deleteSong(id: song.id) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { song in
+            Text("'\(song.songTitle)' will no longer be tracked for airplay. Historical detections are kept.")
         }
         .task {
             await viewModel.loadSongs()

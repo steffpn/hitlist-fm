@@ -2,8 +2,10 @@ import Foundation
 import Observation
 import UIKit
 
-/// ViewModel managing the Artists tab: loads airplay events, aggregates by artist,
-/// fetches artist photos from Deezer, and supports search filtering.
+/// ViewModel managing the Artists tab (admin): loads server-aggregated artist
+/// summaries from GET /artists/summary, fetches artist photos from Deezer, and
+/// supports search filtering. Per-artist events for the detail view are fetched
+/// on demand via the airplay-events search.
 @Observable
 @MainActor
 final class ArtistsViewModel {
@@ -11,15 +13,17 @@ final class ArtistsViewModel {
     // MARK: - Data
 
     var artists: [ArtistSummary] = []
-    var allEvents: [AirplayEvent] = []
 
-    /// Events grouped by artist name for detail view usage.
+    /// Events per artist, fetched lazily for the detail view.
     var eventsByArtist: [String: [AirplayEvent]] = [:]
 
     // MARK: - Loading State
 
     var isLoading = false
     var error: String?
+
+    /// Artists whose detail events are currently loading.
+    private var loadingEventsFor: Set<String> = []
 
     // MARK: - Search
 
@@ -36,48 +40,18 @@ final class ArtistsViewModel {
 
     var artistImages: [String: UIImage] = [:]
 
-    // MARK: - Pagination
-
-    private var nextCursor: Int?
-    private let pageSize = 50
-
     // MARK: - Public Methods
 
-    /// Load all airplay events and aggregate into artist summaries.
-    func loadArtists() async {
+    /// Load the server-side artist aggregation (accurate totals, not capped
+    /// at a few hundred events like the old client-side roll-up).
+    func loadArtists(period: String = "week") async {
         isLoading = true
         error = nil
-        allEvents = []
-        nextCursor = nil
 
         do {
-            // Fetch multiple pages to get a good artist overview
-            var fetchedEvents: [AirplayEvent] = []
-            var cursor: Int? = nil
-
-            // Fetch up to 5 pages (250 events) for artist aggregation
-            for _ in 0..<5 {
-                let response: PaginatedResponse<AirplayEvent> = try await APIClient.shared.request(
-                    .airplayEvents(
-                        cursor: cursor,
-                        limit: pageSize,
-                        query: nil,
-                        startDate: nil,
-                        endDate: nil,
-                        stationId: nil
-                    )
-                )
-
-                fetchedEvents.append(contentsOf: response.data)
-                cursor = response.nextCursor
-
-                if response.nextCursor == nil {
-                    break
-                }
-            }
-
-            allEvents = fetchedEvents
-            aggregateArtists()
+            artists = try await APIClient.shared.request(
+                .artistsSummary(period: period, limit: 100)
+            )
         } catch {
             self.error = error.localizedDescription
         }
@@ -88,6 +62,34 @@ final class ArtistsViewModel {
     /// Pull-to-refresh handler.
     func refresh() async {
         await loadArtists()
+    }
+
+    /// Fetch recent events for one artist (detail view), using the airplay-events
+    /// search. Cached per artist for the lifetime of the view model.
+    func loadEvents(for artistName: String) async {
+        guard eventsByArtist[artistName] == nil,
+              !loadingEventsFor.contains(artistName) else { return }
+        loadingEventsFor.insert(artistName)
+        defer { loadingEventsFor.remove(artistName) }
+
+        do {
+            let response: PaginatedResponse<AirplayEvent> = try await APIClient.shared.request(
+                .airplayEvents(
+                    cursor: nil,
+                    limit: 50,
+                    query: artistName,
+                    startDate: nil,
+                    endDate: nil,
+                    stationId: nil
+                )
+            )
+            // The q filter also matches title/ISRC; keep only this artist's rows.
+            eventsByArtist[artistName] = response.data.filter {
+                $0.artistName.localizedCaseInsensitiveCompare(artistName) == .orderedSame
+            }
+        } catch {
+            // Detail list stays empty; summary stats still shown.
+        }
     }
 
     /// Fetch artist photo from Deezer API.
@@ -117,59 +119,9 @@ final class ArtistsViewModel {
         }
     }
 
-    /// Get events for a specific artist.
+    /// Get loaded events for a specific artist (empty until loadEvents completes).
     func events(for artistName: String) -> [AirplayEvent] {
         return eventsByArtist[artistName] ?? []
-    }
-
-    // MARK: - Private
-
-    /// Aggregate airplay events into artist summaries sorted by play count.
-    private func aggregateArtists() {
-        var summaries: [String: ArtistSummary] = [:]
-        var grouped: [String: [AirplayEvent]] = [:]
-
-        for event in allEvents {
-            let name = event.artistName
-
-            // Group events by artist
-            grouped[name, default: []].append(event)
-
-            if var existing = summaries[name] {
-                existing.playCount += event.playCount
-                existing.songCount = Set(grouped[name]!.map { $0.songTitle }).count
-                if event.startedAt > existing.lastDetectedAt {
-                    existing.lastDetectedAt = event.startedAt
-                }
-                if let station = event.station?.name {
-                    existing.stationNames.insert(station)
-                }
-                // Update top song: the one with highest play count
-                let songCounts = Dictionary(
-                    grouped[name]!.map { ($0.songTitle, $0.playCount) },
-                    uniquingKeysWith: +
-                )
-                existing.topSong = songCounts.max(by: { $0.value < $1.value })?.key
-                summaries[name] = existing
-            } else {
-                var stationNames: Set<String> = []
-                if let station = event.station?.name {
-                    stationNames.insert(station)
-                }
-                summaries[name] = ArtistSummary(
-                    id: name,
-                    name: name,
-                    playCount: event.playCount,
-                    songCount: 1,
-                    lastDetectedAt: event.startedAt,
-                    topSong: event.songTitle,
-                    stationNames: stationNames
-                )
-            }
-        }
-
-        eventsByArtist = grouped
-        artists = summaries.values.sorted { $0.playCount > $1.playCount }
     }
 }
 

@@ -7,6 +7,10 @@ struct MainTabView: View {
     @Environment(AuthManager.self) private var authManager
     @Environment(ImpersonationManager.self) private var impersonation
 
+    /// Programmatic tab selection for the admin tab bar (summary card taps
+    /// on the dashboard jump straight to Detections / Artists).
+    @State private var adminTabSelection = 0
+
     init() {
         // Style the tab bar for the dark theme
         let appearance = UITabBarAppearance()
@@ -48,8 +52,11 @@ struct MainTabView: View {
                     labelTabs
                 case "STATION":
                     stationTabs
-                default:
+                case "ADMIN":
                     adminTabs
+                default:
+                    // Unknown/missing role: never fall back to the admin UI.
+                    UnconfiguredAccountView()
                 }
             }
         }
@@ -142,6 +149,11 @@ struct MainTabView: View {
                 Label("My Station", systemImage: "antenna.radiowaves.left.and.right")
             }
 
+            DetectionsView()
+                .tabItem {
+                    Label("Detections", systemImage: "dot.radiowaves.left.and.right")
+                }
+
             NavigationStack {
                 CompetitorListView()
             }
@@ -168,23 +180,29 @@ struct MainTabView: View {
     // MARK: - Admin Tabs (Default)
 
     private var adminTabs: some View {
-        TabView {
+        TabView(selection: $adminTabSelection) {
             NavigationStack {
-                DashboardView()
+                DashboardView(
+                    onOpenDetections: { adminTabSelection = 1 },
+                    onOpenArtists: { adminTabSelection = 2 }
+                )
             }
             .tabItem {
                 Label("Dashboard", systemImage: "waveform")
             }
+            .tag(0)
 
             DetectionsView()
                 .tabItem {
                     Label("Detections", systemImage: "antenna.radiowaves.left.and.right")
                 }
+                .tag(1)
 
             ArtistListView()
                 .tabItem {
                     Label("Artists", systemImage: "person.2.fill")
                 }
+                .tag(2)
 
             NavigationStack {
                 SettingsView()
@@ -192,7 +210,58 @@ struct MainTabView: View {
             .tabItem {
                 Label("Settings", systemImage: "gearshape.fill")
             }
+            .tag(3)
         }
+    }
+}
+
+// MARK: - Unconfigured Account
+
+/// Shown when the signed-in user has no recognizable role. Falling back to the
+/// admin UI would expose admin affordances to a misconfigured account, so we
+/// show a dead end with a way out instead.
+private struct UnconfiguredAccountView: View {
+    @Environment(AuthManager.self) private var authManager
+
+    var body: some View {
+        VStack(spacing: 18) {
+            Spacer()
+
+            Image(systemName: "person.crop.circle.badge.questionmark")
+                .font(.system(size: 52, weight: .light))
+                .foregroundStyle(Color.rbTextTertiary)
+
+            Text("Account not configured")
+                .font(.sora(20, .bold))
+                .foregroundStyle(Color.rbTextPrimary)
+
+            Text("Your account doesn't have a role assigned yet. Please contact support to finish setting it up.")
+                .font(.sora(14))
+                .foregroundStyle(Color.rbTextSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+
+            Button {
+                Task { await authManager.logout() }
+            } label: {
+                Text("Log Out")
+                    .font(.sora(15, .semibold))
+                    .foregroundStyle(Color.rbError)
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color.rbError.opacity(0.1))
+                    )
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 8)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.rbBackground.ignoresSafeArea())
+        .onairGlow(subtle: true)
     }
 }
 

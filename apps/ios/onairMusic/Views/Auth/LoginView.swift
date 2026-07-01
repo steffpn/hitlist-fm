@@ -5,6 +5,7 @@ struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var showPassword = false
+    @State private var showForgotPassword = false
 
     var body: some View {
         ScrollView {
@@ -73,9 +74,13 @@ struct LoginView: View {
                     // Forgot password — right-aligned accent
                     HStack {
                         Spacer()
-                        Text("Forgot password?")
-                            .font(.sora(12))
-                            .foregroundStyle(Color.rbAccent)
+                        Button {
+                            showForgotPassword = true
+                        } label: {
+                            Text("Forgot password?")
+                                .font(.sora(12))
+                                .foregroundStyle(Color.rbAccent)
+                        }
                     }
                 }
 
@@ -161,6 +166,10 @@ struct LoginView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $showForgotPassword) {
+            ForgotPasswordSheet(prefillEmail: email)
+                .presentationDetents([.medium])
+        }
         .onAppear {
             viewModel.errorMessage = nil
         }
@@ -172,6 +181,141 @@ struct LoginView: View {
         viewModel.email = email
         viewModel.password = password
         Task { await viewModel.login() }
+    }
+}
+
+// MARK: - Forgot Password
+
+/// Email-entry sheet backed by POST /auth/forgot-password.
+/// The backend always answers with a generic 200 (no account enumeration),
+/// so the confirmation copy is deliberately non-committal.
+private struct ForgotPasswordSheet: View {
+    let prefillEmail: String
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var email = ""
+    @State private var isSubmitting = false
+    @State private var submitted = false
+    @State private var errorMessage: String?
+
+    private var isEmailPlausible: Bool {
+        email.contains("@") && email.contains(".")
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                if submitted {
+                    confirmationView
+                } else {
+                    formView
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 26)
+            .padding(.top, 24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.rbBackground.ignoresSafeArea())
+            .navigationTitle("Reset Password")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(Color.rbBackground, for: .navigationBar)
+            .preferredColorScheme(.dark)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(submitted ? "Done" : "Cancel") {
+                        dismiss()
+                    }
+                    .foregroundStyle(Color.rbTextSecondary)
+                }
+            }
+        }
+        .onAppear {
+            email = prefillEmail
+        }
+    }
+
+    private var formView: some View {
+        VStack(spacing: 18) {
+            Text("Enter the email you signed up with and we'll send you reset instructions.")
+                .font(.sora(13.5))
+                .foregroundStyle(Color.rbTextSecondary)
+                .multilineTextAlignment(.center)
+
+            AuthGlassField(label: "Email") {
+                TextField("you@label.com", text: $email)
+                    .keyboardType(.emailAddress)
+                    .textContentType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+            }
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.sora(12))
+                    .foregroundStyle(Color.rbError)
+                    .multilineTextAlignment(.center)
+            }
+
+            Button {
+                Task { await submit() }
+            } label: {
+                Group {
+                    if isSubmitting {
+                        ProgressView().tint(.white)
+                    } else {
+                        Text("Send Reset Email")
+                    }
+                }
+                .font(.sora(15, .bold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 15)
+                .background(LinearGradient.rbAccentGradient)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .opacity(isEmailPlausible ? 1 : 0.5)
+            }
+            .disabled(!isEmailPlausible || isSubmitting)
+        }
+    }
+
+    private var confirmationView: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "envelope.badge.fill")
+                .font(.system(size: 40))
+                .foregroundStyle(Color.rbAccent)
+
+            Text("Check your inbox")
+                .font(.sora(18, .bold))
+                .foregroundStyle(Color.rbTextPrimary)
+
+            Text("If an account exists for \(email), you'll receive an email with reset instructions shortly.")
+                .font(.sora(13.5))
+                .foregroundStyle(Color.rbTextSecondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.top, 20)
+    }
+
+    private func submit() async {
+        isSubmitting = true
+        errorMessage = nil
+        defer { isSubmitting = false }
+
+        do {
+            let (_, response) = try await APIClient.shared.requestRaw(
+                .forgotPassword(email: email.trimmingCharacters(in: .whitespaces))
+            )
+            if response.statusCode == 429 {
+                errorMessage = "Too many attempts. Please try again later."
+                return
+            }
+            // Backend always replies with a generic 200 — never confirm whether
+            // the account exists.
+            submitted = true
+        } catch {
+            errorMessage = "Couldn't reach the server. Check your connection and try again."
+        }
     }
 }
 

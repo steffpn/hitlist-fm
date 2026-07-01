@@ -45,6 +45,29 @@ struct DailyReportSettingsView: View {
 
     var body: some View {
         List {
+            // The actual reports (today + history)
+            Section {
+                NavigationLink {
+                    DailyReportView()
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "doc.text.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.rbAccent)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("View Reports")
+                                .font(.sora(14.5, .medium))
+                                .foregroundStyle(Color.rbTextPrimary)
+                            Text("Today's report and history")
+                                .font(.sora(11.5))
+                                .foregroundStyle(Color.rbTextTertiary)
+                        }
+                    }
+                }
+                .listRowBackground(Color.rbSurface)
+            }
+
             Section {
                 Toggle("Enable Daily Report", isOn: Bindable(viewModel).dailyReportEnabled)
                     .font(.sora(14.5, .medium))

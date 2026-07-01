@@ -16,6 +16,8 @@ final class AuthManager {
 
     /// Called on app launch to check for existing valid tokens.
     /// If tokens exist, attempts a silent refresh to validate them.
+    /// Restores the cached user profile (the refresh endpoint returns only
+    /// tokens, so role-based UI needs the locally persisted user).
     func checkStoredTokens() async {
         isLoading = true
         defer { isLoading = false }
@@ -29,6 +31,7 @@ final class AuthManager {
         // Attempt token refresh to validate stored tokens
         do {
             _ = try await performRefresh(refreshToken)
+            currentUser = Self.loadCachedUser()
             isAuthenticated = true
         } catch {
             clearTokens()
@@ -47,6 +50,7 @@ final class AuthManager {
 
         storeTokens(accessToken: response.accessToken, refreshToken: response.refreshToken)
         currentUser = response.user
+        Self.cacheUser(response.user)
         isAuthenticated = true
     }
 
@@ -61,6 +65,7 @@ final class AuthManager {
 
         storeTokens(accessToken: response.accessToken, refreshToken: response.refreshToken)
         currentUser = response.user
+        Self.cacheUser(response.user)
         isAuthenticated = true
     }
 
@@ -77,6 +82,21 @@ final class AuthManager {
 
         clearTokens()
         currentUser = nil
+        Self.clearCachedUser()
+        isAuthenticated = false
+    }
+
+    /// Delete the account server-side (DELETE /auth/account) and clear all
+    /// local state. Throws when the server rejects the deletion.
+    func deleteAccount() async throws {
+        let (_, response) = try await APIClient.shared.requestRaw(.deleteAccount)
+        guard (200...299).contains(response.statusCode) else {
+            throw APIError.httpError(statusCode: response.statusCode, data: Data())
+        }
+
+        clearTokens()
+        currentUser = nil
+        Self.clearCachedUser()
         isAuthenticated = false
     }
 
@@ -131,6 +151,25 @@ final class AuthManager {
 
     private func setRefreshTask(_ task: Task<String, Error>) {
         refreshTask = task
+    }
+
+    // MARK: - Cached User (role persistence across launches)
+
+    private static let cachedUserKey = "cachedAuthUser"
+
+    private static func cacheUser(_ user: AuthUser) {
+        if let data = try? JSONEncoder().encode(user) {
+            UserDefaults.standard.set(data, forKey: cachedUserKey)
+        }
+    }
+
+    private static func loadCachedUser() -> AuthUser? {
+        guard let data = UserDefaults.standard.data(forKey: cachedUserKey) else { return nil }
+        return try? JSONDecoder().decode(AuthUser.self, from: data)
+    }
+
+    private static func clearCachedUser() {
+        UserDefaults.standard.removeObject(forKey: cachedUserKey)
     }
 }
 
