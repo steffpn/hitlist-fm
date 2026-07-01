@@ -82,6 +82,12 @@ executată autonom de Claude. Utilizatorul face analiza before/after la final.
 - F6 Android COMIS (fd0d585): navigație+scriere+push+paritate, BUILD SUCCESSFUL, daily-driver.
 - F4 fundație COMIS (2a5ef0e): shell role-aware, view-as-role web, sesiune cu refresh, admin complet.
   /portal/* e placeholder cu nav per rol pregătit (flag "soon") — partea 2 umple paginile.
-- În curs: F7 product-features pe apps/api (push ON AIR, chart public, rotation alerts, coverage, share).
-- Urmează: F4 partea 2 (portal content, apps/web); F2 identitate (docs/phase2-identity-spec.md);
-  F8 demo accounts + DEMO_ACCOUNTS.md + SETUP_NOTES.md + deploy Railway + verificare live.
+- F7 COMIS (7cd0992): push ON AIR, chart public /charts/airplay, rotation alerts, coverage, share of airplay.
+- F2 COMIS (2e032b4): Organization/Membership/Artist/claims + signup self-serve, backfill verificat pe clonă.
+- F4 partea 2 COMIS (821ba06): portaluri artist/label/stație + pagina publică /top.
+- F8 DONE (2026-07-02): deploy reușit după 3 fix-uri de build (lockfile desincronizat de pinul ioredis;
+  Node 22 pt prisma 7.5/@prisma/dev; artefact stale prisma.config.js comis accidental — scos + gitignored).
+  Migrațiile 4/4 aplicate pe prod, seed demo rulat, toate cele 4 conturi demo se loghează live,
+  web /login + /top = 200, chartul public servește date reale. Credențiale: DEMO_ACCOUNTS.md.
+
+## STATUS FINAL: REBUILD COMPLET — toate cele 8 faze livrate și verificate live.
