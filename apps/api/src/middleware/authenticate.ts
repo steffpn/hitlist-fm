@@ -89,22 +89,25 @@ export async function authenticate(
     request.realUser = realUser;
     request.currentUser = realUser;
 
-    // Admin-only, read-only "view as role" impersonation.
-    // Never applied to /admin/* routes, so an impersonating admin keeps full
-    // access to admin-management endpoints (e.g. the user list that powers the
-    // role picker) instead of locking themselves out.
+    // Admin-only "view as role" impersonation. An ADMIN may impersonate a demo
+    // PERSONA account (persona-*@onair.internal) on any non-/admin route so the
+    // demo is fully interactive — including writes (add competitor / song / etc.),
+    // which apply to the persona. Gated on the *real* role being ADMIN AND the
+    // target being a persona, so it can never act as a real user or escalate
+    // privileges. Personas get full (premium) access so every feature is demoable.
+    // /admin/* routes are never impersonated (admin keeps management access there).
     const path = request.url.split("?")[0];
     const isAdminRoute = path.startsWith("/api/v1/admin");
 
-    if (realUser.role === "ADMIN" && request.method === "GET" && !isAdminRoute) {
+    if (realUser.role === "ADMIN" && !isAdminRoute) {
       const raw = request.headers[IMPERSONATE_HEADER];
       const targetIdRaw = Array.isArray(raw) ? raw[0] : raw;
       const targetId = targetIdRaw ? Number(targetIdRaw) : NaN;
 
       if (Number.isInteger(targetId) && targetId > 0 && targetId !== realUser.id) {
         const target = await loadCurrentUser(targetId);
-        if (target) {
-          request.currentUser = target;
+        if (target && target.email.endsWith("@onair.internal")) {
+          request.currentUser = { ...target, isPremium: true };
         }
       }
     }

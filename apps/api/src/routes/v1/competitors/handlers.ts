@@ -50,6 +50,22 @@ export async function getWatchedStations(
 }
 
 /**
+ * GET /competitors/own
+ *
+ * Returns the current user's OWN station ids (from scopes), so the picker can
+ * exclude them (you cannot watch your own station as a competitor).
+ */
+export async function getOwnStations(
+  request: FastifyRequest,
+  reply: FastifyReply,
+): Promise<void> {
+  const stationIds = request.currentUser.scopes
+    .filter((s) => s.entityType === "STATION")
+    .map((s) => s.entityId);
+  return reply.send({ stationIds });
+}
+
+/**
  * POST /competitors/watched
  *
  * Adds a competitor station to the user's watch list.

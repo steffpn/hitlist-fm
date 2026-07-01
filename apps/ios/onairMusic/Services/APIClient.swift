@@ -140,12 +140,11 @@ actor APIClient {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
-        // Admin "view as role": attach impersonation header on read-only (GET)
-        // requests only, and never on /admin/* routes (which must run as the real
-        // admin). The backend honors this header only for a real ADMIN.
-        if includeAuth,
-           endpoint.method == .GET,
-           !endpoint.path.hasPrefix("/admin/") {
+        // Admin "view as role": attach the impersonation header on all requests
+        // (incl. writes, so the demo is interactive), except /admin/* routes which
+        // must run as the real admin. The backend honors it only for a real ADMIN
+        // impersonating a demo persona.
+        if includeAuth, !endpoint.path.hasPrefix("/admin/") {
             // Key kept in sync with ImpersonationManager.userDefaultsKey.
             let impersonateId = UserDefaults.standard.integer(forKey: "impersonateUserId")
             if impersonateId > 0 {

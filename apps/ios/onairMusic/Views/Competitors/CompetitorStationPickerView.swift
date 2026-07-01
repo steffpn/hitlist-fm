@@ -9,18 +9,21 @@ struct CompetitorStationPickerView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var stations: [Station] = []
+    @State private var ownStationIds: [Int] = []
     @State private var searchText = ""
     @State private var isLoadingStations = true
     @State private var addingStationId: Int?
     @State private var errorMessage: String?
     @State private var showErrorAlert = false
 
-    /// Stations filtered by search text.
+    /// Stations available to add: all stations minus the user's own station(s),
+    /// filtered by search text. (You can't watch your own station as a competitor.)
     private var filteredStations: [Station] {
+        let available = stations.filter { !ownStationIds.contains($0.id) }
         if searchText.isEmpty {
-            return stations
+            return available
         }
-        return stations.filter {
+        return available.filter {
             $0.name.localizedCaseInsensitiveContains(searchText)
         }
     }
@@ -58,6 +61,7 @@ struct CompetitorStationPickerView: View {
         }
         .task {
             await loadStations()
+            await loadOwnStations()
             await viewModel.loadWatchedStations()
             isLoadingStations = false
         }
@@ -107,6 +111,13 @@ struct CompetitorStationPickerView: View {
         }
     }
 
+    private func loadOwnStations() async {
+        // Best-effort: exclude the user's own station(s) from the picker. Non-fatal.
+        if let own: OwnStationsResponse = try? await APIClient.shared.request(.ownStations) {
+            ownStationIds = own.stationIds
+        }
+    }
+
     private func addCompetitor(stationId: Int) async {
         addingStationId = stationId
 
@@ -117,9 +128,9 @@ struct CompetitorStationPickerView: View {
             case .httpError(let code, _):
                 if code == 409 {
                     errorMessage = "This station is already in your competitor list."
-                } else if code == 400 {
-                    errorMessage = "Cannot add this station. You may have reached the maximum of 20 competitors, or this is your own station."
                 } else {
+                    // Show the backend's actual reason (e.g. "Cannot watch your own
+                    // station" or "Maximum 20 competitor stations allowed").
                     errorMessage = error.localizedDescription
                 }
             default:

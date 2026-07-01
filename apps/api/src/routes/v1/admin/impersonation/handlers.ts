@@ -125,6 +125,8 @@ export async function configureImpersonation(
     const persona = await ensurePersona("STATION");
     await prisma.$transaction([
       prisma.userScope.deleteMany({ where: { userId: persona.id } }),
+      // Reset watched competitors so each demo session starts clean.
+      prisma.watchedStation.deleteMany({ where: { userId: persona.id } }),
       prisma.userScope.create({
         data: { userId: persona.id, entityType: "STATION", entityId: station.id },
       }),

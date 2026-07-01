@@ -30,29 +30,31 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        Group {
-            // Show the tabs for the *effective* role: the impersonated role when an
-            // admin is "viewing as", otherwise the real user's role.
-            switch impersonation.effectiveRole(realRole: authManager.currentUser?.role) {
-            case "ARTIST":
-                artistTabs
-            case "LABEL":
-                labelTabs
-            case "STATION":
-                stationTabs
-            default:
-                adminTabs
-            }
-        }
-        .tint(Color.rbAccent)
-        .preferredColorScheme(.dark)
-        .safeAreaInset(edge: .top) {
+        // Banner sits ABOVE the TabView in a VStack (not as a safe-area inset) so it
+        // never overlaps the tabs' navigation bars / toolbar buttons (e.g. the "+").
+        VStack(spacing: 0) {
             if let target = impersonation.target {
                 ImpersonationBanner(target: target) {
                     impersonation.stop()
                 }
             }
+            Group {
+                // Show the tabs for the *effective* role: the impersonated role when an
+                // admin is "viewing as", otherwise the real user's role.
+                switch impersonation.effectiveRole(realRole: authManager.currentUser?.role) {
+                case "ARTIST":
+                    artistTabs
+                case "LABEL":
+                    labelTabs
+                case "STATION":
+                    stationTabs
+                default:
+                    adminTabs
+                }
+            }
         }
+        .tint(Color.rbAccent)
+        .preferredColorScheme(.dark)
         .safeAreaInset(edge: .bottom) {
             NowPlayingBar()
         }

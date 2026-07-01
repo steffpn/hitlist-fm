@@ -74,3 +74,8 @@ struct ImpersonationConfigResult: Codable, Sendable {
     let role: String
     let displayName: String
 }
+
+/// GET /competitors/own — the caller's own station ids (excluded from the picker).
+struct OwnStationsResponse: Codable, Sendable {
+    let stationIds: [Int]
+}

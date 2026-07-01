@@ -8,6 +8,7 @@ import {
 } from "./schema.js";
 import {
   getWatchedStations,
+  getOwnStations,
   addWatchedStation,
   removeWatchedStation,
   getCompetitorSummary,
@@ -25,6 +26,9 @@ const competitorRoutes: FastifyPluginAsync = async (fastify) => {
     {},
     getWatchedStations,
   );
+
+  // GET /competitors/own - Current user's own station ids (to exclude in picker)
+  fastify.get("/own", getOwnStations);
 
   // POST /competitors/watched - Add a competitor station to watch list
   fastify.post(

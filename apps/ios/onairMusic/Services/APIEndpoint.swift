@@ -24,6 +24,7 @@ enum APIEndpoint: Sendable {
 
     // Competitors
     case watchedStations
+    case ownStations
     case addWatchedStation(stationId: Int)
     case removeWatchedStation(stationId: Int)
     case competitorSummary(period: String)
@@ -120,6 +121,8 @@ enum APIEndpoint: Sendable {
             return "/stations"
         case .watchedStations, .addWatchedStation:
             return "/competitors/watched"
+        case .ownStations:
+            return "/competitors/own"
         case .removeWatchedStation(let stationId):
             return "/competitors/watched/\(stationId)"
         case .competitorSummary:
@@ -243,7 +246,7 @@ enum APIEndpoint: Sendable {
         case .removeWatchedStation, .deleteDeviceToken, .removeLabelArtist:
             return .DELETE
         case .health, .dashboardSummary, .topStations, .airplayEvents, .snippetUrl, .stations,
-             .watchedStations, .competitorSummary, .competitorDetail,
+             .watchedStations, .ownStations, .competitorSummary, .competitorDetail,
              .exportCSV, .exportPDF, .notificationPreferences, .digestDetail,
              .artistSongs, .artistDashboard, .artistWeeklyDigest,
              .songAnalytics, .songStationBreakdown, .songHourlyHeatmap, .songPeakHours, .songTrend,
