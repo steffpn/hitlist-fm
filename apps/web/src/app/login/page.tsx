@@ -45,14 +45,14 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white/5 border border-white/10 rounded-2xl mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8 text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8 text-brand-500">
               <path d="M9 18V5l12-2v13" />
               <circle cx="6" cy="18" r="3" />
               <circle cx="18" cy="16" r="3" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">myFuckingMusic</h1>
-          <p className="text-zinc-500 text-sm mt-1">Operations Console</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">onair.music</h1>
+          <p className="text-zinc-400 text-sm mt-1">Ops Console</p>
         </div>
 
         <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 rounded-2xl p-8 shadow-2xl shadow-black/50">
@@ -65,7 +65,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-zinc-600 transition-all"
+                className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/60 transition-all"
                 placeholder="you@example.com"
                 autoComplete="email"
               />
@@ -79,14 +79,14 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-zinc-600 transition-all"
+                className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/60 transition-all"
                 placeholder="••••••••"
                 autoComplete="current-password"
               />
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl px-4 py-3">
+              <div className="flex items-center gap-2 text-sm text-brand-400 bg-brand-400/10 border border-brand-400/20 rounded-xl px-4 py-3">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 shrink-0">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
                 </svg>
@@ -101,7 +101,7 @@ export default function LoginPage() {
                 "w-full py-3 rounded-xl text-sm font-semibold transition-all mt-1",
                 loading
                   ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-                  : "bg-white text-zinc-900 hover:bg-zinc-100 active:scale-[0.98]"
+                  : "bg-gradient-to-r from-brand-600 to-brand-500 text-white hover:from-brand-500 hover:to-brand-400 active:scale-[0.98]"
               )}
             >
               {loading ? (
@@ -117,8 +117,8 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-zinc-600 text-xs mt-6">
-          myFuckingMusic &copy; {new Date().getFullYear()}
+        <p className="text-center text-zinc-500 text-xs mt-6">
+          onair.music &copy; {new Date().getFullYear()}
         </p>
       </div>
     </div>

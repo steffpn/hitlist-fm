@@ -25,7 +25,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import music.onair.app.ui.theme.OnairTheme
-import music.onair.app.ui.theme.RbAccent
 import music.onair.app.ui.theme.RbBackground
 import music.onair.app.ui.theme.RbGradientEnd
 import music.onair.app.ui.theme.RbGradientStart
@@ -34,7 +33,8 @@ import music.onair.app.ui.theme.RbTextSecondary
 
 /**
  * First-launch welcome screen. Mirrors the iOS Welcome screen: brand mark,
- * tagline, and login / invite entry points over a subtle violet glow.
+ * tagline, and login / invite entry points on the flat warm-black base
+ * (no radial glow — tokens rule).
  */
 @Composable
 fun WelcomeScreen(
@@ -44,14 +44,7 @@ fun WelcomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(RbBackground)
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(RbAccent.copy(alpha = 0.20f), Color.Transparent),
-                    center = Offset(0.5f * 1080f, 0.32f * 1080f),
-                    radius = 820f,
-                )
-            ),
+            .background(RbBackground),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -124,7 +117,7 @@ fun WelcomeScreen(
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF0A070E)
+@Preview(showBackground = true, backgroundColor = 0xFF0B0A0A)
 @Composable
 private fun WelcomeScreenPreview() {
     OnairTheme { WelcomeScreen() }

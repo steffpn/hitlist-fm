@@ -22,7 +22,7 @@ const STATUS_STYLES: Record<string, string> = {
   active: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
   trialing: "bg-blue-400/10 text-blue-400 border-blue-400/20",
   past_due: "bg-amber-400/10 text-amber-400 border-amber-400/20",
-  canceled: "bg-red-400/10 text-red-400 border-red-400/20",
+  canceled: "bg-brand-400/10 text-brand-400 border-brand-400/20",
   incomplete: "bg-zinc-400/10 text-zinc-400 border-zinc-400/20",
   unpaid: "bg-orange-400/10 text-orange-400 border-orange-400/20",
 };
@@ -71,8 +71,8 @@ export default function SubscriptionsPage() {
   if (error) {
     return (
       <div className="py-12">
-        <div className="bg-red-400/10 border border-red-400/20 rounded-xl p-6 text-center">
-          <p className="text-red-400 mb-3">{error}</p>
+        <div className="bg-brand-400/10 border border-brand-400/20 rounded-xl p-6 text-center">
+          <p className="text-brand-400 mb-3">{error}</p>
           <button
             onClick={() => { setLoading(true); setError(null); fetchSubscriptions(); }}
             className="px-4 py-2 bg-zinc-800 text-white rounded-lg text-sm hover:bg-zinc-700 transition-colors"
@@ -105,8 +105,8 @@ export default function SubscriptionsPage() {
             key={status}
             className="bg-zinc-900 border border-zinc-800 rounded-xl p-4"
           >
-            <div className="text-sm text-zinc-500 capitalize">{status.replace("_", " ")}</div>
-            <div className="text-2xl font-bold text-white mt-1">{statusCounts[status] || 0}</div>
+            <div className="text-sm text-zinc-400 capitalize">{status.replace("_", " ")}</div>
+            <div className="text-2xl font-bold font-mono text-white mt-1">{statusCounts[status] || 0}</div>
           </div>
         ))}
       </div>
@@ -134,7 +134,7 @@ export default function SubscriptionsPage() {
                 >
                   <td className="px-4 py-3">
                     <div className="text-sm font-medium text-white">{sub.userName}</div>
-                    <div className="text-xs text-zinc-500">{sub.userEmail}</div>
+                    <div className="text-xs text-zinc-400">{sub.userEmail}</div>
                   </td>
                   <td className="px-4 py-3 text-sm text-zinc-300">{sub.planName}</td>
                   <td className="px-4 py-3">
@@ -148,12 +148,12 @@ export default function SubscriptionsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-zinc-400 capitalize">{sub.billingInterval}</td>
-                  <td className="px-4 py-3 text-sm text-zinc-500">
+                  <td className="px-4 py-3 text-sm font-mono text-zinc-400">
                     {sub.trialEnd
                       ? new Date(sub.trialEnd).toLocaleDateString()
                       : "--"}
                   </td>
-                  <td className="px-4 py-3 text-sm text-zinc-500">
+                  <td className="px-4 py-3 text-sm font-mono text-zinc-400">
                     {sub.currentPeriodEnd
                       ? new Date(sub.currentPeriodEnd).toLocaleDateString()
                       : "--"}
@@ -164,7 +164,7 @@ export default function SubscriptionsPage() {
                         Canceling
                       </span>
                     ) : (
-                      <span className="text-xs text-zinc-600">--</span>
+                      <span className="text-xs text-zinc-500">--</span>
                     )}
                   </td>
                 </tr>

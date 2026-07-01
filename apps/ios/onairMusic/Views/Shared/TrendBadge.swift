@@ -9,7 +9,7 @@ struct TrendBadge: View {
 
     private var color: Color {
         switch direction {
-        case "up": return .rbLive
+        case "up": return .rbSuccess
         case "down": return .rbError
         default: return .rbTextTertiary
         }

@@ -22,7 +22,7 @@ const STATUS_COLORS: Record<string, string> = {
   pending: "bg-amber-400/10 text-amber-400 border-amber-400/20",
   redeemed: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
   expired: "bg-zinc-400/10 text-zinc-400 border-zinc-400/20",
-  revoked: "bg-red-400/10 text-red-400 border-red-400/20",
+  revoked: "bg-brand-400/10 text-brand-400 border-brand-400/20",
 };
 
 export default function InvitationsPage() {
@@ -130,8 +130,8 @@ export default function InvitationsPage() {
   if (error) {
     return (
       <div className="py-12">
-        <div className="bg-red-400/10 border border-red-400/20 rounded-xl p-6 text-center">
-          <p className="text-red-400 mb-3">{error}</p>
+        <div className="bg-brand-400/10 border border-brand-400/20 rounded-xl p-6 text-center">
+          <p className="text-brand-400 mb-3">{error}</p>
           <button
             onClick={() => { setLoading(true); setError(null); fetchInvitations(); }}
             className="px-4 py-2 bg-zinc-800 text-white rounded-lg text-sm hover:bg-zinc-700 transition-colors"
@@ -152,7 +152,7 @@ export default function InvitationsPage() {
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white text-zinc-900 rounded-lg text-sm font-medium hover:bg-zinc-200 transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-500 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -171,7 +171,7 @@ export default function InvitationsPage() {
               <select
                 value={formRole}
                 onChange={(e) => setFormRole(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-600"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500/60"
               >
                 {ROLES.map((r) => (
                   <option key={r} value={r}>{r}</option>
@@ -185,7 +185,7 @@ export default function InvitationsPage() {
                 value={formScopeId}
                 onChange={(e) => setFormScopeId(e.target.value)}
                 placeholder="Optional"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-brand-500/60"
               />
             </div>
             <div>
@@ -195,7 +195,7 @@ export default function InvitationsPage() {
                 value={formMaxUses}
                 onChange={(e) => setFormMaxUses(e.target.value)}
                 min="1"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-600"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500/60"
               />
             </div>
             <div>
@@ -204,7 +204,7 @@ export default function InvitationsPage() {
                 type="datetime-local"
                 value={formExpiresAt}
                 onChange={(e) => setFormExpiresAt(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-600"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500/60"
               />
             </div>
             <div className="md:col-span-2 lg:col-span-4 flex gap-3">
@@ -212,7 +212,7 @@ export default function InvitationsPage() {
                 type="submit"
                 disabled={formSubmitting}
                 className={cn(
-                  "px-4 py-2 bg-white text-zinc-900 rounded-lg text-sm font-medium hover:bg-zinc-200 transition-colors",
+                  "px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-500 transition-colors",
                   formSubmitting && "opacity-50 cursor-not-allowed"
                 )}
               >
@@ -267,15 +267,15 @@ export default function InvitationsPage() {
                       {inv.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-zinc-400">
+                  <td className="px-4 py-3 text-sm font-mono text-zinc-400">
                     {inv.usedCount} / {inv.maxUses}
                   </td>
-                  <td className="px-4 py-3 text-sm text-zinc-500">
+                  <td className="px-4 py-3 text-sm font-mono text-zinc-400">
                     {inv.expiresAt
                       ? new Date(inv.expiresAt).toLocaleDateString()
                       : "Never"}
                   </td>
-                  <td className="px-4 py-3 text-sm text-zinc-500">
+                  <td className="px-4 py-3 text-sm font-mono text-zinc-400">
                     {new Date(inv.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -284,7 +284,7 @@ export default function InvitationsPage() {
                         onClick={() => handleRevoke(inv.id)}
                         disabled={actionLoading === inv.id}
                         className={cn(
-                          "text-xs font-medium px-3 py-1.5 rounded-lg bg-red-400/10 text-red-400 hover:bg-red-400/20 transition-colors",
+                          "text-xs font-medium px-3 py-1.5 rounded-lg bg-brand-400/10 text-brand-400 hover:bg-brand-400/20 transition-colors",
                           actionLoading === inv.id && "opacity-50 cursor-not-allowed"
                         )}
                       >

@@ -48,7 +48,7 @@ import music.onair.app.ui.components.SectionHeader
 import music.onair.app.ui.theme.IbmPlexMono
 import music.onair.app.ui.theme.RbAccentLight
 import music.onair.app.ui.theme.RbBackground
-import music.onair.app.ui.theme.RbLive
+import music.onair.app.ui.theme.RbSuccess
 import music.onair.app.ui.theme.RbSurfaceLight
 import music.onair.app.ui.theme.RbTextPrimary
 import music.onair.app.ui.theme.RbTextSecondary
@@ -258,7 +258,7 @@ private fun DetailRow(label: String, value: String) {
 private fun StatusPill(status: String) {
     val normalized = status.lowercase()
     val color = when (normalized) {
-        "active" -> RbLive
+        "active" -> RbSuccess
         "trialing" -> RbAccentLight
         else -> RbWarning
     }

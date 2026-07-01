@@ -1,10 +1,28 @@
 import SwiftUI
 
-// MARK: - Glass card
+// MARK: - Cards
 
-/// Glassy translucent card: ultraThinMaterial + subtle white tint fill,
-/// hairline border, and a soft top "shine". Replaces the old solid surface card.
+/// Standard card — SOLID warm surface + 8% white hairline border.
+/// Per ON AIR token rules: no glass/blur on list rows or content cards.
 struct RBCardStyle: ViewModifier {
+    var radius: CGFloat = 22
+    func body(content: Content) -> some View {
+        content
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .fill(Color.rbSurface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .strokeBorder(Color.rbHairline, lineWidth: 1)
+            )
+    }
+}
+
+/// Hero card — glassy translucent variant. Reserved for dashboard hero
+/// cards only (ultraThinMaterial + tint + hairline + soft top shine).
+struct RBGlassCardStyle: ViewModifier {
     var radius: CGFloat = 22
     func body(content: Content) -> some View {
         content
@@ -28,24 +46,36 @@ extension View {
     func rbCard(radius: CGFloat = 22) -> some View {
         modifier(RBCardStyle(radius: radius))
     }
+    /// Glass variant — dashboard hero cards ONLY.
+    func rbGlassCard(radius: CGFloat = 22) -> some View {
+        modifier(RBGlassCardStyle(radius: radius))
+    }
 }
 
-// MARK: - Signature violet glow background
+// MARK: - App background
 
 extension View {
-    /// Radial violet glow over the app base. Use on Dashboard / Login / Song-detail.
-    /// `subtle` = a dimmer, smaller glow for long list screens so they stay readable.
+    /// Flat warm-black app background. The old radial glow is intentionally
+    /// gone (ON AIR rule: "No radial glow backgrounds"); the signature and
+    /// parameter are kept so the ~40 call sites keep compiling.
     func onairGlow(subtle: Bool = false) -> some View {
+        _ = subtle
+        return self.background(Color.rbBackground.ignoresSafeArea())
+    }
+
+    /// Single allowed brand moment: a very subtle broadcast-red wash for the
+    /// Login / Welcome screens only. Do NOT use on list or content screens.
+    func onairBrandGlow() -> some View {
         self.background(
             RadialGradient(
                 colors: [
-                    Color(hex: "7C5CF6").opacity(subtle ? 0.20 : 0.42),
-                    Color(hex: "AF46F0").opacity(subtle ? 0.08 : 0.16),
+                    Color.rbAccentDark.opacity(0.16),
+                    Color.rbAccentDark.opacity(0.05),
                     .clear
                 ],
                 center: .init(x: 0.5, y: -0.05),
                 startRadius: 0,
-                endRadius: subtle ? 300 : 430
+                endRadius: 360
             )
             .background(Color.rbBackground)
             .ignoresSafeArea()
@@ -53,9 +83,32 @@ extension View {
     }
 }
 
+// MARK: - LIVE pulse
+
+/// Broadcast-convention pulse for the red LIVE indicator dot.
+struct RBLivePulse: ViewModifier {
+    @State private var isPulsing = false
+    func body(content: Content) -> some View {
+        content
+            .opacity(isPulsing ? 0.35 : 1.0)
+            .animation(
+                .easeInOut(duration: 0.9).repeatForever(autoreverses: true),
+                value: isPulsing
+            )
+            .onAppear { isPulsing = true }
+    }
+}
+
+extension View {
+    func rbLivePulse() -> some View {
+        modifier(RBLivePulse())
+    }
+}
+
 // MARK: - Buttons
 
-/// Primary CTA — violet→magenta gradient Capsule, WHITE text (was black on teal).
+/// Primary CTA — dark-red→red gradient Capsule, white text.
+/// This is one of only two places the brand gradient is allowed.
 struct RBAccentButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -68,13 +121,13 @@ struct RBAccentButtonStyle: ButtonStyle {
                     .opacity(configuration.isPressed ? 0.85 : 1)
             )
             .clipShape(Capsule())
-            .shadow(color: Color.rbAccent.opacity(0.5), radius: 14, y: 8)
+            .shadow(color: Color.rbAccent.opacity(0.35), radius: 14, y: 8)
             .scaleEffect(configuration.isPressed ? 0.98 : 1)
             .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 
-/// Secondary — tinted violet fill + border, light-accent text.
+/// Secondary — tinted red fill + border, light-accent text.
 struct RBSecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -92,8 +145,9 @@ struct RBSecondaryButtonStyle: ButtonStyle {
 
 // MARK: - Airplay Pulse gauge (dashboard hero ring)
 
-/// Circular airplay gauge: a track ring + a violet→magenta trimmed progress arc,
+/// Circular airplay gauge: a track ring + a gradient trimmed progress arc,
 /// with a big centered value and micro-label. Animates its fill on appear.
+/// The hero gauge is the second (and last) place the brand gradient is allowed.
 struct AirplayGauge: View {
     var value: Int
     var fraction: Double          // 0…1 fill (e.g. today ÷ personal best)
@@ -109,7 +163,7 @@ struct AirplayGauge: View {
                 .trim(from: 0, to: animated ? max(0, min(fraction, 1)) : 0)
                 .stroke(
                     LinearGradient(
-                        colors: [Color(hex: "7C5CF6"), Color(hex: "B84DF0")],
+                        colors: [Color.rbGradientStart, Color.rbGradientEnd],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     ),
                     style: .init(lineWidth: 7, lineCap: .round)

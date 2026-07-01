@@ -92,7 +92,7 @@ struct StationDashboardView: View {
 
             Text(value)
                 .font(.sora(26, .heavy))
-                .foregroundStyle(LinearGradient.rbAccentGradient)
+                .foregroundStyle(Color.rbAccent)
 
             Text(title.uppercased())
                 .font(.sora(10, .semibold))

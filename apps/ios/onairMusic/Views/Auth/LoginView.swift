@@ -18,7 +18,7 @@ struct LoginView: View {
                         RoundedRectangle(cornerRadius: 20, style: .continuous)
                             .fill(LinearGradient.rbAccentGradient)
                             .frame(width: 66, height: 66)
-                            .shadow(color: Color(hex: "7C5CF6").opacity(0.6), radius: 12, y: 10)
+                            .shadow(color: .black.opacity(0.5), radius: 12, y: 10)
 
                         Image(systemName: "waveform")
                             .font(.system(size: 30, weight: .semibold))
@@ -157,7 +157,7 @@ struct LoginView: View {
             .padding(.horizontal, 26)
             .frame(maxWidth: .infinity)
         }
-        .onairGlow()
+        .onairBrandGlow()
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .preferredColorScheme(.dark)

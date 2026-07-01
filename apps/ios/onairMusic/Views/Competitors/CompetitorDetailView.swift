@@ -215,7 +215,7 @@ struct CompetitorDetailView: View {
 
                                 Text("Yours: \(comparison.yourPlays)")
                                     .font(.mono(11, .medium))
-                                    .foregroundStyle(comparison.yourPlays > comparison.theirPlays ? Color.rbLive : Color.rbTextTertiary)
+                                    .foregroundStyle(comparison.yourPlays > comparison.theirPlays ? Color.rbSuccess : Color.rbTextTertiary)
                             }
                         }
                         .padding(.vertical, 8)

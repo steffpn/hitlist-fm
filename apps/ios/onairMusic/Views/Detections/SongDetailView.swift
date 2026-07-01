@@ -61,9 +61,9 @@ struct SongDetailView: View {
     // MARK: - Background Gradient
 
     private var backgroundGradient: some View {
-        // Immersive top gradient: violet → deep violet → rbBackground (top→bottom).
-        // When real artwork loads, blend its dominant colors over the violet base so
-        // the hero still reads as part of the "Pulse" system.
+        // Immersive top gradient: artwork dominant colors → rbBackground (top→bottom).
+        // When real artwork loads, blend its dominant colors over the warm-black base so
+        // the hero still reads as part of the ON AIR system.
         LinearGradient(
             stops: [
                 .init(color: viewModel.dominantColors[0].opacity(0.55), location: 0.0),
@@ -90,7 +90,6 @@ struct SongDetailView: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 184, height: 184)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                    .shadow(color: Color(hex: "7C5CF6").opacity(0.55), radius: 30, x: 0, y: 14)
                     .shadow(color: .black.opacity(0.4), radius: 20, x: 0, y: 10)
                     .scaleEffect(appearAnimation ? 1.0 : 0.9)
                     .opacity(appearAnimation ? 1.0 : 0.0)
@@ -115,14 +114,13 @@ struct SongDetailView: View {
 
     private var artworkFallback: some View {
         RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .fill(LinearGradient.rbAccentGradient)
+            .fill(Color.rbAccent.opacity(0.15))
             .frame(width: 184, height: 184)
             .overlay {
                 Image(systemName: "music.note")
                     .font(.system(size: 46, weight: .light))
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(Color.rbAccentLight)
             }
-            .shadow(color: Color(hex: "7C5CF6").opacity(0.55), radius: 30, x: 0, y: 14)
             .shadow(color: .black.opacity(0.35), radius: 20, x: 0, y: 10)
     }
 

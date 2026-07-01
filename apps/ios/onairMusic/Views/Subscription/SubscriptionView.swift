@@ -80,7 +80,7 @@ struct SubscriptionView: View {
             VStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(LinearGradient.rbAccentGradient)
+                        .fill(Color.rbAccent)
                         .frame(width: 64, height: 64)
                         .shadow(color: Color.rbAccent.opacity(0.5), radius: 14, y: 8)
                     Image(systemName: "star.fill")
@@ -231,7 +231,7 @@ struct SubscriptionView: View {
 
     /// Tinted status pill: green for active, amber otherwise.
     private func statusPill(_ status: String) -> some View {
-        let color: Color = status == "active" ? Color.rbLive : Color.rbWarning
+        let color: Color = status == "active" ? Color.rbSuccess : Color.rbWarning
         return Text(status.capitalized)
             .font(.sora(12, .semibold))
             .foregroundStyle(color)

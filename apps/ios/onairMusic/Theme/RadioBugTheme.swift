@@ -1,46 +1,50 @@
 import SwiftUI
 
-// onair.music — "Pulse / 2c Violet" dark theme.
-// Near-black violet base, glassy translucent cards, violet→magenta brand gradient.
+// onair.music — direction A "ON AIR": broadcast red on warm black.
+// Source of truth: packages/tokens/tokens.json — values here must mirror it exactly.
 // Token NAMES are unchanged from the old RadioBug theme so no call sites break;
-// only the hex values changed (teal → violet). See design_handoff_onair_violet.
+// only the hex values changed (violet → broadcast red).
 extension Color {
-    // Backgrounds
-    static let rbBackground = Color(hex: "0A070E")          // violet-tinted near-black app base
-    static let rbSurface = Color(hex: "16121F")             // solid fallback (prefer .rbCard glass)
-    static let rbSurfaceLight = Color(hex: "241C36")         // borders / elevated fills
-    static let rbSurfaceHighlight = Color(hex: "2E2442")    // selected/active row
+    // Backgrounds — warm black
+    static let rbBackground = Color(hex: "0B0A0A")          // warm near-black app base
+    static let rbSurface = Color(hex: "151313")             // solid card / list-row surface
+    static let rbSurfaceLight = Color(hex: "232020")        // borders / elevated fills
+    static let rbSurfaceHighlight = Color(hex: "2D2827")    // selected/active row
 
-    // Accent — violet ("Pulse")
-    static let rbAccent = Color(hex: "9A6DFF")              // primary interactive
-    static let rbAccentLight = Color(hex: "C4A5FF")         // light accent text (LIVE, Premium)
-    static let rbAccentDark = Color(hex: "7C5CF6")          // gradient start / pressed
+    // Accent — broadcast red ("ON AIR")
+    static let rbAccent = Color(hex: "FF4B45")              // primary interactive
+    static let rbAccentLight = Color(hex: "FF8A80")         // light accent text
+    static let rbAccentDark = Color(hex: "D92D26")          // gradient start / pressed
 
-    // Secondary accent — warm coral: semantic "detection point" marker ONLY (unchanged)
-    static let rbWarm = Color(hex: "FF6B35")
-    static let rbWarmLight = Color(hex: "FFA06B")
+    // Secondary accent — amber: semantic "detection point" marker ONLY.
+    // Deliberately distinct from brand red (tokens.color.detectionMarker).
+    static let rbWarm = Color(hex: "FFC53D")
+    static let rbWarmLight = Color(hex: "FFD97C")           // lighter amber (derived)
 
-    // Text
-    static let rbTextPrimary = Color(hex: "F3F1F6")
-    static let rbTextSecondary = Color(hex: "A8A2B6")
-    static let rbTextTertiary = Color(hex: "8E86A2")
-    static let rbTextQuaternary = Color(hex: "726A84")      // dimmest labels / inactive tab
+    // Text — warm greys
+    static let rbTextPrimary = Color(hex: "F5F3F2")
+    static let rbTextSecondary = Color(hex: "ABA4A2")
+    static let rbTextTertiary = Color(hex: "8E8886")
+    static let rbTextQuaternary = Color(hex: "827C7A")      // micro-labels only (>=10pt bold caps)
 
     // Status
-    static let rbLive = Color(hex: "34D399")               // up-trend green / "Live" dot
-    static let rbError = Color(hex: "FF7B7B")              // softer red (Log out)
-    static let rbWarning = Color(hex: "FBBF24")            // amber — PENDING status
+    static let rbSuccess = Color(hex: "30D158")             // up-trend / positive / active
+    static let rbLive = Color(hex: "FF4B45")                // LIVE indicator — pulsing broadcast red, NOT green
+    static let rbError = Color(hex: "FF8A80")               // sits close to brand red — always pair with an icon
+    static let rbWarning = Color(hex: "FFC53D")             // amber — PENDING status
+    static let rbInfo = Color(hex: "6CA8FF")                // informational blue
 
-    // Gradients (violet → magenta-purple)
-    static let rbGradientStart = Color(hex: "7C5CF6")      // violet
-    static let rbGradientEnd = Color(hex: "B84DF0")        // magenta-purple
-    static let rbAccentGradEnd = Color(hex: "B84DF0")      // == rbGradientEnd
+    // Gradient — CTA only (tokens.gradient.cta): dark red → brand red.
+    // Rule: gradient ONLY on the primary CTA and the hero gauge; everything else flat.
+    static let rbGradientStart = Color(hex: "D92D26")
+    static let rbGradientEnd = Color(hex: "FF4B45")
+    static let rbAccentGradEnd = Color(hex: "FF4B45")       // == rbGradientEnd
 
-    // Glass system
-    static let rbGlassTint = Color.white.opacity(0.055)    // card fill over material
-    static let rbGlassBorder = Color.white.opacity(0.11)   // 1px hairline on glass
-    static let rbHairline = Color.white.opacity(0.08)      // row dividers
-    static let rbDetection = Color(hex: "FF6B35")          // alias of rbWarm, for clarity
+    // Glass system (unchanged)
+    static let rbGlassTint = Color.white.opacity(0.055)     // card fill over material (hero cards only)
+    static let rbGlassBorder = Color.white.opacity(0.11)    // 1px hairline on glass
+    static let rbHairline = Color.white.opacity(0.08)       // row dividers / solid-card border
+    static let rbDetection = Color(hex: "FFC53D")           // alias of rbWarm, for clarity
 
     // Hex initializer
     init(hex: String) {
@@ -66,9 +70,9 @@ extension Color {
     }
 }
 
-// Reusable brand gradient — violet → magenta.
+// Reusable brand gradient — dark red → brand red (CTA + hero gauge ONLY).
 extension LinearGradient {
-    // 135° (topLeading → bottomTrailing) for fills, buttons, artwork tiles, gauge.
+    // 135° (topLeading → bottomTrailing) for the primary CTA and the hero gauge.
     static let rbAccentGradient = LinearGradient(
         colors: [.rbGradientStart, .rbGradientEnd],
         startPoint: .topLeading,

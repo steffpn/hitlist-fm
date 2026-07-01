@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import music.onair.app.ui.theme.RbGlassBorder
+import music.onair.app.ui.theme.RbHairline
 import music.onair.app.ui.theme.RbSurface
 
-/** Glassy card, ported from the iOS RBCardStyle (subtle lighter fill + hairline border). */
+/** Card ported from the iOS RBCardStyle: solid surface + 8% white hairline border (tokens rule). */
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
@@ -26,7 +26,7 @@ fun GlassCard(
         modifier = modifier
             .clip(RoundedCornerShape(cornerRadius))
             .background(RbSurface)
-            .border(1.dp, RbGlassBorder, RoundedCornerShape(cornerRadius))
+            .border(1.dp, RbHairline, RoundedCornerShape(cornerRadius))
             .padding(padding),
         content = content,
     )

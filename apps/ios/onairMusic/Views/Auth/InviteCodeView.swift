@@ -13,7 +13,7 @@ struct InviteCodeView: View {
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .fill(LinearGradient.rbAccentGradient)
                     .frame(width: 66, height: 66)
-                    .shadow(color: Color(hex: "7C5CF6").opacity(0.6), radius: 12, y: 10)
+                    .shadow(color: .black.opacity(0.5), radius: 12, y: 10)
 
                 Image(systemName: "ticket.fill")
                     .font(.system(size: 28, weight: .semibold))

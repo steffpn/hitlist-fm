@@ -27,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,8 +39,6 @@ import music.onair.app.ui.components.CenterError
 import music.onair.app.ui.components.CenterLoading
 import music.onair.app.ui.theme.RbAccent
 import music.onair.app.ui.theme.RbBackground
-import music.onair.app.ui.theme.RbGradientEnd
-import music.onair.app.ui.theme.RbGradientStart
 import music.onair.app.ui.theme.RbSurfaceLight
 import music.onair.app.ui.theme.RbTextPrimary
 import music.onair.app.ui.theme.RbTextSecondary
@@ -115,7 +112,7 @@ private fun ArtistRow(artist: ArtistSummary) {
             modifier = Modifier
                 .size(46.dp)
                 .clip(CircleShape)
-                .background(Brush.linearGradient(listOf(RbGradientStart, RbGradientEnd))),
+                .background(RbAccent),
             contentAlignment = Alignment.Center,
         ) {
             Text(

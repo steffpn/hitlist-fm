@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import music.onair.app.ui.theme.RbError
-import music.onair.app.ui.theme.RbLive
+import music.onair.app.ui.theme.RbSuccess
 import music.onair.app.ui.theme.RbTextTertiary
 import kotlin.math.roundToInt
 
@@ -22,7 +22,7 @@ fun TrendBadge(
     modifier: Modifier = Modifier,
 ) {
     val color = when (direction) {
-        "up" -> RbLive
+        "up" -> RbSuccess
         "down" -> RbError
         else -> RbTextTertiary
     }

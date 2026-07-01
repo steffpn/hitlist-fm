@@ -149,7 +149,7 @@ struct LabelArtistDetailView: View {
             HStack(spacing: 12) {
                 // Song icon
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(song.isMonitored ? AnyShapeStyle(LinearGradient.rbAccentGradient) : AnyShapeStyle(Color.rbSurfaceLight))
+                    .fill(song.isMonitored ? AnyShapeStyle(Color.rbAccent) : AnyShapeStyle(Color.rbSurfaceLight))
                     .frame(width: 40, height: 40)
                     .overlay {
                         Image(systemName: song.isMonitored ? "waveform" : "music.note")

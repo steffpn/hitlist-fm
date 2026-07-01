@@ -61,7 +61,7 @@ struct StationBreakdownView: View {
                                         .frame(height: 6)
 
                                     RoundedRectangle(cornerRadius: 3)
-                                        .fill(LinearGradient.rbAccentGradientH)
+                                        .fill(Color.rbAccent)
                                         .frame(
                                             width: geo.size.width * CGFloat(station.playCount) / CGFloat(maxPlays),
                                             height: 6

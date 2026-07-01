@@ -60,7 +60,7 @@ struct MonitoredSongsView: View {
                         .foregroundStyle(.white)
                         .frame(width: 38, height: 38)
                         .background(
-                            LinearGradient.rbAccentGradient,
+                            Color.rbAccent,
                             in: RoundedRectangle(cornerRadius: 12, style: .continuous)
                         )
                         .shadow(color: Color.rbAccent.opacity(0.5), radius: 10, y: 5)
@@ -81,7 +81,7 @@ struct MonitoredSongsView: View {
         VStack(spacing: 16) {
             Image(systemName: "music.note.list")
                 .font(.system(size: 48, weight: .light))
-                .foregroundStyle(LinearGradient.rbAccentGradient)
+                .foregroundStyle(Color.rbAccent)
 
             Text("No Monitored Songs")
                 .font(.sora(20, .bold))
@@ -113,12 +113,12 @@ struct MonitoredSongsView: View {
         HStack(spacing: 12) {
             // Song thumbnail
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(LinearGradient.rbAccentGradient)
+                .fill(Color.rbAccent.opacity(0.15))
                 .frame(width: 46, height: 46)
                 .overlay {
                     Image(systemName: "music.note")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.9))
+                        .foregroundStyle(Color.rbAccentLight)
                 }
 
             // Song info
@@ -203,7 +203,7 @@ struct MonitoredSongsView: View {
     private func statusInfo(_ status: String) -> (Color, String) {
         switch status.lowercased() {
         case "active":
-            return (Color.rbLive, "ACTIVE")
+            return (Color.rbSuccess, "ACTIVE")
         case "expired":
             return (Color.rbTextTertiary, "EXPIRED")
         case "pending":

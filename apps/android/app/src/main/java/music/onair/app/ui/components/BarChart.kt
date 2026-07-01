@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -25,15 +24,14 @@ import androidx.compose.ui.unit.sp
 import music.onair.app.ui.theme.IbmPlexMono
 import music.onair.app.ui.theme.RbAccent
 import music.onair.app.ui.theme.RbAccentLight
-import music.onair.app.ui.theme.RbGradientEnd
-import music.onair.app.ui.theme.RbGradientStart
 import music.onair.app.ui.theme.RbTextTertiary
 
 private val axisLabelStyle = TextStyle(fontFamily = IbmPlexMono, fontSize = 9.sp)
 
 /**
- * Vertical bar chart with gradient bars (ported from iOS BarChartView).
- * Highlighted indices use the light accent gradient; caller controls x-axis labels.
+ * Vertical bar chart with flat accent bars (ported from iOS BarChartView).
+ * Highlighted indices use the light accent; caller controls x-axis labels.
+ * Flat per tokens rule: gradient is reserved for the primary CTA and the gauge.
  */
 @Composable
 fun BarChart(
@@ -56,16 +54,13 @@ fun BarChart(
         ) {
             values.forEachIndexed { index, value ->
                 val fraction = (value / max).coerceIn(0.02f, 1f)
-                val brush = Brush.verticalGradient(
-                    if (index in highlight) listOf(RbAccentLight, RbAccent)
-                    else listOf(RbGradientStart, RbGradientEnd),
-                )
+                val color = if (index in highlight) RbAccentLight else RbAccent
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(fraction)
                         .clip(topShape)
-                        .background(brush),
+                        .background(color),
                 )
             }
         }

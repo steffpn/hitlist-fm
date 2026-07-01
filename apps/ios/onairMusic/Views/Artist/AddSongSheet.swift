@@ -75,7 +75,7 @@ struct AddSongSheet: View {
     private var headerSection: some View {
         VStack(spacing: 12) {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(LinearGradient.rbAccentGradient)
+                .fill(Color.rbAccent)
                 .frame(width: 72, height: 72)
                 .overlay {
                     Image(systemName: "plus")

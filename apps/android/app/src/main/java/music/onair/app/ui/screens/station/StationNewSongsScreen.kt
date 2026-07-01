@@ -37,7 +37,7 @@ import music.onair.app.ui.components.CenterLoading
 import music.onair.app.ui.components.GlassCard
 import music.onair.app.ui.theme.IbmPlexMono
 import music.onair.app.ui.theme.RbBackground
-import music.onair.app.ui.theme.RbLive
+import music.onair.app.ui.theme.RbSuccess
 import music.onair.app.ui.theme.RbTextPrimary
 import music.onair.app.ui.theme.RbTextSecondary
 import music.onair.app.ui.theme.RbTextTertiary
@@ -126,14 +126,14 @@ private fun NewBadge() {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
-            .background(RbLive.copy(alpha = 0.18f))
+            .background(RbSuccess.copy(alpha = 0.18f))
             .padding(horizontal = 8.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = "NEW",
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-            color = RbLive,
+            color = RbSuccess,
         )
     }
 }

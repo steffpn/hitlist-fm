@@ -131,7 +131,7 @@ export function FeatureForm({ feature, open, onClose, onSaved }: FeatureFormProp
               value={form.key}
               onChange={(e) => setForm((f) => ({ ...f, key: e.target.value }))}
               placeholder="e.g. analytics.streams"
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-zinc-600"
+              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/60"
             />
           </div>
 
@@ -144,7 +144,7 @@ export function FeatureForm({ feature, open, onClose, onSaved }: FeatureFormProp
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               placeholder="e.g. Stream Analytics"
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-zinc-600"
+              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/60"
             />
           </div>
 
@@ -156,7 +156,7 @@ export function FeatureForm({ feature, open, onClose, onSaved }: FeatureFormProp
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               placeholder="What does this feature do?"
               rows={3}
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-zinc-600 resize-none"
+              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/60 resize-none"
             />
           </div>
 
@@ -166,7 +166,7 @@ export function FeatureForm({ feature, open, onClose, onSaved }: FeatureFormProp
             <select
               value={form.category}
               onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-zinc-600"
+              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/60"
             >
               {CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>
@@ -186,7 +186,7 @@ export function FeatureForm({ feature, open, onClose, onSaved }: FeatureFormProp
                   className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors",
                     form.roles.includes(role)
-                      ? "bg-white/10 border-white/20 text-white"
+                      ? "bg-brand-500/10 border-brand-500/40 text-white"
                       : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600"
                   )}
                 >
@@ -200,12 +200,12 @@ export function FeatureForm({ feature, open, onClose, onSaved }: FeatureFormProp
                     className={cn(
                       "w-4 h-4 rounded border flex items-center justify-center",
                       form.roles.includes(role)
-                        ? "bg-white border-white"
+                        ? "bg-brand-500 border-brand-500"
                         : "border-zinc-600"
                     )}
                   >
                     {form.roles.includes(role) && (
-                      <svg className="w-3 h-3 text-zinc-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     )}
@@ -217,7 +217,7 @@ export function FeatureForm({ feature, open, onClose, onSaved }: FeatureFormProp
           </div>
 
           {error && (
-            <p className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+            <p className="text-sm text-brand-400 bg-brand-400/10 border border-brand-400/20 rounded-lg px-3 py-2">
               {error}
             </p>
           )}
@@ -237,7 +237,7 @@ export function FeatureForm({ feature, open, onClose, onSaved }: FeatureFormProp
                 "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                 loading
                   ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-                  : "bg-white text-zinc-900 hover:bg-zinc-200"
+                  : "bg-brand-600 text-white hover:bg-brand-500"
               )}
             >
               {loading ? "Saving..." : isEditing ? "Update Feature" : "Create Feature"}

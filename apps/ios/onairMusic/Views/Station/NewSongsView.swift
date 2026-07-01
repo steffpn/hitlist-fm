@@ -72,12 +72,12 @@ struct NewSongsView: View {
             // Song icon with NEW badge overlay
             ZStack(alignment: .topTrailing) {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(LinearGradient.rbAccentGradient)
+                    .fill(Color.rbAccent.opacity(0.15))
                     .frame(width: 46, height: 46)
                     .overlay {
                         Image(systemName: "music.note")
                             .font(.system(size: 18))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.rbAccentLight)
                     }
 
                 // NEW badge
@@ -88,7 +88,7 @@ struct NewSongsView: View {
                     .padding(.vertical, 2)
                     .background(
                         Capsule()
-                            .fill(Color.rbLive)
+                            .fill(Color.rbSuccess)
                     )
                     .offset(x: 4, y: -4)
             }

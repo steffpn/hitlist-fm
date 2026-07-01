@@ -98,10 +98,10 @@ struct DetectionRowView: View {
                     .aspectRatio(contentMode: .fill)
             } else {
                 ZStack {
-                    LinearGradient.rbAccentGradient
+                    Color.rbAccent.opacity(0.15)
                     Image(systemName: "music.note")
                         .font(.system(size: 16))
-                        .foregroundStyle(Color.white.opacity(0.9))
+                        .foregroundStyle(Color.rbAccentLight)
                 }
             }
         }

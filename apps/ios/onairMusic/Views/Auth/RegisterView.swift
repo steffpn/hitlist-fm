@@ -16,7 +16,7 @@ struct RegisterView: View {
                         RoundedRectangle(cornerRadius: 20, style: .continuous)
                             .fill(LinearGradient.rbAccentGradient)
                             .frame(width: 60, height: 60)
-                            .shadow(color: Color(hex: "7C5CF6").opacity(0.6), radius: 12, y: 10)
+                            .shadow(color: .black.opacity(0.5), radius: 12, y: 10)
 
                         Image(systemName: "person.badge.plus")
                             .font(.system(size: 26, weight: .semibold))

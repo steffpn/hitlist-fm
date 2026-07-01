@@ -12,7 +12,7 @@ struct WelcomeView: View {
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
                     .fill(LinearGradient.rbAccentGradient)
                     .frame(width: 96, height: 96)
-                    .shadow(color: Color(hex: "7C5CF6").opacity(0.6), radius: 12, y: 10)
+                    .shadow(color: .black.opacity(0.5), radius: 12, y: 10)
 
                 Image(systemName: "waveform")
                     .font(.system(size: 44, weight: .semibold))
@@ -65,7 +65,7 @@ struct WelcomeView: View {
             .padding(.bottom, 48)
         }
         .frame(maxWidth: .infinity)
-        .onairGlow()
+        .onairBrandGlow()
         .navigationBarBackButtonHidden(true)
         .preferredColorScheme(.dark)
     }

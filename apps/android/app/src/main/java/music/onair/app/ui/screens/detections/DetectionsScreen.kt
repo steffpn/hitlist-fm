@@ -38,7 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -59,8 +58,6 @@ import music.onair.app.ui.components.InlineLoadingRow
 import music.onair.app.ui.theme.IbmPlexMono
 import music.onair.app.ui.theme.RbAccent
 import music.onair.app.ui.theme.RbBackground
-import music.onair.app.ui.theme.RbGradientEnd
-import music.onair.app.ui.theme.RbGradientStart
 import music.onair.app.ui.theme.RbTextPrimary
 import music.onair.app.ui.theme.RbTextQuaternary
 import music.onair.app.ui.theme.RbTextSecondary
@@ -153,7 +150,7 @@ private fun DetectionRow(event: AirplayEvent, onOpen: () -> Unit) {
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(Brush.linearGradient(listOf(RbGradientStart, RbGradientEnd))),
+                .background(RbAccent),
             contentAlignment = Alignment.Center,
         ) {
             Icon(

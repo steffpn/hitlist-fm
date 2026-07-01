@@ -47,7 +47,7 @@ import music.onair.app.ui.components.SectionHeader
 import music.onair.app.ui.theme.IbmPlexMono
 import music.onair.app.ui.theme.RbAccent
 import music.onair.app.ui.theme.RbBackground
-import music.onair.app.ui.theme.RbLive
+import music.onair.app.ui.theme.RbSuccess
 import music.onair.app.ui.theme.RbSurfaceHighlight
 import music.onair.app.ui.theme.RbSurfaceLight
 import music.onair.app.ui.theme.RbTextPrimary
@@ -59,7 +59,7 @@ private fun fmtInt(n: Int) = "%,d".format(n)
 private val monoSmall = TextStyle(fontFamily = IbmPlexMono, fontSize = 12.sp)
 
 // Up to 3 distinct series colors, matching the legend order.
-private val seriesColors = listOf(RbAccent, RbWarm, RbLive)
+private val seriesColors = listOf(RbAccent, RbWarm, RbSuccess)
 
 @Composable
 fun LabelComparisonScreen() {

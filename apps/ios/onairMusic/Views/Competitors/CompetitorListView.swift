@@ -97,7 +97,7 @@ struct CompetitorListView: View {
                     .foregroundStyle(.white)
                     .frame(width: 38, height: 38)
                     .background(
-                        LinearGradient.rbAccentGradient,
+                        Color.rbAccent,
                         in: RoundedRectangle(cornerRadius: 12, style: .continuous)
                     )
                     .shadow(color: Color.rbAccent.opacity(0.5), radius: 10, y: 5)

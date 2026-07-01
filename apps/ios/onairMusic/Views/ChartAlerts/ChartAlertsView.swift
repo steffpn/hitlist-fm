@@ -147,7 +147,7 @@ private struct ChartAlertRow: View {
             // Position + country
             VStack(alignment: .trailing, spacing: 4) {
                 Text("#\(alert.position)")
-                    .foregroundStyle(LinearGradient.rbAccentGradient)
+                    .foregroundStyle(Color.rbAccent)
                     .font(.mono(17, .medium))
 
                 Text(flagEmoji(for: alert.country))

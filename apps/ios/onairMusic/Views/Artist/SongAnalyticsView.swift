@@ -85,14 +85,13 @@ struct SongAnalyticsView: View {
         VStack(spacing: 16) {
             // Album art placeholder (gradient — 184pt hero per spec 3d)
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(LinearGradient.rbAccentGradient)
+                .fill(Color.rbAccent.opacity(0.15))
                 .frame(width: 184, height: 184)
                 .overlay {
                     Image(systemName: "music.note")
                         .font(.system(size: 46, weight: .light))
-                        .foregroundStyle(.white.opacity(0.9))
+                        .foregroundStyle(Color.rbAccentLight)
                 }
-                .shadow(color: Color(hex: "7C5CF6").opacity(0.55), radius: 30, x: 0, y: 14)
                 .shadow(color: .black.opacity(0.35), radius: 20, x: 0, y: 10)
                 .scaleEffect(appearAnimation ? 1.0 : 0.9)
                 .opacity(appearAnimation ? 1.0 : 0.0)
@@ -177,7 +176,7 @@ struct SongAnalyticsView: View {
 
             Text(value)
                 .font(.sora(24, .heavy))
-                .foregroundStyle(LinearGradient.rbAccentGradient)
+                .foregroundStyle(Color.rbAccent)
 
             Text(label.uppercased())
                 .font(.sora(10, .semibold))

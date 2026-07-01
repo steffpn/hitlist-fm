@@ -1,3 +1,5 @@
+import { clearToken } from "@/lib/auth";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
 type FetchOptions = RequestInit & {
@@ -19,7 +21,7 @@ export async function apiFetch<T>(path: string, opts: FetchOptions = {}): Promis
   if (!res.ok) {
     // On 401, clear token and redirect to login
     if (res.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("mfm_admin_token");
+      clearToken();
       window.location.href = "/login";
       throw new Error("Session expired. Redirecting to login...");
     }

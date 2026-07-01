@@ -3,10 +3,10 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- onair "pulse" waveform mark in brand violet, centered in the safe zone. -->
-    <path android:fillColor="#9A6DFF" android:pathData="M31,42h6v24h-6z" />
-    <path android:fillColor="#B57BFF" android:pathData="M41,34h6v40h-6z" />
-    <path android:fillColor="#C4A5FF" android:pathData="M51,26h6v56h-6z" />
-    <path android:fillColor="#B57BFF" android:pathData="M61,34h6v40h-6z" />
-    <path android:fillColor="#9A6DFF" android:pathData="M71,42h6v24h-6z" />
+    <!-- onair "pulse" waveform mark in broadcast red, centered in the safe zone. -->
+    <path android:fillColor="#D92D26" android:pathData="M31,42h6v24h-6z" />
+    <path android:fillColor="#FF4B45" android:pathData="M41,34h6v40h-6z" />
+    <path android:fillColor="#FF8A80" android:pathData="M51,26h6v56h-6z" />
+    <path android:fillColor="#FF4B45" android:pathData="M61,34h6v40h-6z" />
+    <path android:fillColor="#D92D26" android:pathData="M71,42h6v24h-6z" />
 </vector>

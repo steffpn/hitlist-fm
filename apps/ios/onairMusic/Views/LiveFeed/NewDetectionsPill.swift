@@ -17,7 +17,7 @@ struct NewDetectionsPill: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
-            .background(LinearGradient.rbAccentGradient)
+            .background(Color.rbAccent)
             .foregroundStyle(.white)
             .clipShape(Capsule())
             .shadow(color: Color.rbAccent.opacity(0.5), radius: 12, y: 6)

@@ -79,7 +79,7 @@ struct DiscoveryScoreView: View {
                     .trim(from: 0, to: CGFloat(min(animatedScore, 100.0) / 100.0))
                     .stroke(
                         AngularGradient(
-                            colors: [Color(hex: "7C5CF6"), Color(hex: "B84DF0"), Color(hex: "7C5CF6")],
+                            colors: [Color.rbGradientStart, Color.rbGradientEnd, Color.rbGradientStart],
                             center: .center,
                             startAngle: .degrees(-90),
                             endAngle: .degrees(270)
@@ -152,7 +152,7 @@ struct DiscoveryScoreView: View {
 
             Text(value)
                 .font(.sora(22, .heavy))
-                .foregroundStyle(LinearGradient.rbAccentGradient)
+                .foregroundStyle(Color.rbAccent)
 
             Text(title.uppercased())
                 .font(.sora(10, .semibold))

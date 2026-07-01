@@ -45,8 +45,6 @@ import music.onair.app.ui.components.SectionHeader
 import music.onair.app.ui.theme.IbmPlexMono
 import music.onair.app.ui.theme.RbAccent
 import music.onair.app.ui.theme.RbBackground
-import music.onair.app.ui.theme.RbGradientEnd
-import music.onair.app.ui.theme.RbGradientStart
 import music.onair.app.ui.theme.RbSurfaceLight
 import music.onair.app.ui.theme.RbTextPrimary
 import music.onair.app.ui.theme.RbTextSecondary
@@ -226,11 +224,7 @@ private fun DailyBars(
                         .weight(1f)
                         .fillMaxHeight(fraction)
                         .clip(topShape)
-                        .background(
-                            androidx.compose.ui.graphics.Brush.verticalGradient(
-                                listOf(RbGradientStart, RbGradientEnd),
-                            ),
-                        ),
+                        .background(RbAccent),
                 )
             }
         }
@@ -295,11 +289,7 @@ private fun StationBreakdownRow(
                     .fillMaxWidth(fraction)
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(
-                        androidx.compose.ui.graphics.Brush.horizontalGradient(
-                            listOf(RbGradientStart, RbGradientEnd),
-                        ),
-                    ),
+                    .background(RbAccent),
             )
         }
     }

@@ -70,7 +70,7 @@ struct RotationAnalysisView: View {
 
             Text(String(format: "%.1f", average))
                 .font(.sora(42, .heavy))
-                .foregroundStyle(LinearGradient.rbAccentGradient)
+                .foregroundStyle(Color.rbAccent)
 
             Text("AVG. UNIQUE SONGS / HOUR")
                 .font(.sora(10, .semibold))
@@ -103,13 +103,7 @@ struct RotationAnalysisView: View {
                     x: .value("Hour", formatHour(bucket.hour)),
                     y: .value("Songs", bucket.count)
                 )
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [Color(hex: "7C5CF6"), Color(hex: "B84DF0")],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+                .foregroundStyle(Color.rbAccent)
                 .cornerRadius(4)
             }
             .chartXAxis {

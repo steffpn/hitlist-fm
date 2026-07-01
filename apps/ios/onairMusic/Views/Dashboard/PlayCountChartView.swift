@@ -25,19 +25,7 @@ struct PlayCountChartView: View {
                         x: .value("Date", item.date),
                         y: .value("Plays", item.playCount)
                     )
-                    .foregroundStyle(
-                        item.isHighlight
-                            ? LinearGradient(
-                                colors: [.rbAccentLight, .rbAccent],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                            : LinearGradient(
-                                colors: [.rbGradientStart, .rbGradientEnd],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                    )
+                    .foregroundStyle(item.isHighlight ? Color.rbAccent : Color.rbAccent.opacity(0.45))
                     .cornerRadius(4)
                 }
                 .chartXAxis {

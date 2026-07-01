@@ -184,7 +184,7 @@ struct SettingsView: View {
             HStack(spacing: 14) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(LinearGradient.rbAccentGradient)
+                        .fill(Color.rbAccent)
                     Text(String(user.name.prefix(1)).uppercased())
                         .font(.sora(22, .bold))
                         .foregroundStyle(.white)
@@ -419,7 +419,7 @@ struct ViewAsRoleView: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(width: 34, height: 34)
-                    .background(LinearGradient.rbAccentGradient, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .background(Color.rbAccent, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title).font(.sora(15, .semibold)).foregroundStyle(Color.rbTextPrimary)
                     Text(subtitle).font(.sora(11.5, .regular)).foregroundStyle(Color.rbTextTertiary)
@@ -468,7 +468,7 @@ struct ViewAsRoleView: View {
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                     }
-                    .listRowBackground(LinearGradient.rbAccentGradient)
+                    .listRowBackground(Color.rbAccent)
                 }
                 ForEach(options?.artists ?? []) { artist in
                     let on = labelArtists.contains(artist.name)

@@ -68,14 +68,14 @@ function Sidebar({ pathname }: { pathname: string }) {
   return (
     <aside className="w-60 shrink-0 bg-zinc-900 border-r border-zinc-800 p-6 flex flex-col">
       <Link href="/" className="block mb-8">
-        <h1 className="text-lg font-bold text-white">myFuckingMusic</h1>
-        <p className="text-[11px] text-zinc-500 uppercase tracking-wider">Operations Console</p>
+        <h1 className="text-lg font-bold text-white">onair.music</h1>
+        <p className="text-[11px] text-zinc-400 uppercase tracking-wider">Ops Console</p>
       </Link>
 
       <nav className="flex flex-col gap-1 flex-1">
         {NAV_GROUPS.map((group, idx) => (
           <div key={group.label} className={idx === 0 ? "" : "mt-4"}>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-600 px-3">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 px-3">
               {group.label}
             </span>
             <div className="mt-1 flex flex-col gap-1">
@@ -94,7 +94,7 @@ function Sidebar({ pathname }: { pathname: string }) {
           clearToken();
           router.push("/login");
         }}
-        className="mt-4 px-3 py-2 text-sm text-zinc-500 hover:text-red-400 transition-colors text-left"
+        className="mt-4 px-3 py-2 text-sm text-zinc-400 hover:text-brand-400 transition-colors text-left"
       >
         Log out
       </button>
@@ -108,7 +108,7 @@ function NavLink({ href, active, children }: { href: string; active: boolean; ch
       href={href}
       className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
         active
-          ? "bg-zinc-800 text-white font-medium"
+          ? "bg-brand-500/10 text-brand-400 font-medium"
           : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
       }`}
     >

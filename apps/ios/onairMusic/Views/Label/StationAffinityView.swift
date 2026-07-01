@@ -75,7 +75,7 @@ struct StationAffinityView: View {
                             .frame(height: 6)
 
                         RoundedRectangle(cornerRadius: 3)
-                            .fill(LinearGradient.rbAccentGradientH)
+                            .fill(Color.rbAccent)
                             .frame(
                                 width: geometry.size.width * CGFloat(min(item.affinityPercent, 100.0) / 100.0),
                                 height: 6

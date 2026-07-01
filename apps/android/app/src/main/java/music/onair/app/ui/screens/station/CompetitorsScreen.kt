@@ -47,7 +47,7 @@ import music.onair.app.ui.components.SectionHeader
 import music.onair.app.ui.theme.IbmPlexMono
 import music.onair.app.ui.theme.RbAccentLight
 import music.onair.app.ui.theme.RbBackground
-import music.onair.app.ui.theme.RbLive
+import music.onair.app.ui.theme.RbSuccess
 import music.onair.app.ui.theme.RbTextPrimary
 import music.onair.app.ui.theme.RbTextSecondary
 import music.onair.app.ui.theme.RbTextTertiary
@@ -291,7 +291,7 @@ private fun ComparisonRow(row: CompetitorComparisonItem) {
                     Text(text = "THEM", style = MaterialTheme.typography.labelSmall, color = RbTextTertiary)
                 }
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                    Text(text = "${row.yourPlays}", style = monoSmall, color = RbLive)
+                    Text(text = "${row.yourPlays}", style = monoSmall, color = RbSuccess)
                     Text(text = "YOU", style = MaterialTheme.typography.labelSmall, color = RbTextTertiary)
                 }
             }

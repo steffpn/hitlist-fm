@@ -18,10 +18,10 @@ struct SongThumbnail: View {
                     .aspectRatio(contentMode: .fill)
             } else {
                 ZStack {
-                    LinearGradient.rbAccentGradient
+                    Color.rbAccent.opacity(0.15)
                     Image(systemName: "music.note")
                         .font(.system(size: size * 0.35))
-                        .foregroundStyle(.white.opacity(0.9))
+                        .foregroundStyle(Color.rbAccentLight)
                 }
             }
         }

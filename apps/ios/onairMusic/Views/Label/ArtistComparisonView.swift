@@ -7,11 +7,11 @@ struct ArtistComparisonView: View {
     @State private var viewModel = ArtistComparisonViewModel()
     @State private var artistListViewModel = LabelArtistListViewModel()
 
-    /// Color palette for artist series differentiation — on-brand violet family.
+    /// Color palette for artist series differentiation — accent red, amber, info blue.
     private let seriesColors: [Color] = [
         .rbAccent,
-        .rbAccentGradEnd,
-        .rbAccentLight
+        .rbWarm,
+        .rbInfo
     ]
 
     var body: some View {
@@ -142,7 +142,7 @@ struct ArtistComparisonView: View {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(
                         viewModel.selectedArtistIds.count >= 2
-                            ? AnyShapeStyle(LinearGradient.rbAccentGradient)
+                            ? AnyShapeStyle(Color.rbAccent)
                             : AnyShapeStyle(Color.rbSurfaceLight)
                     )
             )

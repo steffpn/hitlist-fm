@@ -128,7 +128,7 @@ export default function DetectionsPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white">Detections</h1>
-        <p className="text-sm text-zinc-500 mt-1">Live airplay events from ACRCloud detection pipeline.</p>
+        <p className="text-sm text-zinc-400 mt-1">Live airplay events from ACRCloud detection pipeline.</p>
       </div>
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-6 flex flex-wrap gap-3 items-end">
@@ -139,7 +139,7 @@ export default function DetectionsPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Song title, artist, ISRC"
-            className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600"
+            className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-brand-500/60"
           />
         </div>
         <div className="min-w-[180px]">
@@ -176,7 +176,7 @@ export default function DetectionsPage() {
         {hasFilters && (
           <button
             onClick={resetFilters}
-            className="px-3 py-2 text-xs text-zinc-500 hover:text-white"
+            className="px-3 py-2 text-xs text-zinc-400 hover:text-white"
           >
             Clear
           </button>
@@ -184,7 +184,7 @@ export default function DetectionsPage() {
       </div>
 
       {error && (
-        <div className="mb-4 px-4 py-3 bg-red-400/10 border border-red-400/20 rounded-xl text-red-400 text-sm">
+        <div className="mb-4 px-4 py-3 bg-brand-400/10 border border-brand-400/20 rounded-xl text-brand-400 text-sm">
           {error}
         </div>
       )}
@@ -206,23 +206,23 @@ export default function DetectionsPage() {
               {loading && events.length === 0 ? (
                 <tr><td colSpan={6} className="px-4 py-12 text-center text-zinc-500 text-sm">Loading…</td></tr>
               ) : events.length === 0 ? (
-                <tr><td colSpan={6} className="px-4 py-12 text-center text-zinc-600 text-sm">No detections match.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-12 text-center text-zinc-500 text-sm">No detections match.</td></tr>
               ) : (
                 events.map((e) => (
                   <tr key={e.id} className="border-t border-zinc-800/60 hover:bg-zinc-800/20 transition-colors">
-                    <td className="px-4 py-3 text-xs text-zinc-400 whitespace-nowrap">
+                    <td className="px-4 py-3 text-xs font-mono text-zinc-400 whitespace-nowrap">
                       <div>{formatDate(e.startedAt)}</div>
-                      <div className="text-zinc-600">{formatTime(e.startedAt)} · {durationSec(e.startedAt, e.endedAt)}s</div>
+                      <div className="text-zinc-500">{formatTime(e.startedAt)} · {durationSec(e.startedAt, e.endedAt)}s</div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="text-white font-medium">{e.songTitle}</div>
-                      <div className="text-xs text-zinc-500">{e.artistName}</div>
+                      <div className="text-xs text-zinc-400">{e.artistName}</div>
                     </td>
                     <td className="px-4 py-3 text-zinc-300">{e.station.name}</td>
                     <td className="px-4 py-3">
                       <ConfidenceBar value={e.confidence} />
                     </td>
-                    <td className="px-4 py-3 text-xs font-mono text-zinc-500">
+                    <td className="px-4 py-3 text-xs font-mono text-zinc-400">
                       {e.isrc ?? <span className="text-zinc-700">—</span>}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -232,14 +232,14 @@ export default function DetectionsPage() {
                           className={cn(
                             "text-xs px-3 py-1 rounded-lg border transition-colors",
                             playingId === e.id
-                              ? "bg-emerald-400/20 text-emerald-300 border-emerald-400/30"
+                              ? "bg-brand-500/20 text-brand-300 border-brand-500/30"
                               : "bg-zinc-800/40 text-zinc-300 border-zinc-700 hover:border-zinc-500",
                           )}
                         >
                           {playingId === e.id ? "■ Stop" : "▶ Play"}
                         </button>
                       ) : (
-                        <span className="text-xs text-zinc-700">no snippet</span>
+                        <span className="text-xs text-zinc-500">no snippet</span>
                       )}
                     </td>
                   </tr>
@@ -266,13 +266,13 @@ export default function DetectionsPage() {
 
 function ConfidenceBar({ value }: { value: number }) {
   const pct = Math.round(value);
-  const tone = pct >= 90 ? "bg-emerald-400" : pct >= 70 ? "bg-amber-400" : "bg-red-400";
+  const tone = pct >= 90 ? "bg-emerald-400" : pct >= 70 ? "bg-amber-400" : "bg-brand-400";
   return (
     <div className="flex items-center gap-2 w-28">
       <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
         <div className={cn("h-full", tone)} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-[11px] text-zinc-500 w-7 text-right">{pct}</span>
+      <span className="text-[11px] font-mono text-zinc-400 w-7 text-right">{pct}</span>
     </div>
   );
 }

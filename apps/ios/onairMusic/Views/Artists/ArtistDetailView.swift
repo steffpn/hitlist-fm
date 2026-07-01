@@ -169,7 +169,7 @@ struct ArtistDetailView: View {
 
             Text(value)
                 .font(.sora(19, .heavy))
-                .foregroundStyle(LinearGradient.rbAccentGradient)
+                .foregroundStyle(Color.rbAccent)
 
             Text(label.uppercased())
                 .font(.sora(9, .semibold))

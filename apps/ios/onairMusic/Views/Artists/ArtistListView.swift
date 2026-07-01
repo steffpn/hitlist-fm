@@ -191,7 +191,7 @@ private struct ArtistRowView: View {
                     .aspectRatio(contentMode: .fill)
             } else {
                 ZStack {
-                    LinearGradient.rbAccentGradient.opacity(0.25)
+                    Color.rbAccent.opacity(0.25)
                     Image(systemName: "person.fill")
                         .font(.system(size: 20))
                         .foregroundStyle(Color.rbAccentLight)

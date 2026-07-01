@@ -28,13 +28,7 @@ struct BarChartView: View {
                         x: .value("Date", item.shortDate),
                         y: .value("Plays", item.count)
                     )
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Color.rbGradientStart, Color.rbGradientEnd],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
+                    .foregroundStyle(Color.rbAccent.opacity(0.65))
                     .cornerRadius(4)
                 }
                 .chartYAxis {

@@ -94,14 +94,7 @@ fun SongDetailScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    0.0f to RbAccentDark.copy(alpha = 0.55f),
-                    0.30f to RbBackground.copy(alpha = 0.9f),
-                    0.6f to RbBackground,
-                    1.0f to RbBackground,
-                ),
-            ),
+            .background(RbBackground),
     ) {
         Column(
             modifier = Modifier
@@ -125,7 +118,7 @@ fun SongDetailScreen(
                     .padding(horizontal = 24.dp)
                     .size(200.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(Brush.linearGradient(listOf(RbGradientStart, RbGradientEnd)))
+                    .background(RbAccent)
                     .align(Alignment.CenterHorizontally),
                 contentAlignment = Alignment.Center,
             ) {

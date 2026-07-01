@@ -24,10 +24,10 @@ interface Station {
 const ROLES = ["ARTIST", "LABEL", "STATION", "ADMIN"] as const;
 
 const ROLE_COLORS: Record<string, string> = {
-  ARTIST: "bg-purple-400/10 text-purple-400 border-purple-400/20",
-  LABEL: "bg-blue-400/10 text-blue-400 border-blue-400/20",
-  STATION: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
-  ADMIN: "bg-amber-400/10 text-amber-400 border-amber-400/20",
+  ARTIST: "bg-brand-500/10 text-brand-400 border-brand-500/20",
+  LABEL: "bg-amber-400/10 text-amber-400 border-amber-400/20",
+  STATION: "bg-blue-400/10 text-blue-400 border-blue-400/20",
+  ADMIN: "bg-white/10 text-white border-white/20",
 };
 
 export default function UsersPage() {
@@ -123,8 +123,8 @@ export default function UsersPage() {
   if (error) {
     return (
       <div className="py-12">
-        <div className="bg-red-400/10 border border-red-400/20 rounded-xl p-6 text-center">
-          <p className="text-red-400 mb-3">{error}</p>
+        <div className="bg-brand-400/10 border border-brand-400/20 rounded-xl p-6 text-center">
+          <p className="text-brand-400 mb-3">{error}</p>
           <button
             onClick={() => { setLoading(true); setError(null); fetchUsers(); }}
             className="px-4 py-2 bg-zinc-800 text-white rounded-lg text-sm hover:bg-zinc-700 transition-colors"
@@ -145,7 +145,7 @@ export default function UsersPage() {
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="px-4 py-2 bg-white text-zinc-900 rounded-lg text-sm font-semibold hover:bg-zinc-100 transition-colors"
+          className="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-semibold hover:bg-brand-500 transition-colors"
         >
           + Create user
         </button>
@@ -207,13 +207,13 @@ export default function UsersPage() {
                         "inline-block text-xs font-medium px-2 py-1 rounded-full border",
                         user.isActive
                           ? "bg-emerald-400/10 text-emerald-400 border-emerald-400/20"
-                          : "bg-red-400/10 text-red-400 border-red-400/20"
+                          : "bg-brand-400/10 text-brand-400 border-brand-400/20"
                       )}
                     >
                       {user.isActive ? "Active" : "Inactive"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-zinc-500">
+                  <td className="px-4 py-3 text-sm font-mono text-zinc-400">
                     {user.lastLogin
                       ? new Date(user.lastLogin).toLocaleDateString()
                       : "Never"}
@@ -229,7 +229,7 @@ export default function UsersPage() {
                               {scope.entityType}:{scope.entityId}
                             </span>
                           ))
-                        : <span className="text-xs text-zinc-600">--</span>}
+                        : <span className="text-xs text-zinc-500">--</span>}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -240,7 +240,7 @@ export default function UsersPage() {
                         "text-xs font-medium px-3 py-1.5 rounded-lg transition-colors",
                         actionLoading === user.id && "opacity-50 cursor-not-allowed",
                         user.isActive
-                          ? "bg-red-400/10 text-red-400 hover:bg-red-400/20"
+                          ? "bg-brand-400/10 text-brand-400 hover:bg-brand-400/20"
                           : "bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400/20"
                       )}
                     >
@@ -337,7 +337,7 @@ function CreateUserModal({
               autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white focus:outline-none focus:border-zinc-600"
+              className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500/60"
               placeholder="user@example.com"
               autoComplete="off"
             />
@@ -349,7 +349,7 @@ function CreateUserModal({
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white focus:outline-none focus:border-zinc-600"
+              className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500/60"
               placeholder="Jane Doe"
               autoComplete="off"
             />
@@ -363,7 +363,7 @@ function CreateUserModal({
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="flex-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-zinc-600"
+                className="flex-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-brand-500/60"
                 autoComplete="new-password"
               />
               <button
@@ -401,7 +401,7 @@ function CreateUserModal({
               <select
                 value={stationId}
                 onChange={(e) => setStationId(e.target.value)}
-                className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white focus:outline-none focus:border-zinc-600"
+                className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500/60"
               >
                 <option value="">— no scope (sees nothing) —</option>
                 {stations.map((s) => (
@@ -412,7 +412,7 @@ function CreateUserModal({
           )}
 
           {error && (
-            <div className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+            <div className="text-sm text-brand-400 bg-brand-400/10 border border-brand-400/20 rounded-lg px-3 py-2">
               {error}
             </div>
           )}
@@ -432,7 +432,7 @@ function CreateUserModal({
                 "flex-1 px-4 py-2 text-sm font-semibold rounded-lg transition-colors",
                 submitting || !email || !name || !password
                   ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-                  : "bg-white text-zinc-900 hover:bg-zinc-100",
+                  : "bg-brand-600 text-white hover:bg-brand-500",
               )}
             >
               {submitting ? "Creating…" : "Create user"}
@@ -449,7 +449,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
     <label className="block">
       <span className="block text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">{label}</span>
       {children}
-      {hint && <span className="block text-[11px] text-zinc-600 mt-1">{hint}</span>}
+      {hint && <span className="block text-[11px] text-zinc-500 mt-1">{hint}</span>}
     </label>
   );
 }

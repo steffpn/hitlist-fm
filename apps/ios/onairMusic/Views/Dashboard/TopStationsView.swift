@@ -29,13 +29,7 @@ struct TopStationsView: View {
                         x: .value("Plays", station.playCount),
                         y: .value("Station", station.stationName)
                     )
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.rbGradientStart, .rbGradientEnd],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .foregroundStyle(Color.rbAccent.opacity(0.65))
                     .cornerRadius(4)
                     .annotation(position: .trailing, alignment: .leading, spacing: 6) {
                         Text("\(station.playCount)")

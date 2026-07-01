@@ -33,7 +33,7 @@ struct DailyReportView: View {
                             StatRow(
                                 label: "Week over Week",
                                 value: "\(weekPercent > 0 ? "+" : "")\(weekPercent)%",
-                                valueColor: weekPercent >= 0 ? Color.rbLive : Color.rbError
+                                valueColor: weekPercent >= 0 ? Color.rbSuccess : Color.rbError
                             )
                         }
                         if let uniqueSongs = content.uniqueSongs {
@@ -221,7 +221,7 @@ private struct PastReportDetailView: View {
                     StatRow(
                         label: "Week over Week",
                         value: "\(weekPercent > 0 ? "+" : "")\(weekPercent)%",
-                        valueColor: weekPercent >= 0 ? Color.rbLive : Color.rbError
+                        valueColor: weekPercent >= 0 ? Color.rbSuccess : Color.rbError
                     )
                 }
                 if let uniqueSongs = report.content.uniqueSongs {

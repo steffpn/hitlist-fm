@@ -98,7 +98,7 @@ export default function StationsPage() {
   }
 
   if (loading) return <div className="text-zinc-500 text-sm">Loading…</div>;
-  if (error) return <div className="text-red-400 text-sm">{error}</div>;
+  if (error) return <div className="text-brand-400 text-sm">{error}</div>;
 
   const filtered = stations
     .filter((s) =>
@@ -127,7 +127,7 @@ export default function StationsPage() {
       <div className="flex items-end justify-between mb-6 gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-white">Stations</h1>
-          <p className="text-sm text-zinc-500 mt-1">
+          <p className="text-sm text-zinc-400 mt-1">
             {stations.length} total · {active} active · {missingId} missing ACR stream ID
           </p>
         </div>
@@ -137,7 +137,7 @@ export default function StationsPage() {
             placeholder="Search name / stream id / country"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 w-72"
+            className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-brand-500/60 w-72"
           />
           <select
             value={sortKey}
@@ -171,7 +171,7 @@ export default function StationsPage() {
                 <tr key={s.id} className="border-t border-zinc-800/60 hover:bg-zinc-800/20 transition-colors">
                   <td className="px-4 py-3">
                     <div className="text-white font-medium">{s.name}</div>
-                    <div className="text-[11px] text-zinc-600 truncate max-w-xs">{s.streamUrl}</div>
+                    <div className="text-[11px] text-zinc-500 truncate max-w-xs">{s.streamUrl}</div>
                   </td>
                   <td className="px-4 py-3 text-zinc-400 uppercase text-xs">{s.stationType}</td>
                   <td className="px-4 py-3 text-zinc-400 text-xs">{s.country ?? "—"}</td>
@@ -194,7 +194,7 @@ export default function StationsPage() {
                         <button
                           onClick={() => saveStreamId(s.id)}
                           disabled={saving || !draftStreamId.trim()}
-                          className="text-xs px-2 py-1 rounded bg-white text-zinc-900 font-medium disabled:opacity-50"
+                          className="text-xs px-2 py-1 rounded bg-brand-600 text-white font-medium disabled:opacity-50"
                         >
                           Save
                         </button>
@@ -203,7 +203,7 @@ export default function StationsPage() {
                             setEditingId(null);
                             setDraftStreamId("");
                           }}
-                          className="text-xs text-zinc-500 hover:text-white"
+                          className="text-xs text-zinc-400 hover:text-white"
                         >
                           Cancel
                         </button>
@@ -223,17 +223,17 @@ export default function StationsPage() {
                   <td className="px-4 py-3">
                     <StatusPill status={s.status} />
                   </td>
-                  <td className="px-4 py-3 text-xs text-zinc-500">
+                  <td className="px-4 py-3 text-xs font-mono text-zinc-400">
                     {formatHeartbeat(s.lastHeartbeat)}
                   </td>
-                  <td className="px-4 py-3 text-xs text-zinc-500">
+                  <td className="px-4 py-3 text-xs font-mono text-zinc-400">
                     {lastPlay.has(s.id) ? timeAgo(lastPlay.get(s.id)!) : <span className="text-zinc-700">—</span>}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {s.status.toLowerCase() === "active" && (
                       <button
                         onClick={() => deactivate(s.id)}
-                        className="text-xs text-zinc-500 hover:text-red-400 transition-colors"
+                        className="text-xs text-zinc-500 hover:text-brand-400 transition-colors"
                       >
                         Deactivate
                       </button>
@@ -245,7 +245,7 @@ export default function StationsPage() {
           </table>
         </div>
         {filtered.length === 0 && (
-          <div className="py-16 text-center text-zinc-600 text-sm">No stations match.</div>
+          <div className="py-16 text-center text-zinc-500 text-sm">No stations match.</div>
         )}
       </div>
     </div>

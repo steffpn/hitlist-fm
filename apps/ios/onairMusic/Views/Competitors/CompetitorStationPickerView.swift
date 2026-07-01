@@ -86,7 +86,7 @@ struct CompetitorStationPickerView: View {
                     .tint(Color.rbAccent)
             } else if isWatched {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(Color.rbLive)
+                    .foregroundStyle(Color.rbSuccess)
             }
         }
         .contentShape(Rectangle())

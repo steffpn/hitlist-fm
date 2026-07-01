@@ -73,7 +73,7 @@ struct NowPlayingBar: View {
                 Color.rbSurfaceLight
 
                 // Progress fill - no animation while seeking
-                LinearGradient.rbAccentGradientH
+                Color.rbAccent
                     .frame(width: geo.size.width * CGFloat(displayProgress))
 
                 // Detection marker
@@ -119,10 +119,10 @@ struct NowPlayingBar: View {
                 HStack(spacing: 4) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 10))
-                        .foregroundStyle(Color.rbLive)
+                        .foregroundStyle(Color.rbSuccess)
                     Text("Detected")
                         .font(.caption2)
-                        .foregroundStyle(Color.rbLive)
+                        .foregroundStyle(Color.rbSuccess)
                 }
             }
         }

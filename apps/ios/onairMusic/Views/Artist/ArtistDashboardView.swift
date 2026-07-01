@@ -83,6 +83,7 @@ struct ArtistDashboardView: View {
                 Circle()
                     .fill(Color.rbLive)
                     .frame(width: 6, height: 6)
+                    .rbLivePulse()
 
                 Text("LIVE")
                     .font(.sora(10, .semibold))
@@ -95,7 +96,7 @@ struct ArtistDashboardView: View {
             .overlay(Capsule().strokeBorder(Color.rbGlassBorder, lineWidth: 1))
 
             Circle()
-                .fill(LinearGradient.rbAccentGradient)
+                .fill(Color.rbAccent)
                 .frame(width: 34, height: 34)
                 .overlay {
                     Text(avatarInitial)
@@ -136,7 +137,7 @@ struct ArtistDashboardView: View {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text("\(dash.totalPlaysWeek)")
                         .font(.sora(30, .heavy))
-                        .foregroundStyle(LinearGradient.rbAccentGradient)
+                        .foregroundStyle(Color.rbAccent)
 
                     Text("this week")
                         .font(.sora(13, .medium))
@@ -148,13 +149,13 @@ struct ArtistDashboardView: View {
 
             Spacer(minLength: 0)
         }
-        .rbCard(radius: 22)
+        .rbGlassCard(radius: 22)
     }
 
     /// Green up / gray flat trend pill on a tinted background.
     private func trendPill(delta: Int) -> some View {
         let isUp = delta >= 0
-        let color: Color = isUp ? .rbLive : .rbTextTertiary
+        let color: Color = isUp ? .rbSuccess : .rbTextTertiary
         return HStack(spacing: 4) {
             Image(systemName: isUp ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill")
                 .font(.system(size: 8, weight: .bold))
@@ -185,12 +186,12 @@ struct ArtistDashboardView: View {
 
             HStack(spacing: 14) {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(LinearGradient.rbAccentGradient)
+                    .fill(Color.rbAccent.opacity(0.15))
                     .frame(width: 52, height: 52)
                     .overlay {
                         Image(systemName: "music.note")
                             .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.rbAccentLight)
                     }
 
                 VStack(alignment: .leading, spacing: 3) {
@@ -210,7 +211,7 @@ struct ArtistDashboardView: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("\(song.plays)")
                         .font(.sora(22, .heavy))
-                        .foregroundStyle(LinearGradient.rbAccentGradient)
+                        .foregroundStyle(Color.rbAccent)
 
                     Text("plays")
                         .font(.sora(10, .medium))
@@ -275,7 +276,7 @@ struct ArtistDashboardView: View {
 
                 Text("\(item.playsThisWeek)")
                     .font(.sora(18, .heavy))
-                    .foregroundStyle(LinearGradient.rbAccentGradient)
+                    .foregroundStyle(Color.rbAccent)
             }
 
             if !item.newStations.isEmpty {

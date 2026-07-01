@@ -63,7 +63,7 @@ struct LabelDashboardView: View {
 
             Text("\(totalPlays)")
                 .font(.sora(46, .heavy))
-                .foregroundStyle(LinearGradient.rbAccentGradient)
+                .foregroundStyle(Color.rbAccent)
 
             Text("TOTAL PLAYS ACROSS ALL ARTISTS")
                 .font(.sora(10, .semibold))
@@ -159,7 +159,7 @@ struct LabelDashboardView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(artist.totalPlays)")
                         .font(.sora(18, .bold))
-                        .foregroundStyle(LinearGradient.rbAccentGradient)
+                        .foregroundStyle(Color.rbAccent)
                     Text("PLAYS")
                         .font(.sora(9, .semibold))
                         .tracking(1.0)
@@ -247,7 +247,7 @@ struct LabelDashboardView: View {
             VStack(alignment: .trailing, spacing: 3) {
                 Text("\(song.totalPlays)")
                     .font(.sora(16, .bold))
-                    .foregroundStyle(LinearGradient.rbAccentGradient)
+                    .foregroundStyle(Color.rbAccent)
 
                 Text("\(song.stationCount) station\(song.stationCount == 1 ? "" : "s")")
                     .font(.mono(10))

@@ -70,7 +70,7 @@ struct LabelArtistListView: View {
                         .frame(width: 32, height: 32)
                         .background(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(LinearGradient.rbAccentGradient)
+                                .fill(Color.rbAccent)
                         )
                 }
             }

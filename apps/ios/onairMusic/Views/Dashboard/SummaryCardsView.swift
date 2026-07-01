@@ -58,7 +58,7 @@ private struct SummaryCard: View {
 
             Text(value)
                 .font(.sora(28, .heavy))
-                .foregroundStyle(LinearGradient.rbAccentGradient)
+                .foregroundStyle(Color.rbAccent)
 
             Text(title.uppercased())
                 .font(.sora(10, .semibold))

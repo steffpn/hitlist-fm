@@ -61,7 +61,7 @@ export default function OverviewPage() {
     return <div className="text-zinc-500 text-sm">Loading…</div>;
   }
   if (error) {
-    return <div className="text-red-400 text-sm">{error}</div>;
+    return <div className="text-brand-400 text-sm">{error}</div>;
   }
 
   const active = stations.filter((s) => s.status === "ACTIVE" || s.status === "active").length;
@@ -72,8 +72,17 @@ export default function OverviewPage() {
   return (
     <div className="max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Overview</h1>
-        <p className="text-sm text-zinc-500 mt-1">Live state of detection pipeline.</p>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-white">Overview</h1>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-500/30 bg-brand-500/10 px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-brand-400">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-500" />
+            </span>
+            Live
+          </span>
+        </div>
+        <p className="text-sm text-zinc-400 mt-1">Live state of detection pipeline.</p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
@@ -123,9 +132,9 @@ export default function OverviewPage() {
                   <div className="flex items-baseline justify-between gap-3">
                     <div className="min-w-0">
                       <div className="text-white truncate">{e.songTitle}</div>
-                      <div className="text-zinc-500 text-xs truncate">{e.artistName} · {e.station.name}</div>
+                      <div className="text-zinc-400 text-xs truncate">{e.artistName} · {e.station.name}</div>
                     </div>
-                    <div className="text-xs text-zinc-600 shrink-0">{timeAgo(e.startedAt)}</div>
+                    <div className="text-xs font-mono text-zinc-500 shrink-0">{timeAgo(e.startedAt)}</div>
                   </div>
                 </li>
               ))}
@@ -141,15 +150,15 @@ function Stat({ label, value, sub, tone }: { label: string; value: number | stri
   const toneClasses = {
     green: "text-emerald-400",
     amber: "text-amber-400",
-    red: "text-red-400",
+    red: "text-brand-400",
     neutral: "text-white",
   }[tone];
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
       <div className="text-xs uppercase tracking-wider text-zinc-500 mb-2">{label}</div>
-      <div className={cn("text-3xl font-bold", toneClasses)}>{value}</div>
-      {sub && <div className="text-xs text-zinc-600 mt-1">{sub}</div>}
+      <div className={cn("text-3xl font-bold font-mono", toneClasses)}>{value}</div>
+      {sub && <div className="text-xs text-zinc-500 mt-1">{sub}</div>}
     </div>
   );
 }
@@ -160,7 +169,7 @@ function Card({ title, link, children }: { title: string; link?: { href: string;
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-white uppercase tracking-wider">{title}</h2>
         {link && (
-          <Link href={link.href} className="text-xs text-zinc-400 hover:text-white">
+          <Link href={link.href} className="text-xs text-brand-400 hover:text-brand-300">
             {link.label}
           </Link>
         )}
@@ -174,7 +183,7 @@ function Pill({ tone, children }: { tone: "green" | "amber" | "red"; children: R
   const cls = {
     green: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
     amber: "bg-amber-400/10 text-amber-400 border-amber-400/20",
-    red: "bg-red-400/10 text-red-400 border-red-400/20",
+    red: "bg-brand-400/10 text-brand-400 border-brand-400/20",
   }[tone];
   return (
     <span className={cn("inline-block text-[10px] font-medium px-2 py-0.5 rounded-full border uppercase tracking-wider", cls)}>

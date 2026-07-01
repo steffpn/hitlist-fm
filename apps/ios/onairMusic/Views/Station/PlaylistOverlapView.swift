@@ -179,11 +179,10 @@ struct PlaylistOverlapView: View {
                 }
             }
         }
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.rbGlassTint))
+        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.rbSurface))
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(Color.rbGlassBorder, lineWidth: 1)
+                .strokeBorder(Color.rbHairline, lineWidth: 1)
         )
     }
 
@@ -197,11 +196,7 @@ struct PlaylistOverlapView: View {
             Circle()
                 .trim(from: 0, to: CGFloat(min(percent, 100.0) / 100.0))
                 .stroke(
-                    LinearGradient(
-                        colors: [Color(hex: "7C5CF6"), Color(hex: "B84DF0")],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
+                    Color.rbAccent,
                     style: StrokeStyle(lineWidth: 4, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
@@ -217,7 +212,7 @@ struct PlaylistOverlapView: View {
         VStack(spacing: 3) {
             Text(value)
                 .font(.sora(16, .bold))
-                .foregroundStyle(LinearGradient.rbAccentGradient)
+                .foregroundStyle(Color.rbAccent)
 
             Text(label.uppercased())
                 .font(.sora(9, .semibold))

@@ -72,7 +72,7 @@ struct DigestDetailView: View {
                 VStack(spacing: 4) {
                     Text("\(digest.playCount)")
                         .font(.sora(64, .heavy))
-                        .foregroundStyle(LinearGradient.rbAccentGradient)
+                        .foregroundStyle(Color.rbAccent)
                     Text("TOTAL PLAYS")
                         .font(.sora(10, .semibold))
                         .tracking(1.4)
@@ -87,11 +87,11 @@ struct DigestDetailView: View {
                         Text(String(format: "%+.1f%%", change))
                     }
                     .font(.sora(15, .bold))
-                    .foregroundStyle(change >= 0 ? Color.rbLive : Color.rbError)
+                    .foregroundStyle(change >= 0 ? Color.rbSuccess : Color.rbError)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(
-                        Capsule().fill((change >= 0 ? Color.rbLive : Color.rbError).opacity(0.16))
+                        Capsule().fill((change >= 0 ? Color.rbSuccess : Color.rbError).opacity(0.16))
                     )
                 }
 

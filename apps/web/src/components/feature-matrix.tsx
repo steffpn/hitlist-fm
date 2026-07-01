@@ -17,9 +17,9 @@ const PLAN_COLUMNS: { role: Role; tier: Tier; label: string }[] = [
 ];
 
 const ROLE_COLORS: Record<Role, string> = {
-  ARTIST: "text-purple-400",
-  LABEL: "text-blue-400",
-  STATION: "text-emerald-400",
+  ARTIST: "text-brand-400",
+  LABEL: "text-amber-400",
+  STATION: "text-blue-400",
 };
 
 export function FeatureMatrix() {
@@ -133,8 +133,8 @@ export function FeatureMatrix() {
   if (error) {
     return (
       <div className="py-12">
-        <div className="bg-red-400/10 border border-red-400/20 rounded-xl p-6 text-center">
-          <p className="text-red-400 mb-3">{error}</p>
+        <div className="bg-brand-400/10 border border-brand-400/20 rounded-xl p-6 text-center">
+          <p className="text-brand-400 mb-3">{error}</p>
           <button
             onClick={() => { setLoading(true); setError(null); fetchMatrix(); }}
             className="px-4 py-2 bg-zinc-800 text-white rounded-lg text-sm hover:bg-zinc-700 transition-colors"
@@ -160,7 +160,7 @@ export function FeatureMatrix() {
         </div>
         <button
           onClick={handleAddNew}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white text-zinc-900 rounded-lg text-sm font-medium hover:bg-zinc-200 transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-500 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -214,7 +214,7 @@ export function FeatureMatrix() {
             <p className="mb-2">No features defined yet.</p>
             <button
               onClick={handleAddNew}
-              className="text-sm text-white hover:underline"
+              className="text-sm text-brand-400 hover:underline"
             >
               Add your first feature
             </button>
@@ -275,10 +275,10 @@ function CategoryGroup({
           <td className="px-4 py-3">
             <div className="text-sm font-medium text-white">{feature.name}</div>
             {feature.description && (
-              <div className="text-xs text-zinc-500 mt-0.5 line-clamp-1">{feature.description}</div>
+              <div className="text-xs text-zinc-400 mt-0.5 line-clamp-1">{feature.description}</div>
             )}
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] font-mono text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded">
+              <span className="text-[10px] font-mono text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">
                 {feature.key}
               </span>
               {feature.roles.map((role) => (
@@ -310,12 +310,12 @@ function CategoryGroup({
                         "w-5 h-5 rounded border flex items-center justify-center transition-colors",
                         isToggling && "opacity-50",
                         checked
-                          ? "bg-white border-white"
+                          ? "bg-brand-500 border-brand-500"
                           : "border-zinc-600 hover:border-zinc-400"
                       )}
                     >
                       {checked && (
-                        <svg className="w-3.5 h-3.5 text-zinc-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                       )}
