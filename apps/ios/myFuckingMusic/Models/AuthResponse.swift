@@ -37,3 +37,14 @@ struct SnippetUrlResponse: Codable, Sendable {
     let url: String
     let expiresIn: Int
 }
+
+/// A user as returned by GET /admin/users (admin-only).
+/// Used by the admin "view as role" picker. Extra fields in the response
+/// (scopes, timestamps) are ignored.
+struct AdminUser: Codable, Sendable, Identifiable, Hashable {
+    let id: Int
+    let email: String
+    let name: String
+    let role: String
+    let isActive: Bool
+}

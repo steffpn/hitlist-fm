@@ -134,6 +134,46 @@ final class AuthManager {
     }
 }
 
+// MARK: - Impersonation (Admin "View as role")
+
+/// Tracks an admin "view as role" session.
+///
+/// When a real ADMIN selects a target user, the app renders that user's role
+/// tabs and `APIClient` attaches an `X-Impersonate-User-Id` header to GET
+/// requests so the backend returns the target's data (read-only). The target id
+/// is mirrored into UserDefaults so the actor-isolated `APIClient` can read it
+/// synchronously when views fetch immediately after switching — avoiding a race.
+@MainActor
+@Observable
+final class ImpersonationManager {
+    /// Shared key with APIClient. Keep in sync.
+    static let userDefaultsKey = "impersonateUserId"
+
+    private(set) var target: AdminUser?
+
+    init() {
+        // Impersonation is a transient demo tool — never carry it across launches.
+        UserDefaults.standard.removeObject(forKey: Self.userDefaultsKey)
+    }
+
+    var isImpersonating: Bool { target != nil }
+
+    /// The role whose UI should be shown, given the real user's role.
+    func effectiveRole(realRole: String?) -> String {
+        (target?.role ?? realRole ?? "").uppercased()
+    }
+
+    func start(_ user: AdminUser) {
+        target = user
+        UserDefaults.standard.set(user.id, forKey: Self.userDefaultsKey)
+    }
+
+    func stop() {
+        target = nil
+        UserDefaults.standard.removeObject(forKey: Self.userDefaultsKey)
+    }
+}
+
 // MARK: - Auth Errors
 
 enum AuthError: Error, LocalizedError, Sendable {

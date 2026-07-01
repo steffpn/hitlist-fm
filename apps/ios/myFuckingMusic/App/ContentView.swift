@@ -4,6 +4,7 @@ import SwiftUI
 /// Shows MainTabView when authenticated, auth flow when not.
 struct ContentView: View {
     @Environment(AuthManager.self) private var authManager
+    @Environment(ImpersonationManager.self) private var impersonation
     @State private var authViewModel = AuthViewModel()
 
     var body: some View {
@@ -32,10 +33,16 @@ struct ContentView: View {
             // Check stored tokens on app launch
             await authManager.checkStoredTokens()
         }
+        .onChange(of: authManager.currentUser?.id) {
+            // Reset any "view as" session whenever the real user changes
+            // (login / logout) so impersonation never leaks across accounts.
+            impersonation.stop()
+        }
     }
 }
 
 #Preview {
     ContentView()
         .environment(AuthManager())
+        .environment(ImpersonationManager())
 }

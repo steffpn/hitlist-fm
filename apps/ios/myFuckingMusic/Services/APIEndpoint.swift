@@ -91,6 +91,9 @@ enum APIEndpoint: Sendable {
     case createCheckout(planId: Int, billingInterval: String, successUrl: String, cancelUrl: String)
     case createPortal(returnUrl: String)
 
+    // MARK: - Admin
+    case adminUsers
+
     var path: String {
         switch self {
         case .health:
@@ -213,6 +216,10 @@ enum APIEndpoint: Sendable {
             return "/admin/subscriptions/checkout"
         case .createPortal:
             return "/admin/subscriptions/portal"
+
+        // Admin
+        case .adminUsers:
+            return "/admin/users"
         }
     }
 
@@ -238,7 +245,8 @@ enum APIEndpoint: Sendable {
              .browseArtists, .browseArtistTracks,
              .stationOverview, .stationTopSongs, .stationNewSongs, .stationExclusiveSongs,
              .stationPlaylistOverlap, .stationGenreDistribution, .stationRotation, .stationDiscoveryScore,
-             .userSettings, .dailyReports, .todayReport, .chartAlerts, .mySubscription:
+             .userSettings, .dailyReports, .todayReport, .chartAlerts, .mySubscription,
+             .adminUsers:
             return .GET
         }
     }

@@ -5,6 +5,7 @@ import SwiftUI
 /// Shows different tabs based on user role: ARTIST, LABEL, STATION, or ADMIN (default).
 struct MainTabView: View {
     @Environment(AuthManager.self) private var authManager
+    @Environment(ImpersonationManager.self) private var impersonation
 
     init() {
         // Style the tab bar for the dark theme
@@ -30,7 +31,9 @@ struct MainTabView: View {
 
     var body: some View {
         Group {
-            switch authManager.currentUser?.role.uppercased() ?? "" {
+            // Show the tabs for the *effective* role: the impersonated role when an
+            // admin is "viewing as", otherwise the real user's role.
+            switch impersonation.effectiveRole(realRole: authManager.currentUser?.role) {
             case "ARTIST":
                 artistTabs
             case "LABEL":
@@ -43,6 +46,13 @@ struct MainTabView: View {
         }
         .tint(Color.rbAccent)
         .preferredColorScheme(.dark)
+        .safeAreaInset(edge: .top) {
+            if let target = impersonation.target {
+                ImpersonationBanner(target: target) {
+                    impersonation.stop()
+                }
+            }
+        }
         .safeAreaInset(edge: .bottom) {
             NowPlayingBar()
         }
@@ -344,7 +354,41 @@ private struct StationAnalyticsMenuView: View {
     }
 }
 
+// MARK: - Impersonation Banner
+
+/// Thin banner shown while an admin is "viewing as" another role, with a quick exit.
+private struct ImpersonationBanner: View {
+    let target: AdminUser
+    let onStop: () -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "eye.fill")
+                .font(.caption)
+            Text("Vezi ca \(target.role.capitalized): \(target.name)")
+                .font(.caption.weight(.semibold))
+                .lineLimit(1)
+                .truncationMode(.tail)
+            Spacer(minLength: 8)
+            Button(action: onStop) {
+                Text("Stop")
+                    .font(.caption.weight(.bold))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(.black.opacity(0.18), in: Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .foregroundStyle(.black)
+        .frame(maxWidth: .infinity)
+        .background(Color.rbAccent)
+    }
+}
+
 #Preview {
     MainTabView()
         .environment(AuthManager())
+        .environment(ImpersonationManager())
 }

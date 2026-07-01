@@ -6,6 +6,7 @@ struct myFuckingMusicApp: App {
     @State private var authManager = AuthManager()
     @State private var audioPlayer = AudioPlayerManager()
     @State private var notificationManager = NotificationManager()
+    @State private var impersonationManager = ImpersonationManager()
 
     /// Navigation state for digest deep linking from push notification tap.
     @State private var showDigestDetail = false
@@ -18,6 +19,7 @@ struct myFuckingMusicApp: App {
                 .environment(authManager)
                 .environment(audioPlayer)
                 .environment(notificationManager)
+                .environment(impersonationManager)
                 .task {
                     // Configure APIClient with auth manager for 401 retry
                     await APIClient.shared.configure(authManager: authManager)
