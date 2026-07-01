@@ -1,7 +1,7 @@
 /**
  * BullMQ snippet extraction worker.
  *
- * Extracts ~25-second audio clips (10s before + 15s after detection) from the ring buffer,
+ * Extracts ~10-second audio clips (5s before + 5s after detection) from the ring buffer,
  * encodes them as AAC 128kbps via FFmpeg, uploads to Cloudflare R2, and
  * updates the AirplayEvent record with the R2 object key.
  *
@@ -68,7 +68,7 @@ async function extractSnippet(
         "-safe", "0",
         "-i", concatListPath,
         "-ss", String(seekOffsetSeconds),
-        "-t", "25",
+        "-t", "10",
         "-vn",
         "-c:a", "aac",
         "-b:a", "128k",
@@ -138,7 +138,7 @@ async function getAudioDuration(filePath: string): Promise<number> {
  *
  * 1. Check SNIPPETS_ENABLED kill switch
  * 2. Resolve segments covering the detection window
- * 3. Extract 5s AAC clip via FFmpeg
+ * 3. Extract 10s AAC clip via FFmpeg
  * 4. Upload to R2
  * 5. Update AirplayEvent.snippetUrl with R2 key
  * 6. Clean up temp file (always, even on error)
@@ -175,11 +175,11 @@ export async function processSnippetJob(
     logger.info({ airplayEventId, segmentCount: segments.length, seekOffsetSeconds: Math.round(seekOffsetSeconds * 10) / 10 }, "Extracting snippet");
     await extractSnippet(segments, seekOffsetSeconds, tempPath);
 
-    // 4. Verify duration is at least 22s (target 25s)
+    // 4. Verify duration is at least 8s (target 10s)
     const duration = await getAudioDuration(tempPath);
-    if (duration < 22) {
+    if (duration < 8) {
       throw new Error(
-        `Snippet too short: ${duration.toFixed(1)}s (min 22s) for event=${airplayEventId}. Will retry.`,
+        `Snippet too short: ${duration.toFixed(1)}s (min 8s) for event=${airplayEventId}. Will retry.`,
       );
     }
 
