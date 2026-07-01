@@ -16,6 +16,10 @@ data class AirplayEvent(
     val confidence: Double? = null,
     val playCount: Int = 0,
     val snippetUrl: String? = null,
+    // Played < 30s (teaser/jingle) — rendered with a small warning marker.
+    val partialPlay: Boolean = false,
+    // Cached Deezer album artwork resolved server-side.
+    val artworkUrl: String? = null,
     val createdAt: String? = null,
     val station: StationInfo? = null,
 ) {

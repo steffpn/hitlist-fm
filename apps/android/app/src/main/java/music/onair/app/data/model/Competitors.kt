@@ -48,3 +48,42 @@ data class CompetitorDetailResponse(
     val recentDetections: List<CompetitorRecentDetection> = emptyList(),
     val comparison: List<CompetitorComparisonItem> = emptyList(),
 )
+
+// GET /competitors/watched (+ POST /competitors/watched response)
+@Serializable
+data class WatchedStation(
+    val id: Int = 0,
+    val stationId: Int = 0,
+    val stationName: String = "",
+)
+
+// GET /competitors/own — own station ids to exclude in the picker.
+@Serializable
+data class OwnStationsResponse(
+    val stationIds: List<Int> = emptyList(),
+)
+
+// POST /competitors/watched — NOTE: key must be `stationId`
+// (bug fixed on iOS in commit 2cfdde6; server schema is AddWatchedStationBodySchema).
+@Serializable
+data class AddWatchedStationRequest(
+    val stationId: Int,
+)
+
+// GET /station/overlap/{competitorId}?period=
+@Serializable
+data class OverlapSharedSong(
+    val songTitle: String = "",
+    val artistName: String = "",
+    val yourPlays: Int = 0,
+    val theirPlays: Int = 0,
+)
+
+@Serializable
+data class PlaylistOverlapResponse(
+    val overlapPercent: Double = 0.0,
+    val sharedCount: Int = 0,
+    val exclusiveToYou: Int = 0,
+    val exclusiveToThem: Int = 0,
+    val sharedSongs: List<OverlapSharedSong> = emptyList(),
+)

@@ -13,16 +13,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,18 +38,22 @@ import music.onair.app.ui.components.GradientButton
 import music.onair.app.ui.theme.RbAccent
 import music.onair.app.ui.theme.RbBackground
 import music.onair.app.ui.theme.RbError
+import music.onair.app.ui.theme.RbSuccess
+import music.onair.app.ui.theme.RbSurface
 import music.onair.app.ui.theme.RbSurfaceLight
 import music.onair.app.ui.theme.RbTextPrimary
 import music.onair.app.ui.theme.RbTextSecondary
 import music.onair.app.ui.theme.RbTextTertiary
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     vm: AuthViewModel,
     onBack: () -> Unit,
 ) {
-    var email by remember { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var showForgotSheet by rememberSaveable { mutableStateOf(false) }
 
     BackHandler { onBack() }
 
@@ -144,6 +152,105 @@ fun LoginScreen(
                 enabled = email.isNotBlank() && password.isNotBlank() && !vm.isSubmitting,
                 loading = vm.isSubmitting,
             )
+
+            Spacer(Modifier.height(10.dp))
+
+            TextButton(
+                onClick = {
+                    vm.clearResetMessage()
+                    showForgotSheet = true
+                },
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+            ) {
+                Text(
+                    text = "Forgot password?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = RbTextSecondary,
+                )
+            }
+        }
+    }
+
+    if (showForgotSheet) {
+        ForgotPasswordSheet(
+            vm = vm,
+            initialEmail = email,
+            onDismiss = {
+                showForgotSheet = false
+                vm.clearResetMessage()
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ForgotPasswordSheet(
+    vm: AuthViewModel,
+    initialEmail: String,
+    onDismiss: () -> Unit,
+) {
+    var resetEmail by rememberSaveable { mutableStateOf(initialEmail) }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = RbSurface,
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+            Text(
+                text = "Reset your password",
+                style = MaterialTheme.typography.titleLarge,
+                color = RbTextPrimary,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = "Enter your account email and we'll send you a reset link.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = RbTextSecondary,
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = resetEmail,
+                onValueChange = { resetEmail = it },
+                label = { Text("Email") },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = RbAccent,
+                    unfocusedBorderColor = RbSurfaceLight,
+                    focusedLabelColor = RbAccent,
+                    unfocusedLabelColor = RbTextTertiary,
+                    cursorColor = RbAccent,
+                    focusedTextColor = RbTextPrimary,
+                    unfocusedTextColor = RbTextPrimary,
+                ),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Done,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            vm.resetMessage?.let { msg ->
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = msg,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = RbSuccess,
+                )
+            }
+
+            Spacer(Modifier.height(18.dp))
+
+            GradientButton(
+                text = "Send reset link",
+                onClick = { vm.forgotPassword(resetEmail) },
+                enabled = resetEmail.isNotBlank() && !vm.isSendingReset,
+                loading = vm.isSendingReset,
+            )
+
+            Spacer(Modifier.height(32.dp))
         }
     }
 }

@@ -6,22 +6,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import music.onair.app.data.model.AirplayEvent
+import music.onair.app.data.model.ArtistsSummaryItem
 import music.onair.app.data.remote.OnairApi
+import music.onair.app.ui.components.Period
 
-/** Aggregated artist row (computed client-side from airplay events, like iOS). */
-data class ArtistSummary(
-    val name: String,
-    val playCount: Int,
-    val songCount: Int,
-    val lastDetectedAt: String?,
-    val topSong: String?,
-    val stationCount: Int,
-)
-
+/** Admin Artists tab: server-side aggregation via GET /artists/summary. */
 class ArtistsViewModel(private val api: OnairApi) : ViewModel() {
 
-    var artists by mutableStateOf<List<ArtistSummary>>(emptyList())
+    var artists by mutableStateOf<List<ArtistsSummaryItem>>(emptyList())
         private set
     var isLoading by mutableStateOf(false)
         private set
@@ -29,10 +21,12 @@ class ArtistsViewModel(private val api: OnairApi) : ViewModel() {
         private set
     var query by mutableStateOf("")
         private set
+    var period by mutableStateOf(Period.WEEK)
+        private set
 
-    val filtered: List<ArtistSummary>
+    val filtered: List<ArtistsSummaryItem>
         get() = if (query.isBlank()) artists
-        else artists.filter { it.name.contains(query.trim(), ignoreCase = true) }
+        else artists.filter { it.artistName.contains(query.trim(), ignoreCase = true) }
 
     init {
         load()
@@ -42,6 +36,12 @@ class ArtistsViewModel(private val api: OnairApi) : ViewModel() {
         query = q
     }
 
+    fun selectPeriod(newPeriod: Period) {
+        if (newPeriod == period) return
+        period = newPeriod
+        load()
+    }
+
     fun refresh() = load()
 
     private fun load() {
@@ -49,40 +49,12 @@ class ArtistsViewModel(private val api: OnairApi) : ViewModel() {
             isLoading = true
             error = null
             try {
-                val all = mutableListOf<AirplayEvent>()
-                var cursor: Int? = null
-                var pages = 0
-                while (pages < 5) {
-                    val res = api.getAirplayEvents(limit = 50, cursor = cursor)
-                    all += res.data
-                    cursor = res.nextCursor
-                    pages++
-                    if (cursor == null) break
-                }
-                artists = aggregate(all)
+                artists = api.getArtistsSummary(period = period.value, limit = 100)
             } catch (e: Exception) {
                 error = e.message ?: "Failed to load artists"
             } finally {
                 isLoading = false
             }
         }
-    }
-
-    private fun aggregate(events: List<AirplayEvent>): List<ArtistSummary> {
-        return events.groupBy { it.artistName }
-            .map { (name, evs) ->
-                val topSong = evs.groupBy { it.songTitle }
-                    .mapValues { entry -> entry.value.sumOf { it.playCount } }
-                    .maxByOrNull { it.value }?.key
-                ArtistSummary(
-                    name = name,
-                    playCount = evs.sumOf { it.playCount },
-                    songCount = evs.map { it.songTitle }.toSet().size,
-                    lastDetectedAt = evs.mapNotNull { it.startedAt }.maxOrNull(),
-                    topSong = topSong,
-                    stationCount = evs.mapNotNull { it.station?.name }.toSet().size,
-                )
-            }
-            .sortedByDescending { it.playCount }
     }
 }

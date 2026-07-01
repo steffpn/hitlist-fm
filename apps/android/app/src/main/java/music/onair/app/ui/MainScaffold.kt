@@ -1,7 +1,11 @@
 package music.onair.app.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
@@ -9,25 +13,32 @@ import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import music.onair.app.data.model.AuthUser
-import music.onair.app.ui.components.PlaceholderScreen
+import music.onair.app.ui.components.GradientButton
+import music.onair.app.ui.components.NowPlayingBar
 import music.onair.app.ui.screens.artist.ArtistDashboardScreen
 import music.onair.app.ui.screens.artist.MonitoredSongsScreen
 import music.onair.app.ui.screens.artists.AdminArtistsScreen
@@ -44,7 +55,10 @@ import music.onair.app.ui.theme.RbAccent
 import music.onair.app.ui.theme.RbBackground
 import music.onair.app.ui.theme.RbSurface
 import music.onair.app.ui.theme.RbSurfaceHighlight
+import music.onair.app.ui.theme.RbTextPrimary
 import music.onair.app.ui.theme.RbTextQuaternary
+import music.onair.app.ui.theme.RbTextSecondary
+import music.onair.app.ui.theme.RbTextTertiary
 
 private data class TabSpec(
     val label: String,
@@ -59,6 +73,8 @@ fun MainScaffold(
     canViewAsRole: Boolean,
     onViewAsRole: () -> Unit,
     onLogout: () -> Unit,
+    requestedTab: String? = null,
+    onTabRequestConsumed: () -> Unit = {},
 ) {
     val detections: @Composable () -> Unit = { DetectionsScreen() }
     val settings: @Composable () -> Unit = {
@@ -69,7 +85,6 @@ fun MainScaffold(
             onLogout = onLogout,
         )
     }
-    fun soon(title: String): @Composable () -> Unit = { PlaceholderScreen(title = title) }
 
     val tabs = when (user.role.uppercase()) {
         "ARTIST" -> listOf(
@@ -91,35 +106,51 @@ fun MainScaffold(
             TabSpec("Analytics", Icons.Filled.ShowChart, { StationAnalyticsMenuScreen() }),
             TabSpec("Settings", Icons.Filled.Settings, settings),
         )
-        else -> listOf( // ADMIN (default)
+        "ADMIN" -> listOf(
             TabSpec("Dashboard", Icons.Filled.BarChart, { AdminDashboardScreen() }),
             TabSpec("Detections", Icons.Filled.GraphicEq, detections),
             TabSpec("Artists", Icons.Filled.Group, { AdminArtistsScreen() }),
             TabSpec("Settings", Icons.Filled.Settings, settings),
         )
+        // Unknown role: show a safe "account not configured" screen instead of admin tabs.
+        else -> {
+            UnconfiguredAccountScreen(role = user.role, onLogout = onLogout)
+            return
+        }
     }
 
     var selected by rememberSaveable { mutableIntStateOf(0) }
     if (selected >= tabs.size) selected = 0
 
+    // Push routing (e.g. chart_alert → Detections tab).
+    LaunchedEffect(requestedTab) {
+        if (requestedTab != null) {
+            tabs.indexOfFirst { it.label == requestedTab }.takeIf { it >= 0 }?.let { selected = it }
+            onTabRequestConsumed()
+        }
+    }
+
     Scaffold(
         containerColor = RbBackground,
         bottomBar = {
-            NavigationBar(containerColor = RbSurface) {
-                tabs.forEachIndexed { index, tab ->
-                    NavigationBarItem(
-                        selected = selected == index,
-                        onClick = { selected = index },
-                        icon = { Icon(tab.icon, contentDescription = tab.label) },
-                        label = { Text(tab.label) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = RbAccent,
-                            selectedTextColor = RbAccent,
-                            indicatorColor = RbSurfaceHighlight,
-                            unselectedIconColor = RbTextQuaternary,
-                            unselectedTextColor = RbTextQuaternary,
-                        ),
-                    )
+            Column {
+                NowPlayingBar()
+                NavigationBar(containerColor = RbSurface) {
+                    tabs.forEachIndexed { index, tab ->
+                        NavigationBarItem(
+                            selected = selected == index,
+                            onClick = { selected = index },
+                            icon = { Icon(tab.icon, contentDescription = tab.label) },
+                            label = { Text(tab.label) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = RbAccent,
+                                selectedTextColor = RbAccent,
+                                indicatorColor = RbSurfaceHighlight,
+                                unselectedIconColor = RbTextQuaternary,
+                                unselectedTextColor = RbTextQuaternary,
+                            ),
+                        )
+                    }
                 }
             }
         },
@@ -130,6 +161,43 @@ fun MainScaffold(
                 .padding(innerPadding),
         ) {
             tabs[selected].content()
+        }
+    }
+}
+
+/** Shown when the signed-in user has a role this app doesn't recognize. */
+@Composable
+private fun UnconfiguredAccountScreen(role: String, onLogout: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(RbBackground)
+            .padding(32.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Filled.PersonOff,
+                contentDescription = null,
+                tint = RbTextTertiary,
+            )
+            Spacer(Modifier.height(14.dp))
+            Text(
+                text = "Account not configured",
+                style = MaterialTheme.typography.titleLarge,
+                color = RbTextPrimary,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = "Your account role (\"$role\") isn't supported in this app yet. " +
+                    "Contact support or sign in with a different account.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = RbTextSecondary,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(24.dp))
+            GradientButton(text = "Log out", onClick = onLogout)
         }
     }
 }

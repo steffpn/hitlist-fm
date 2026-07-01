@@ -5,11 +5,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import music.onair.app.data.model.AirplayEvent
+import music.onair.app.data.model.Station
 import music.onair.app.data.remote.OnairApi
 
-/** Detections list: cursor pagination, ported from iOS DetectionsViewModel. */
+/** Detections list: cursor pagination + search/station/date filters. */
 class DetectionsViewModel(private val api: OnairApi) : ViewModel() {
 
     var items by mutableStateOf<List<AirplayEvent>>(emptyList())
@@ -21,10 +24,63 @@ class DetectionsViewModel(private val api: OnairApi) : ViewModel() {
     var error by mutableStateOf<String?>(null)
         private set
 
+    // ── Filters ──
+    var query by mutableStateOf("")
+        private set
+    var stationId by mutableStateOf<Int?>(null)
+        private set
+    var stationName by mutableStateOf<String?>(null)
+        private set
+    var startDate by mutableStateOf<String?>(null) // YYYY-MM-DD
+        private set
+    var endDate by mutableStateOf<String?>(null) // YYYY-MM-DD
+        private set
+
+    // Station picker data (lazy-loaded when the sheet opens).
+    var stations by mutableStateOf<List<Station>>(emptyList())
+        private set
+
+    val hasActiveFilters: Boolean
+        get() = query.isNotBlank() || stationId != null || startDate != null
+
     private var nextCursor: Int? = null
+    private var searchJob: Job? = null
 
     init {
         loadInitial()
+    }
+
+    fun onQueryChange(newQuery: String) {
+        query = newQuery
+        // Debounced server-side search (300ms).
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(300)
+            loadInitial()
+        }
+    }
+
+    fun selectStation(id: Int?, name: String?) {
+        stationId = id
+        stationName = name
+        loadInitial()
+    }
+
+    fun selectDateRange(start: String?, end: String?) {
+        startDate = start
+        endDate = end
+        loadInitial()
+    }
+
+    fun loadStations() {
+        if (stations.isNotEmpty()) return
+        viewModelScope.launch {
+            try {
+                stations = api.getStations().sortedBy { it.name.lowercase() }
+            } catch (_: Exception) {
+                // picker shows empty list; not fatal
+            }
+        }
     }
 
     fun loadInitial() {
@@ -33,7 +89,14 @@ class DetectionsViewModel(private val api: OnairApi) : ViewModel() {
             error = null
             nextCursor = null
             try {
-                val res = api.getAirplayEvents(limit = PAGE_SIZE, cursor = null)
+                val res = api.getAirplayEvents(
+                    limit = PAGE_SIZE,
+                    cursor = null,
+                    query = query.trim().takeIf { it.isNotEmpty() },
+                    startDate = startDate,
+                    endDate = endDate,
+                    stationId = stationId,
+                )
                 items = res.data
                 nextCursor = res.nextCursor
             } catch (e: Exception) {
@@ -49,7 +112,14 @@ class DetectionsViewModel(private val api: OnairApi) : ViewModel() {
         viewModelScope.launch {
             isLoadingMore = true
             try {
-                val res = api.getAirplayEvents(limit = PAGE_SIZE, cursor = nextCursor)
+                val res = api.getAirplayEvents(
+                    limit = PAGE_SIZE,
+                    cursor = nextCursor,
+                    query = query.trim().takeIf { it.isNotEmpty() },
+                    startDate = startDate,
+                    endDate = endDate,
+                    stationId = stationId,
+                )
                 items = items + res.data
                 nextCursor = res.nextCursor
             } catch (_: Exception) {

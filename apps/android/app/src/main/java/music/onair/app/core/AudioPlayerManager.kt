@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -35,12 +36,18 @@ class AudioPlayerManager(
     var progress by mutableFloatStateOf(0f)
         private set
 
+    // Now-playing metadata for the persistent NowPlayingBar.
+    var nowPlayingTitle by mutableStateOf<String?>(null)
+        private set
+    var nowPlayingSubtitle by mutableStateOf<String?>(null)
+        private set
+
     private var player: ExoPlayer? = null
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var progressJob: Job? = null
 
     /** Toggle play/pause/resume for an event; fetches the snippet URL on first play. */
-    fun toggle(eventId: Int) {
+    fun toggle(eventId: Int, title: String? = null, subtitle: String? = null) {
         if (currentlyPlayingId == eventId && player != null) {
             if (isPlaying) player?.pause() else player?.play()
             return
@@ -48,6 +55,8 @@ class AudioPlayerManager(
 
         stop()
         currentlyPlayingId = eventId
+        nowPlayingTitle = title
+        nowPlayingSubtitle = subtitle
         isLoading = true
 
         scope.launch {
@@ -67,8 +76,19 @@ class AudioPlayerManager(
         }
     }
 
+    fun pause() {
+        player?.pause()
+    }
+
+    fun resume() {
+        player?.play()
+    }
+
     private fun ensurePlayer(): ExoPlayer {
         return player ?: ExoPlayer.Builder(context).build().also { exo ->
+            // Proper audio focus: pause other apps' music, duck for notifications,
+            // and stop when another app takes focus (handleAudioFocus = true).
+            exo.setAudioAttributes(AudioAttributes.DEFAULT, true)
             exo.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
                     if (state == Player.STATE_ENDED) stop()
@@ -101,6 +121,8 @@ class AudioPlayerManager(
         player?.stop()
         player?.clearMediaItems()
         currentlyPlayingId = null
+        nowPlayingTitle = null
+        nowPlayingSubtitle = null
         isPlaying = false
         isLoading = false
         progress = 0f

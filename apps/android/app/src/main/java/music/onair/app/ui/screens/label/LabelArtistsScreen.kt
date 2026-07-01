@@ -1,6 +1,7 @@
 package music.onair.app.ui.screens.label
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +62,19 @@ fun LabelArtistsScreen() {
         factory = viewModelFactory { initializer { LabelArtistsViewModel(ServiceLocator.api) } },
     )
 
+    // Rotation-safe read-only detail: only primitives saved.
+    var detailArtistId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var detailArtistName by rememberSaveable { mutableStateOf("") }
+    val selectedArtistId = detailArtistId
+    if (selectedArtistId != null) {
+        LabelArtistDetailScreen(
+            artistId = selectedArtistId,
+            artistName = detailArtistName,
+            onBack = { detailArtistId = null },
+        )
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -89,7 +107,13 @@ fun LabelArtistsScreen() {
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(data, key = { it.id }) { artist ->
-                        ArtistRow(artist)
+                        ArtistRow(
+                            artist = artist,
+                            onClick = {
+                                detailArtistId = artist.id
+                                detailArtistName = artist.artistName
+                            },
+                        )
                     }
                 }
         }
@@ -97,8 +121,8 @@ fun LabelArtistsScreen() {
 }
 
 @Composable
-private fun ArtistRow(artist: LabelArtistItem) {
-    GlassCard {
+private fun ArtistRow(artist: LabelArtistItem, onClick: () -> Unit) {
+    GlassCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             AvatarCircle(
                 name = artist.artistName,

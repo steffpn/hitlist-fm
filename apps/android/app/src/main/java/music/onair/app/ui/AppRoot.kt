@@ -21,7 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,12 +32,14 @@ import music.onair.app.core.PushManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import music.onair.app.core.PushNavigator
 import music.onair.app.core.ServiceLocator
 import music.onair.app.ui.screens.auth.AuthUiState
 import music.onair.app.ui.screens.auth.AuthViewModel
 import music.onair.app.ui.screens.auth.LoginScreen
 import music.onair.app.ui.screens.auth.RegisterFlowScreen
 import music.onair.app.ui.screens.auth.WelcomeScreen
+import music.onair.app.ui.screens.notifications.DigestDetailScreen
 import music.onair.app.ui.theme.RbAccent
 import music.onair.app.ui.theme.RbBackground
 import music.onair.app.ui.theme.RbTextPrimary
@@ -63,7 +65,7 @@ fun AppRoot() {
 @Composable
 private fun AuthenticatedRoot(user: AuthUser, onLogout: () -> Unit) {
     val imp = ServiceLocator.impersonation
-    var showViewAs by remember { mutableStateOf(false) }
+    var showViewAs by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
     val notifPermLauncher = rememberLauncherForActivityResult(
@@ -87,6 +89,29 @@ private fun AuthenticatedRoot(user: AuthUser, onLogout: () -> Unit) {
         return
     }
 
+    // ── Push notification routing ──
+    val pendingPush = PushNavigator.pending
+    val digestType = when (pendingPush?.type) {
+        "daily_digest" -> "daily"
+        "weekly_digest" -> "weekly"
+        else -> null
+    }
+    if (pendingPush != null && digestType != null && pendingPush.date != null) {
+        DigestDetailScreen(
+            date = pendingPush.date,
+            type = digestType,
+            onBack = { PushNavigator.clear() },
+        )
+        return
+    }
+    // chart_alert (or anything unrouted) falls through to the tab shell; the
+    // scaffold consumes it by switching to the Detections tab when present.
+    val requestedTab = if (pendingPush?.type == "chart_alert") "Detections" else null
+    LaunchedEffect(pendingPush) {
+        // Clear pushes we can't route (unknown type, or digest without a date).
+        if (pendingPush != null && requestedTab == null) PushNavigator.clear()
+    }
+
     val effectiveRole = imp.role ?: user.role
     val displayUser = if (imp.isActive) {
         user.copy(role = effectiveRole, name = imp.displayName ?: user.name)
@@ -107,13 +132,15 @@ private fun AuthenticatedRoot(user: AuthUser, onLogout: () -> Unit) {
             canViewAsRole = user.role.equals("ADMIN", ignoreCase = true) && !imp.isActive,
             onViewAsRole = { showViewAs = true },
             onLogout = onLogout,
+            requestedTab = requestedTab,
+            onTabRequestConsumed = { PushNavigator.clear() },
         )
     }
 }
 
 @Composable
 private fun LoggedOutFlow(vm: AuthViewModel) {
-    var screen by remember { mutableStateOf("welcome") }
+    var screen by rememberSaveable { mutableStateOf("welcome") }
     when (screen) {
         "login" -> LoginScreen(
             vm = vm,

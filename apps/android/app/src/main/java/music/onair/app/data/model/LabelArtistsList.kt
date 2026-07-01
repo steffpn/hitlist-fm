@@ -18,3 +18,16 @@ data class LabelArtistItem(
     val topSong: String? = null,
     val addedAt: String? = null,
 )
+
+/** One song row from GET /label/artists/:id/songs (getLabelArtistSongs handler). */
+@Serializable
+data class LabelArtistSong(
+    val id: Int = 0,
+    val songTitle: String = "",
+    val artistName: String = "",
+    val isrc: String? = null,
+    val isMonitored: Boolean = false,
+    val totalPlays: Int = 0,
+    val stationCount: Int = 0,
+    val activatedAt: String? = null,
+)

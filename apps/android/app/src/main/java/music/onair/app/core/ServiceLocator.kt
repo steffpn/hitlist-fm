@@ -27,6 +27,10 @@ object ServiceLocator {
         private set
     lateinit var api: OnairApi
         private set
+
+    /** Authenticated OkHttp client — for raw downloads (e.g. CSV export). */
+    lateinit var httpClient: OkHttpClient
+        private set
     lateinit var deezerApi: DeezerApi
         private set
     lateinit var authRepository: AuthRepository
@@ -53,6 +57,7 @@ object ServiceLocator {
             .addInterceptor(logging())
             .authenticator(TokenAuthenticator(sessionStore) { refreshApi })
             .build()
+        httpClient = authedClient
         api = buildRetrofit(authedClient, contentType).create(OnairApi::class.java)
 
         // Deezer public API (no auth) for artwork/metadata.

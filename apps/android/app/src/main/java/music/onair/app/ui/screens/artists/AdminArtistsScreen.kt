@@ -1,6 +1,7 @@
 package music.onair.app.ui.screens.artists
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,8 +40,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import music.onair.app.core.ServiceLocator
+import music.onair.app.data.model.ArtistsSummaryItem
+import music.onair.app.ui.components.CenterEmpty
 import music.onair.app.ui.components.CenterError
 import music.onair.app.ui.components.CenterLoading
+import music.onair.app.ui.components.PeriodPicker
 import music.onair.app.ui.theme.RbAccent
 import music.onair.app.ui.theme.RbBackground
 import music.onair.app.ui.theme.RbSurfaceLight
@@ -50,6 +58,21 @@ fun AdminArtistsScreen() {
         factory = viewModelFactory { initializer { ArtistsViewModel(ServiceLocator.api) } },
     )
 
+    // Rotation-safe read-only detail (primitives only).
+    var detailName by rememberSaveable { mutableStateOf<String?>(null) }
+    val selectedName = detailName
+    if (selectedName != null) {
+        val summary = vm.artists.firstOrNull { it.artistName == selectedName }
+        AdminArtistDetailScreen(
+            artistName = selectedName,
+            playCount = summary?.playCount ?: 0,
+            songCount = summary?.songCount ?: 0,
+            stationCount = summary?.stationCount ?: 0,
+            onBack = { detailName = null },
+        )
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -61,6 +84,12 @@ fun AdminArtistsScreen() {
             style = MaterialTheme.typography.headlineLarge,
             color = RbTextPrimary,
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 8.dp),
+        )
+
+        PeriodPicker(
+            selected = vm.period,
+            onSelect = vm::selectPeriod,
+            modifier = Modifier.padding(horizontal = 20.dp),
         )
 
         OutlinedTextField(
@@ -86,13 +115,14 @@ fun AdminArtistsScreen() {
                 vm.isLoading && vm.artists.isEmpty() -> CenterLoading()
                 vm.error != null && vm.artists.isEmpty() ->
                     CenterError(message = vm.error ?: "Error", onRetry = { vm.refresh() })
+                vm.filtered.isEmpty() -> CenterEmpty("No artists in this period.")
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(vertical = 6.dp, horizontal = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    items(vm.filtered, key = { it.name }) { artist ->
-                        ArtistRow(artist)
+                    items(vm.filtered, key = { it.artistName }) { artist ->
+                        ArtistRow(artist, onClick = { detailName = artist.artistName })
                     }
                 }
             }
@@ -101,10 +131,11 @@ fun AdminArtistsScreen() {
 }
 
 @Composable
-private fun ArtistRow(artist: ArtistSummary) {
+private fun ArtistRow(artist: ArtistsSummaryItem, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -116,7 +147,7 @@ private fun ArtistRow(artist: ArtistSummary) {
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = artist.name.firstOrNull()?.uppercase() ?: "?",
+                text = artist.artistName.firstOrNull()?.uppercase() ?: "?",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = Color.White,
             )
@@ -126,7 +157,7 @@ private fun ArtistRow(artist: ArtistSummary) {
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = artist.name,
+                text = artist.artistName,
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                 color = RbTextPrimary,
                 maxLines = 1,
@@ -139,15 +170,6 @@ private fun ArtistRow(artist: ArtistSummary) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            artist.topSong?.let {
-                Text(
-                    text = "Top: $it",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = RbTextTertiary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
         }
     }
 }

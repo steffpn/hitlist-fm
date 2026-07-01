@@ -17,16 +17,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,54 +65,88 @@ import music.onair.app.ui.theme.RbWarning
 private val monoSmall = TextStyle(fontFamily = IbmPlexMono, fontSize = 12.sp)
 
 @Composable
-fun SubscriptionScreen(onBack: () -> Unit) {
+fun SubscriptionScreen(role: String, onBack: () -> Unit) {
     val vm: SubscriptionViewModel = viewModel(
         factory = viewModelFactory { initializer { SubscriptionViewModel(ServiceLocator.api) } },
     )
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(RbBackground)
-            .statusBarsPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(bottom = 24.dp),
-    ) {
-        IconButton(onClick = onBack, modifier = Modifier.padding(4.dp)) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = RbTextPrimary,
+    // Open the Stripe Checkout URL in Chrome Custom Tabs.
+    LaunchedEffect(vm.checkoutUrl) {
+        val url = vm.checkoutUrl ?: return@LaunchedEffect
+        vm.consumeCheckoutUrl()
+        try {
+            CustomTabsIntent.Builder().build().launchUrl(context, Uri.parse(url))
+        } catch (_: Exception) {
+            snackbarHostState.showSnackbar("Couldn't open the checkout page.")
+        }
+    }
+
+    // 503 "Billing not configured" and friends → visible snackbar, button never feels dead.
+    LaunchedEffect(vm.checkoutMessage) {
+        val message = vm.checkoutMessage ?: return@LaunchedEffect
+        vm.consumeCheckoutMessage()
+        snackbarHostState.showSnackbar(message)
+    }
+
+    Box(Modifier.fillMaxSize().background(RbBackground)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 24.dp),
+        ) {
+            IconButton(onClick = onBack, modifier = Modifier.padding(4.dp)) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = RbTextPrimary,
+                )
+            }
+
+            Text(
+                text = "Plan & Billing",
+                style = MaterialTheme.typography.headlineLarge,
+                color = RbTextPrimary,
+                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 12.dp),
             )
+
+            val data = vm.data
+            when {
+                vm.isLoading && data == null ->
+                    Box(Modifier.fillMaxWidth().height(300.dp)) { CenterLoading() }
+                vm.error != null && data == null ->
+                    Box(Modifier.fillMaxWidth().height(300.dp)) {
+                        CenterError(message = vm.error ?: "Error", onRetry = { vm.refresh() })
+                    }
+                data != null -> SubscriptionContent(
+                    data = data,
+                    isCheckingOut = vm.isCheckingOut,
+                    onUpgrade = { vm.upgrade(role) },
+                )
+            }
         }
 
-        Text(
-            text = "Plan & Billing",
-            style = MaterialTheme.typography.headlineLarge,
-            color = RbTextPrimary,
-            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 12.dp),
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter),
         )
-
-        val data = vm.data
-        when {
-            vm.isLoading && data == null ->
-                Box(Modifier.fillMaxWidth().height(300.dp)) { CenterLoading() }
-            vm.error != null && data == null ->
-                Box(Modifier.fillMaxWidth().height(300.dp)) {
-                    CenterError(message = vm.error ?: "Error", onRetry = { vm.refresh() })
-                }
-            data != null -> SubscriptionContent(data)
-        }
     }
 }
 
 @Composable
-private fun SubscriptionContent(data: SubscriptionInfoResponse) {
+private fun SubscriptionContent(
+    data: SubscriptionInfoResponse,
+    isCheckingOut: Boolean,
+    onUpgrade: () -> Unit,
+) {
     val subscription = data.subscription
     val plan = data.plan
 
     if (subscription == null) {
-        FreePlanCard(plan)
+        FreePlanCard(plan, isCheckingOut = isCheckingOut, onUpgrade = onUpgrade)
     } else {
         ActiveSubscriptionCard(subscription, plan)
     }
@@ -119,7 +160,11 @@ private fun SubscriptionContent(data: SubscriptionInfoResponse) {
 }
 
 @Composable
-private fun FreePlanCard(plan: SubscriptionPlanInfo?) {
+private fun FreePlanCard(
+    plan: SubscriptionPlanInfo?,
+    isCheckingOut: Boolean,
+    onUpgrade: () -> Unit,
+) {
     GlassCard(modifier = Modifier.padding(horizontal = 20.dp)) {
         Text(
             text = plan?.name?.takeIf { it.isNotBlank() } ?: "Free plan",
@@ -135,7 +180,8 @@ private fun FreePlanCard(plan: SubscriptionPlanInfo?) {
         Spacer(Modifier.height(16.dp))
         GradientButton(
             text = "Upgrade plan",
-            onClick = { /* Checkout flow wired later. */ },
+            onClick = onUpgrade,
+            loading = isCheckingOut,
         )
     }
 }

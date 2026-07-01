@@ -69,7 +69,7 @@ fun SongDetailScreen(
     event: AirplayEvent,
     onBack: () -> Unit,
 ) {
-    var coverUrl by remember(event.id) { mutableStateOf<String?>(null) }
+    var coverUrl by remember(event.id) { mutableStateOf(event.artworkUrl) }
     var albumTitle by remember(event.id) { mutableStateOf<String?>(null) }
     var deezerTrackId by remember(event.id) { mutableStateOf<Long?>(null) }
 
@@ -78,7 +78,7 @@ fun SongDetailScreen(
             val q = "artist:\"${event.artistName}\" track:\"${event.songTitle}\""
             val res = ServiceLocator.deezerApi.search(q, 1)
             res.data.firstOrNull()?.let { t ->
-                coverUrl = t.album?.coverBig ?: t.album?.coverMedium
+                coverUrl = t.album?.coverBig ?: t.album?.coverMedium ?: event.artworkUrl
                 albumTitle = t.album?.title
                 deezerTrackId = t.id.takeIf { it > 0 }
             }
@@ -148,7 +148,7 @@ fun SongDetailScreen(
                     isLoading = isActive && audio.isLoading,
                     isPlaying = isActive && audio.isPlaying,
                     progress = if (isActive) audio.progress else 0f,
-                    onClick = { audio.toggle(event.id) },
+                    onClick = { audio.toggle(event.id, event.songTitle, event.station?.name) },
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(horizontal = 24.dp),

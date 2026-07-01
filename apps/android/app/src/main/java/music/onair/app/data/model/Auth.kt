@@ -60,3 +60,14 @@ data class RefreshRequest(
 data class LogoutRequest(
     val refreshToken: String,
 )
+
+// POST /auth/forgot-password — always answers with a generic message.
+@Serializable
+data class ForgotPasswordRequest(
+    val email: String,
+)
+
+@Serializable
+data class MessageResponse(
+    val message: String? = null,
+)

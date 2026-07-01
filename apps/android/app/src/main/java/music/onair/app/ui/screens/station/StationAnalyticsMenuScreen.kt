@@ -12,7 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -22,7 +22,7 @@ import music.onair.app.ui.theme.RbTextPrimary
 
 @Composable
 fun StationAnalyticsMenuScreen() {
-    var route by remember { mutableStateOf<String?>(null) }
+    var route by rememberSaveable { mutableStateOf<String?>(null) }
 
     if (route != null) {
         BackHandler { route = null }
@@ -30,6 +30,7 @@ fun StationAnalyticsMenuScreen() {
             "discovery" -> DiscoveryScoreScreen()
             "rotation" -> RotationAnalysisScreen()
             "new" -> StationNewSongsScreen()
+            "overlap" -> PlaylistOverlapScreen()
         }
         return
     }
@@ -51,5 +52,6 @@ fun StationAnalyticsMenuScreen() {
         MenuRow("Discovery Score", "How much new music you play", onClick = { route = "discovery" })
         MenuRow("Rotation Analysis", "Song rotation patterns & alerts", onClick = { route = "rotation" })
         MenuRow("New Songs", "Songs appearing for the first time", onClick = { route = "new" })
+        MenuRow("Playlist Overlap", "Shared songs with your competitors", onClick = { route = "overlap" })
     }
 }

@@ -9,6 +9,7 @@ data class PreferencesSettingsResponse(
     val dailyReportEnabled: Boolean = true,
     val dailyReportTime: String = "08:00",
     val dailyReportTimezone: String = "Europe/Bucharest",
+    val weeklyReportEnabled: Boolean = true,
     val chartAlertsEnabled: Boolean = true,
     val chartAlertCountries: List<String> = emptyList(),
 )
@@ -20,6 +21,7 @@ data class PreferencesSettingsPatch(
     val dailyReportEnabled: Boolean? = null,
     val dailyReportTime: String? = null,
     val dailyReportTimezone: String? = null,
+    val weeklyReportEnabled: Boolean? = null,
     val chartAlertsEnabled: Boolean? = null,
     val chartAlertCountries: List<String>? = null,
 )

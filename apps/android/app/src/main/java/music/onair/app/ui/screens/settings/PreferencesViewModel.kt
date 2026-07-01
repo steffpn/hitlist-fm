@@ -35,10 +35,41 @@ class PreferencesViewModel(private val api: OnairApi) : ViewModel() {
         )
     }
 
+    fun onWeeklyReportEnabledChange(enabled: Boolean) {
+        patch(
+            optimistic = { it.copy(weeklyReportEnabled = enabled) },
+            body = PreferencesSettingsPatch(weeklyReportEnabled = enabled),
+        )
+    }
+
     fun onChartAlertsEnabledChange(enabled: Boolean) {
         patch(
             optimistic = { it.copy(chartAlertsEnabled = enabled) },
             body = PreferencesSettingsPatch(chartAlertsEnabled = enabled),
+        )
+    }
+
+    /** Time in "HH:mm" (server pattern ^\d{2}:\d{2}$). */
+    fun onDailyReportTimeChange(time: String) {
+        patch(
+            optimistic = { it.copy(dailyReportTime = time) },
+            body = PreferencesSettingsPatch(dailyReportTime = time),
+        )
+    }
+
+    fun onTimezoneChange(timezone: String) {
+        patch(
+            optimistic = { it.copy(dailyReportTimezone = timezone) },
+            body = PreferencesSettingsPatch(dailyReportTimezone = timezone),
+        )
+    }
+
+    fun toggleChartAlertCountry(country: String) {
+        val current = data?.chartAlertCountries ?: return
+        val next = if (country in current) current - country else current + country
+        patch(
+            optimistic = { it.copy(chartAlertCountries = next) },
+            body = PreferencesSettingsPatch(chartAlertCountries = next),
         )
     }
 
