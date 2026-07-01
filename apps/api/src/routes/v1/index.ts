@@ -15,6 +15,9 @@ const v1Routes: FastifyPluginAsync = async (fastify) => {
   fastify.register(import("./admin/users/index.js"), {
     prefix: "/admin/users",
   });
+  fastify.register(import("./admin/impersonation/index.js"), {
+    prefix: "/admin/impersonation",
+  });
   fastify.register(import("./dashboard/index.js"), {
     prefix: "/dashboard",
   });

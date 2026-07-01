@@ -93,6 +93,8 @@ enum APIEndpoint: Sendable {
 
     // MARK: - Admin
     case adminUsers
+    case impersonationOptions
+    case impersonationConfigure(role: String, artistName: String?, stationId: Int?, artistNames: [String]?)
 
     var path: String {
         switch self {
@@ -220,6 +222,10 @@ enum APIEndpoint: Sendable {
         // Admin
         case .adminUsers:
             return "/admin/users"
+        case .impersonationOptions:
+            return "/admin/impersonation/options"
+        case .impersonationConfigure:
+            return "/admin/impersonation/configure"
         }
     }
 
@@ -227,7 +233,8 @@ enum APIEndpoint: Sendable {
         switch self {
         case .register, .login, .refresh, .logout, .addWatchedStation, .registerDeviceToken,
              .addArtistSong, .addLabelArtist, .toggleLabelSongMonitoring,
-             .markChartAlertsRead, .createCheckout, .createPortal:
+             .markChartAlertsRead, .createCheckout, .createPortal,
+             .impersonationConfigure:
             return .POST
         case .updateNotificationPreferences:
             return .PUT
@@ -246,7 +253,7 @@ enum APIEndpoint: Sendable {
              .stationOverview, .stationTopSongs, .stationNewSongs, .stationExclusiveSongs,
              .stationPlaylistOverlap, .stationGenreDistribution, .stationRotation, .stationDiscoveryScore,
              .userSettings, .dailyReports, .todayReport, .chartAlerts, .mySubscription,
-             .adminUsers:
+             .adminUsers, .impersonationOptions:
             return .GET
         }
     }
@@ -310,6 +317,10 @@ enum APIEndpoint: Sendable {
         case .createCheckout(let planId, let billingInterval, let successUrl, let cancelUrl):
             return try? encoder.encode(
                 CreateCheckoutRequest(planId: planId, billingInterval: billingInterval, successUrl: successUrl, cancelUrl: cancelUrl)
+            )
+        case .impersonationConfigure(let role, let artistName, let stationId, let artistNames):
+            return try? encoder.encode(
+                ConfigureImpersonationRequest(role: role, artistName: artistName, stationId: stationId, artistNames: artistNames)
             )
         case .createPortal(let returnUrl):
             return try? encoder.encode(
@@ -490,4 +501,11 @@ private struct CreateCheckoutRequest: Encodable {
 
 private struct CreatePortalRequest: Encodable {
     let returnUrl: String
+}
+
+private struct ConfigureImpersonationRequest: Encodable {
+    let role: String
+    let artistName: String?
+    let stationId: Int?
+    let artistNames: [String]?
 }

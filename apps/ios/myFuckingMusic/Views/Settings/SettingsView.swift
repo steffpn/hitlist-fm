@@ -343,18 +343,20 @@ private struct SettingsDivider: View {
 
 // MARK: - View As Role (Admin)
 
-/// Admin-only picker that lists users grouped by role. Selecting one starts a
-/// read-only "view as" session so the admin sees that role's app experience and
-/// data. Fetches the real user list (the /admin/* route is never impersonated).
+/// Admin-only "view as role" picker. Two steps: pick a ROLE, then pick the concrete
+/// entity (which artist / which station / which artists for a label — all drawn from
+/// recent high-airplay artists and the real stations). The backend provisions a hidden
+/// per-role persona from that selection; the app then impersonates it. Read-only.
 struct ViewAsRoleView: View {
     @Environment(ImpersonationManager.self) private var impersonation
     @Environment(\.dismiss) private var dismiss
 
-    @State private var users: [AdminUser] = []
+    @State private var options: ImpersonationOptions?
+    @State private var selectedRole: String?          // nil until a role is chosen
+    @State private var labelArtists: Set<String> = [] // LABEL multi-select
     @State private var isLoading = true
+    @State private var isConfiguring = false
     @State private var errorMessage: String?
-
-    private let roleOrder = ["ARTIST", "LABEL", "STATION", "ADMIN"]
 
     var body: some View {
         List {
@@ -373,53 +375,16 @@ struct ViewAsRoleView: View {
             }
 
             if isLoading {
-                HStack {
-                    Spacer()
-                    ProgressView().tint(Color.rbAccent)
-                    Spacer()
-                }
-                .listRowBackground(Color.clear)
+                loadingRow
             } else if let errorMessage {
                 Text(errorMessage)
                     .font(.sora(13, .regular))
                     .foregroundStyle(Color.rbError)
                     .listRowBackground(Color.rbSurface)
+            } else if selectedRole == nil {
+                roleChooser
             } else {
-                ForEach(roleOrder, id: \.self) { role in
-                    let group = users.filter { $0.role.uppercased() == role && $0.isActive }
-                    if !group.isEmpty {
-                        Section {
-                            ForEach(group) { user in
-                                Button {
-                                    impersonation.start(user)
-                                    dismiss()
-                                } label: {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(user.name)
-                                                .font(.sora(14.5, .medium))
-                                                .foregroundStyle(Color.rbTextPrimary)
-                                            Text(user.email)
-                                                .font(.sora(11.5, .regular))
-                                                .foregroundStyle(Color.rbTextTertiary)
-                                        }
-                                        Spacer()
-                                        if impersonation.target?.id == user.id {
-                                            Image(systemName: "checkmark")
-                                                .foregroundStyle(Color.rbAccent)
-                                        }
-                                    }
-                                }
-                                .listRowBackground(Color.rbSurface)
-                            }
-                        } header: {
-                            Text(role.capitalized)
-                                .font(.sora(10, .semibold))
-                                .tracking(1.4)
-                                .foregroundStyle(Color.rbTextTertiary)
-                        }
-                    }
-                }
+                entityChooser
             }
         }
         .scrollContentBackground(.hidden)
@@ -427,16 +392,179 @@ struct ViewAsRoleView: View {
         .navigationTitle("View as role")
         .toolbarColorScheme(.dark, for: .navigationBar)
         .preferredColorScheme(.dark)
+        .disabled(isConfiguring)
+        .overlay { if isConfiguring { configuringOverlay } }
         .task { await load() }
     }
+
+    // MARK: - Step 1: role
+
+    private var roleChooser: some View {
+        Section {
+            roleRow("ARTIST", "Artist", "music.mic", "See a specific artist's airplay")
+            roleRow("STATION", "Station", "antenna.radiowaves.left.and.right", "Simulate one of your stations")
+            roleRow("LABEL", "Label", "person.2.fill", "Pick a roster of artists")
+        } header: {
+            sectionHeader("Choose a role — full access")
+        }
+    }
+
+    private func roleRow(_ role: String, _ title: String, _ icon: String, _ subtitle: String) -> some View {
+        Button {
+            labelArtists.removeAll()
+            selectedRole = role
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 34, height: 34)
+                    .background(LinearGradient.rbAccentGradient, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.sora(15, .semibold)).foregroundStyle(Color.rbTextPrimary)
+                    Text(subtitle).font(.sora(11.5, .regular)).foregroundStyle(Color.rbTextTertiary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(Color.rbTextQuaternary)
+            }
+        }
+        .listRowBackground(Color.rbSurface)
+    }
+
+    // MARK: - Step 2: entity
+
+    @ViewBuilder
+    private var entityChooser: some View {
+        Section {
+            Button {
+                selectedRole = nil
+                labelArtists.removeAll()
+            } label: {
+                Label("Change role", systemImage: "chevron.left")
+                    .font(.sora(13, .medium))
+                    .foregroundStyle(Color.rbAccentLight)
+            }
+            .listRowBackground(Color.rbSurface)
+        }
+
+        switch selectedRole ?? "" {
+        case "STATION":
+            Section {
+                ForEach(options?.stations ?? []) { station in
+                    entityRow(title: station.name, subtitle: nil, selected: false) {
+                        await configure(role: "STATION", stationId: station.id)
+                    }
+                }
+            } header: { sectionHeader("Which station to simulate") }
+
+        case "LABEL":
+            Section {
+                if labelArtists.isEmpty == false {
+                    Button {
+                        Task { await configure(role: "LABEL", artistNames: Array(labelArtists)) }
+                    } label: {
+                        Text("View as label · \(labelArtists.count) artist\(labelArtists.count == 1 ? "" : "s")")
+                            .font(.sora(15, .bold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .listRowBackground(LinearGradient.rbAccentGradient)
+                }
+                ForEach(options?.artists ?? []) { artist in
+                    let on = labelArtists.contains(artist.name)
+                    Button {
+                        if on { labelArtists.remove(artist.name) } else { labelArtists.insert(artist.name) }
+                    } label: {
+                        artistLabel(artist, trailing: on ? "checkmark.circle.fill" : "circle", tint: on ? Color.rbAccent : Color.rbTextQuaternary)
+                    }
+                    .listRowBackground(Color.rbSurface)
+                }
+            } header: { sectionHeader("Pick artists for the label") }
+
+        default: // ARTIST
+            Section {
+                ForEach(options?.artists ?? []) { artist in
+                    Button {
+                        Task { await configure(role: "ARTIST", artistName: artist.name) }
+                    } label: {
+                        artistLabel(artist, trailing: "chevron.right", tint: Color.rbTextQuaternary)
+                    }
+                    .listRowBackground(Color.rbSurface)
+                }
+            } header: { sectionHeader("Which artist to view") }
+        }
+    }
+
+    private func artistLabel(_ artist: ImpersonationArtist, trailing: String, tint: Color) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(artist.name).font(.sora(14.5, .medium)).foregroundStyle(Color.rbTextPrimary)
+                Text("\(artist.plays) plays").font(.mono(11.5)).foregroundStyle(Color.rbTextTertiary)
+            }
+            Spacer()
+            Image(systemName: trailing).font(.system(size: 14)).foregroundStyle(tint)
+        }
+    }
+
+    private func entityRow(title: String, subtitle: String?, selected: Bool, action: @escaping () async -> Void) -> some View {
+        Button {
+            Task { await action() }
+        } label: {
+            HStack {
+                Text(title).font(.sora(14.5, .medium)).foregroundStyle(Color.rbTextPrimary)
+                Spacer()
+                Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(Color.rbTextQuaternary)
+            }
+        }
+        .listRowBackground(Color.rbSurface)
+    }
+
+    private func sectionHeader(_ text: String) -> some View {
+        Text(text).font(.sora(10, .semibold)).tracking(1.4).foregroundStyle(Color.rbTextTertiary)
+    }
+
+    private var loadingRow: some View {
+        HStack { Spacer(); ProgressView().tint(Color.rbAccent); Spacer() }
+            .listRowBackground(Color.clear)
+    }
+
+    private var configuringOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.4).ignoresSafeArea()
+            ProgressView("Setting up…").tint(Color.rbAccent).foregroundStyle(Color.rbTextPrimary)
+                .padding(20).background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+    }
+
+    // MARK: - Networking
 
     private func load() async {
         isLoading = true
         defer { isLoading = false }
         do {
-            users = try await APIClient.shared.request(.adminUsers)
+            options = try await APIClient.shared.request(.impersonationOptions)
         } catch {
-            errorMessage = (error as? APIError)?.errorDescription ?? "Failed to load users"
+            errorMessage = (error as? APIError)?.errorDescription ?? "Failed to load options"
+        }
+    }
+
+    private func configure(role: String, artistName: String? = nil, stationId: Int? = nil, artistNames: [String]? = nil) async {
+        isConfiguring = true
+        defer { isConfiguring = false }
+        do {
+            let result: ImpersonationConfigResult = try await APIClient.shared.request(
+                .impersonationConfigure(role: role, artistName: artistName, stationId: stationId, artistNames: artistNames)
+            )
+            impersonation.start(AdminUser(
+                id: result.userId,
+                email: "",
+                name: result.displayName,
+                role: result.role,
+                isActive: true
+            ))
+            dismiss()
+        } catch {
+            errorMessage = (error as? APIError)?.errorDescription ?? "Failed to configure"
         }
     }
 }

@@ -48,3 +48,29 @@ struct AdminUser: Codable, Sendable, Identifiable, Hashable {
     let role: String
     let isActive: Bool
 }
+
+// MARK: - Admin "view as role" — dynamic entity selection
+
+/// Options for the admin impersonation picker (GET /admin/impersonation/options).
+struct ImpersonationOptions: Codable, Sendable {
+    let artists: [ImpersonationArtist]
+    let stations: [ImpersonationStation]
+}
+
+struct ImpersonationArtist: Codable, Sendable, Identifiable, Hashable {
+    let name: String
+    let plays: Int
+    var id: String { name }
+}
+
+struct ImpersonationStation: Codable, Sendable, Identifiable, Hashable {
+    let id: Int
+    let name: String
+}
+
+/// Result of POST /admin/impersonation/configure — the persona to impersonate.
+struct ImpersonationConfigResult: Codable, Sendable {
+    let userId: Int
+    let role: String
+    let displayName: String
+}
