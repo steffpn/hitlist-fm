@@ -318,7 +318,7 @@ async function createAndSendAlert(
   entry: { songTitle: string; artistName: string; isrc: string | null; platform: string; country: string; chartName: string; position: number },
   alertType: string,
   message: string,
-  deviceTokens: Array<{ token: string }>,
+  deviceTokens: Array<{ token: string; platform: string }>,
   apns: ReturnType<typeof getApnsClient>,
 ): Promise<void> {
   // Check for duplicate alert

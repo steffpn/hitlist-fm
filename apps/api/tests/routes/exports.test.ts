@@ -3,6 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // ---- Prisma mock ----
 const mockAirplayEventFindMany = vi.fn();
 const mockUserFindUnique = vi.fn();
+const mockSubscriptionFindFirst = vi.fn();
+const mockPlanFindFirst = vi.fn();
 
 vi.mock("../../src/lib/prisma.js", () => ({
   prisma: {
@@ -15,6 +17,14 @@ vi.mock("../../src/lib/prisma.js", () => ({
     user: {
       findUnique: (...args: unknown[]) => mockUserFindUnique(...args),
       count: vi.fn().mockResolvedValue(1),
+    },
+    // requireFeature("exports.pdf") checks the user's subscription plan features,
+    // falling back to the FREE plan of the role. ADMIN bypasses the check.
+    subscription: {
+      findFirst: (...args: unknown[]) => mockSubscriptionFindFirst(...args),
+    },
+    plan: {
+      findFirst: (...args: unknown[]) => mockPlanFindFirst(...args),
     },
   },
 }));
@@ -41,6 +51,8 @@ vi.mock("../../src/lib/redis.js", () => ({
 }));
 
 // ---- Auth mock helper ----
+// authenticate loads users with `include: { scopes, subscriptions }` and reads
+// `user.subscriptions[0]?.plan?.tier` — mock users must include `subscriptions`.
 const mockAdminUser = {
   id: 1,
   email: "admin@test.com",
@@ -48,6 +60,7 @@ const mockAdminUser = {
   role: "ADMIN",
   isActive: true,
   scopes: [{ id: 1, userId: 1, entityType: "STATION", entityId: 1 }],
+  subscriptions: [],
 };
 
 const mockStationUser = {
@@ -59,6 +72,7 @@ const mockStationUser = {
   scopes: [
     { id: 2, userId: 2, entityType: "STATION", entityId: 5 },
   ],
+  subscriptions: [],
 };
 
 function makeEvent(id: number, overrides: Record<string, unknown> = {}) {
@@ -87,6 +101,8 @@ describe("Export Routes", () => {
   beforeEach(async () => {
     mockAirplayEventFindMany.mockClear();
     mockUserFindUnique.mockClear();
+    mockSubscriptionFindFirst.mockReset();
+    mockPlanFindFirst.mockReset();
 
     const mod = await import("../../src/index.js");
     server = mod.server;
@@ -100,6 +116,21 @@ describe("Export Routes", () => {
       if (where.id === mockStationUser.id) return Promise.resolve(mockStationUser);
       return Promise.resolve(null);
     });
+
+    // Give the STATION user an active subscription whose plan includes the
+    // "exports.pdf" feature so requireFeature("exports.pdf") passes and the
+    // scoped-export behavior can be asserted. ADMIN bypasses the gate entirely.
+    mockSubscriptionFindFirst.mockResolvedValue({
+      id: 1,
+      userId: mockStationUser.id,
+      status: "active",
+      plan: {
+        id: 1,
+        tier: "PREMIUM",
+        features: [{ feature: { key: "exports.pdf" } }],
+      },
+    });
+    mockPlanFindFirst.mockResolvedValue(null);
   });
 
   // --- CSV Export Tests ---

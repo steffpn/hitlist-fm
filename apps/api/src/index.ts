@@ -98,5 +98,10 @@ const start = async () => {
   }
 };
 
-// Always start — guard against test imports by checking NODE_ENV
-start();
+// Always start in normal execution — but guard against test imports: tests
+// drive the exported `server` through inject()/ready() and must not bind
+// ports, bootstrap the admin against a live DB, or spin up background
+// workers. Vitest sets VITEST=true (and NODE_ENV=test) for every test file.
+if (!process.env.VITEST && process.env.NODE_ENV !== "test") {
+  start();
+}

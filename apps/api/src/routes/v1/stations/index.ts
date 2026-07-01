@@ -5,6 +5,12 @@ import {
   StationUpdateSchema,
   StationParamsSchema,
 } from "./schema.js";
+import type {
+  StationCreateBody,
+  StationBulkCreateBody,
+  StationUpdateBody,
+  StationParams,
+} from "./schema.js";
 import {
   createStation,
   createStationsBulk,
@@ -36,7 +42,7 @@ const stationRoutes: FastifyPluginAsync = async (fastify) => {
 
   // Write operations require ADMIN role
   // POST / - Create a single station
-  fastify.post(
+  fastify.post<{ Body: StationCreateBody }>(
     "/",
     {
       preHandler: requireRole("ADMIN"),
@@ -48,7 +54,7 @@ const stationRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // POST /bulk - Bulk create stations
-  fastify.post(
+  fastify.post<{ Body: StationBulkCreateBody }>(
     "/bulk",
     {
       preHandler: requireRole("ADMIN"),
@@ -60,7 +66,7 @@ const stationRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // PATCH /:id - Update station
-  fastify.patch(
+  fastify.patch<{ Params: StationParams; Body: StationUpdateBody }>(
     "/:id",
     {
       preHandler: requireRole("ADMIN"),
@@ -73,7 +79,7 @@ const stationRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // DELETE /:id - Soft delete station
-  fastify.delete(
+  fastify.delete<{ Params: StationParams }>(
     "/:id",
     {
       preHandler: requireRole("ADMIN"),

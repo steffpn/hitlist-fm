@@ -10,6 +10,7 @@ import {
   SongIdParamsSchema,
   BrowseArtistsQuerySchema,
 } from "./schema.js";
+import type { SongIdParams } from "./schema.js";
 import {
   getLabelArtists,
   addLabelArtist,
@@ -95,7 +96,7 @@ const labelRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get("/station-affinity", getStationAffinity);
 
   // GET /releases/:id/tracker - Release performance tracker (premium)
-  fastify.get(
+  fastify.get<{ Params: SongIdParams }>(
     "/releases/:id/tracker",
     {
       preHandler: requireFeature("label.release_tracker"),

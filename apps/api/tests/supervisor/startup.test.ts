@@ -2,8 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { EventEmitter } from "node:events";
 
 // Mock child_process
+// execSync is used by the supervisor's ffmpeg availability check
+// (const { execSync } = await import("node:child_process")).
 vi.mock("node:child_process", () => ({
   spawn: vi.fn(),
+  execSync: vi.fn().mockReturnValue("ffmpeg version 6.1.1 (mock)"),
 }));
 
 // Mock fs/promises
@@ -59,6 +62,24 @@ vi.mock("pino", () => ({
   }),
 }));
 
+// Mock the BullMQ workers the supervisor now starts (cleanup, snippet,
+// detection). The real implementations create BullMQ queues that would try
+// to reach a live Redis instance.
+const makeWorkerHandle = () => ({
+  queue: { close: vi.fn().mockResolvedValue(undefined) },
+  worker: { close: vi.fn().mockResolvedValue(undefined) },
+});
+
+vi.mock("../../src/workers/cleanup.js", () => ({
+  startCleanupWorker: vi.fn(async () => makeWorkerHandle()),
+}));
+vi.mock("../../src/workers/snippet.js", () => ({
+  startSnippetWorker: vi.fn(async () => makeWorkerHandle()),
+}));
+vi.mock("../../src/workers/detection.js", () => ({
+  startDetectionWorker: vi.fn(async () => makeWorkerHandle()),
+}));
+
 describe("Supervisor Startup", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -108,10 +129,11 @@ describe("Supervisor Startup", () => {
     await supervisorPromise;
 
     // Verify all 25 stations were started
-    // Check prisma was called to find active stations
+    // Check prisma was called to find startable stations (the supervisor
+    // attempts ACTIVE, DEGRADED and ERROR stations so they can recover)
     expect(mockPrismaStationFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { status: "ACTIVE" },
+        where: { status: { in: ["ACTIVE", "DEGRADED", "ERROR"] } },
       }),
     );
   });

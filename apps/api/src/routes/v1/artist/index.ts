@@ -7,6 +7,7 @@ import {
   AddMonitoredSongSchema,
   SongAnalyticsQuerySchema,
 } from "./schema.js";
+import type { SongIdParams } from "./schema.js";
 import {
   getArtistSongs,
   addArtistSong,
@@ -70,7 +71,7 @@ const artistRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // GET /artist/songs/:id/hourly-heatmap - 7x24 play heatmap (premium)
-  fastify.get(
+  fastify.get<{ Params: SongIdParams }>(
     "/songs/:id/hourly-heatmap",
     {
       preHandler: requireFeature("analytics.hourly_heatmap"),

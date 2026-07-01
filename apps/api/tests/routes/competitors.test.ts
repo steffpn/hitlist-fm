@@ -8,6 +8,8 @@ const mockWatchedStationCreate = vi.fn();
 const mockWatchedStationCount = vi.fn();
 const mockWatchedStationDeleteMany = vi.fn();
 const mockWatchedStationFindFirst = vi.fn();
+const mockSubscriptionFindFirst = vi.fn();
+const mockPlanFindFirst = vi.fn();
 
 vi.mock("../../src/lib/prisma.js", () => ({
   prisma: {
@@ -26,6 +28,15 @@ vi.mock("../../src/lib/prisma.js", () => ({
       count: (...args: unknown[]) => mockWatchedStationCount(...args),
       deleteMany: (...args: unknown[]) => mockWatchedStationDeleteMany(...args),
       findFirst: (...args: unknown[]) => mockWatchedStationFindFirst(...args),
+    },
+    // requireFeature("analytics.competitor_intel") on /:stationId/detail checks
+    // the user's subscription plan features, falling back to the FREE plan of
+    // the role. ADMIN bypasses the check.
+    subscription: {
+      findFirst: (...args: unknown[]) => mockSubscriptionFindFirst(...args),
+    },
+    plan: {
+      findFirst: (...args: unknown[]) => mockPlanFindFirst(...args),
     },
   },
 }));
@@ -52,6 +63,8 @@ vi.mock("../../src/lib/redis.js", () => ({
 }));
 
 // ---- Auth mock users ----
+// authenticate loads users with `include: { scopes, subscriptions }` and reads
+// `user.subscriptions[0]?.plan?.tier` — mock users must include `subscriptions`.
 const mockStationUser = {
   id: 2,
   email: "station@test.com",
@@ -62,6 +75,7 @@ const mockStationUser = {
     { id: 2, userId: 2, entityType: "STATION", entityId: 5 },
     { id: 3, userId: 2, entityType: "STATION", entityId: 10 },
   ],
+  subscriptions: [],
 };
 
 const mockArtistUser = {
@@ -71,6 +85,7 @@ const mockArtistUser = {
   role: "ARTIST",
   isActive: true,
   scopes: [{ id: 4, userId: 3, entityType: "ARTIST", entityId: 1 }],
+  subscriptions: [],
 };
 
 describe("Competitor Routes", () => {
@@ -86,6 +101,8 @@ describe("Competitor Routes", () => {
     mockWatchedStationCount.mockClear();
     mockWatchedStationDeleteMany.mockClear();
     mockWatchedStationFindFirst.mockClear();
+    mockSubscriptionFindFirst.mockReset();
+    mockPlanFindFirst.mockReset();
 
     const mod = await import("../../src/index.js");
     server = mod.server;
@@ -99,6 +116,21 @@ describe("Competitor Routes", () => {
       if (where.id === mockArtistUser.id) return Promise.resolve(mockArtistUser);
       return Promise.resolve(null);
     });
+
+    // Give the STATION user an active subscription whose plan includes the
+    // "analytics.competitor_intel" feature so requireFeature on the
+    // /:stationId/detail route passes and the handler logic can be asserted.
+    mockSubscriptionFindFirst.mockResolvedValue({
+      id: 1,
+      userId: mockStationUser.id,
+      status: "active",
+      plan: {
+        id: 1,
+        tier: "PREMIUM",
+        features: [{ feature: { key: "analytics.competitor_intel" } }],
+      },
+    });
+    mockPlanFindFirst.mockResolvedValue(null);
   });
 
   // --- GET /api/v1/competitors/watched ---

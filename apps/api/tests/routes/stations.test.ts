@@ -3,13 +3,14 @@ import { server } from "../../src/index.js";
 import { prisma } from "../../src/lib/prisma.js";
 import { createRedisConnection } from "../../src/lib/redis.js";
 import { CHANNELS, type StationEvent } from "../../src/lib/pubsub.js";
+import { dbTestsEnabled } from "../helpers/db.js";
 import {
   createTestAdmin,
   getAuthTokens,
   createTestUserWithTokens,
 } from "../helpers/auth.js";
 
-describe("Station CRUD Routes", () => {
+describe.runIf(dbTestsEnabled)("Station CRUD Routes", () => {
   let subscriber: ReturnType<typeof createRedisConnection>;
   let adminToken: string;
 

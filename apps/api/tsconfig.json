@@ -1,9 +1,13 @@
 {
   "extends": "@myfuckingmusic/tsconfig/api.json",
   "compilerOptions": {
+    // No "rootDir": the generated Prisma client (./generated/prisma) is imported
+    // from src/ but lives outside it. tsc is used for typechecking only
+    // ("typecheck" script, --noEmit); the app runs through tsx, so output layout
+    // never matters and rootDir would only cause TS6059.
     "outDir": "./dist",
-    "rootDir": "./src"
+    "noEmit": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "generated"]
+  "exclude": ["node_modules", "dist"]
 }

@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
 import { ExportCSVQuerySchema, ExportPDFQuerySchema } from "./schema.js";
+import type { ExportPDFQuery } from "./schema.js";
 import { exportCSV, exportPDF } from "./handlers.js";
 import { authenticate } from "../../../middleware/authenticate.js";
 import { requireFeature } from "../../../middleware/require-feature.js";
@@ -20,7 +21,7 @@ const exportRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // GET /pdf - Export filtered airplay events as branded PDF report (premium)
-  fastify.get(
+  fastify.get<{ Querystring: ExportPDFQuery }>(
     "/pdf",
     {
       preHandler: requireFeature("exports.pdf"),

@@ -4,7 +4,9 @@ import { server } from "../../src/index.js";
 /**
  * ACRCloud Webhook Route Tests
  *
- * Tests auth (shared secret), TypeBox schema validation,
+ * Tests auth (shared secret), lenient body acceptance (the route
+ * deliberately performs NO strict schema validation -- ACRCloud payloads
+ * vary between test and real callbacks, and validation errors caused 502s),
  * BullMQ enqueue behavior, and response format.
  *
  * BullMQ Queue.add is mocked to avoid requiring Redis for tests.
@@ -106,9 +108,13 @@ describe("ACRCloud Webhook Route", () => {
     });
   });
 
-  // --- Validation Tests ---
+  // --- Body Acceptance Tests ---
+  // The route registers NO strict schema validation: ACRCloud payloads vary
+  // (test vs real callbacks) and validation errors caused 502s before the
+  // handler could respond. Any authenticated payload is accepted with 200
+  // and enqueued raw for the detection worker to interpret.
 
-  describe("Schema Validation", () => {
+  describe("Lenient Body Acceptance (no strict schema validation)", () => {
     it("accepts valid body matching AcrCloudCallbackSchema", async () => {
       const response = await server.inject({
         method: "POST",
@@ -120,7 +126,7 @@ describe("ACRCloud Webhook Route", () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it("rejects payload with missing stream_id with 400", async () => {
+    it("accepts payload with missing stream_id with 200 and still enqueues it", async () => {
       const { stream_id, ...payloadWithoutStreamId } = validPayload();
 
       const response = await server.inject({
@@ -130,10 +136,13 @@ describe("ACRCloud Webhook Route", () => {
         payload: payloadWithoutStreamId,
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(200);
+      expect(mockQueueAdd).toHaveBeenCalledTimes(1);
+      // Raw payload is enqueued as-is (stream_id stays absent)
+      expect(mockQueueAdd.mock.calls[0][1].stream_id).toBeUndefined();
     });
 
-    it("rejects payload with missing data object with 400", async () => {
+    it("accepts payload with missing data object with 200 and still enqueues it", async () => {
       const response = await server.inject({
         method: "POST",
         url: "/api/v1/webhooks/acrcloud",
@@ -145,10 +154,11 @@ describe("ACRCloud Webhook Route", () => {
         },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(200);
+      expect(mockQueueAdd).toHaveBeenCalledTimes(1);
     });
 
-    it("rejects empty body with 400", async () => {
+    it("accepts empty body with 200 and still enqueues it", async () => {
       const response = await server.inject({
         method: "POST",
         url: "/api/v1/webhooks/acrcloud",
@@ -156,7 +166,8 @@ describe("ACRCloud Webhook Route", () => {
         payload: {},
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(200);
+      expect(mockQueueAdd).toHaveBeenCalledTimes(1);
     });
   });
 

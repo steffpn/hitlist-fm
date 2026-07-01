@@ -15,10 +15,12 @@ declare module "fastify" {
   interface FastifyRequest {
     /**
      * The user the request is scoped against. Normally the authenticated
-     * user, but for an ADMIN performing a read-only (GET) "view as role"
-     * impersonation this is the impersonated target user. All role/scope
-     * data filtering already reads this field, so impersonation works
-     * transparently without touching individual handlers.
+     * user, but for an ADMIN performing a "view as role" impersonation
+     * (any method, persona accounts only, excluded on /admin/*) this is
+     * the impersonated target user. All role/scope data filtering already
+     * reads this field, so impersonation works transparently without
+     * touching individual handlers. Destructive account operations must
+     * use realUser instead.
      */
     currentUser: CurrentUser;
     /** The actually authenticated user — never affected by impersonation. */
@@ -64,6 +66,19 @@ async function loadCurrentUser(userId: number): Promise<CurrentUser | null> {
 /**
  * Fastify preHandler that verifies JWT, loads user from DB,
  * and attaches currentUser to the request.
+ *
+ * TYPING CONVENTION (applies to authenticate/requireRole/requireFeature and to
+ * every route in this API): handlers live in separate files and declare their
+ * request shape explicitly, e.g. `FastifyRequest<{ Querystring: ListEventsQuery }>`.
+ * When a route passes BOTH `schema` (TypeBox) AND `preHandler` in its options,
+ * TypeScript's inference of the route generic collapses to `RouteGenericInterface`
+ * (the preHandler — typed against the default request — wins the inference race),
+ * making the explicitly-typed handler no longer assignable (TS2345).
+ * The fix used consistently across the API is to pin the route generic at the
+ * registration site, e.g.:
+ *   fastify.get<{ Querystring: ListEventsQuery }>("/", { preHandler, schema }, listEvents)
+ * This stays fully type-checked (a wrong generic fails to compile), needs no
+ * casts and no type-provider migration of the standalone handlers.
  *
  * Admin-only "view as role": if the authenticated user is an ADMIN and sends
  * the `x-impersonate-user-id` header on a GET request, currentUser is swapped

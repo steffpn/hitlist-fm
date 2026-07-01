@@ -1,13 +1,14 @@
 import { describe, it, expect, afterAll, beforeAll } from "vitest";
 import { server } from "../../src/index.js";
 import { prisma } from "../../src/lib/prisma.js";
+import { dbTestsEnabled } from "../helpers/db.js";
 import {
   createTestAdmin,
   getAuthTokens,
   createTestUserWithTokens,
 } from "../helpers/auth.js";
 
-describe("Airplay Events Scope Filtering", () => {
+describe.runIf(dbTestsEnabled)("Airplay Events Scope Filtering", () => {
   let adminToken: string;
   let stationUserToken: string;
   let station1Id: number;

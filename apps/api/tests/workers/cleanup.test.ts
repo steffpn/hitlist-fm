@@ -117,14 +117,16 @@ describe("Cleanup Worker", () => {
 
   describe("cleanupSegments", () => {
     const NOW = 1700000000000; // Fixed timestamp for testing
-    const THREE_MINUTES_AGO = NOW - 3 * 60 * 1000 - 1000; // 3 min + 1s ago
+    // MAX_AGE_MS in src/workers/cleanup.ts is 11 minutes (FFmpeg ring buffer
+    // holds ~10 min; snippet retries need the segments to survive that long)
+    const STALE_AGE_AGO = NOW - 11 * 60 * 1000 - 1000; // 11 min + 1s ago
     const ONE_MINUTE_AGO = NOW - 60 * 1000; // 1 min ago
 
     beforeEach(() => {
       vi.spyOn(Date, "now").mockReturnValue(NOW);
     });
 
-    it("should delete files older than 3 minutes", async () => {
+    it("should delete files older than 11 minutes", async () => {
       // Mock: one station directory with two files (one old, one recent)
       mockReaddir.mockImplementation((dirPath: string) => {
         if (dirPath.endsWith("streams")) {
@@ -138,7 +140,7 @@ describe("Cleanup Worker", () => {
 
       mockStat.mockImplementation((filePath: string) => {
         if (filePath.includes("segment-000")) {
-          return Promise.resolve({ mtimeMs: THREE_MINUTES_AGO });
+          return Promise.resolve({ mtimeMs: STALE_AGE_AGO });
         }
         return Promise.resolve({ mtimeMs: ONE_MINUTE_AGO });
       });
@@ -157,7 +159,7 @@ describe("Cleanup Worker", () => {
       );
     });
 
-    it("should NOT delete files younger than 3 minutes", async () => {
+    it("should NOT delete files younger than 11 minutes", async () => {
       mockReaddir.mockImplementation((dirPath: string) => {
         if (dirPath.endsWith("streams")) {
           return Promise.resolve([
@@ -237,7 +239,7 @@ describe("Cleanup Worker", () => {
       });
 
       // Both files are old
-      mockStat.mockResolvedValue({ mtimeMs: THREE_MINUTES_AGO });
+      mockStat.mockResolvedValue({ mtimeMs: STALE_AGE_AGO });
 
       // First unlink fails with permission error, second succeeds
       mockUnlink
@@ -278,7 +280,7 @@ describe("Cleanup Worker", () => {
         return Promise.resolve([]);
       });
 
-      mockStat.mockResolvedValue({ mtimeMs: THREE_MINUTES_AGO });
+      mockStat.mockResolvedValue({ mtimeMs: STALE_AGE_AGO });
 
       await cleanupSegments();
 

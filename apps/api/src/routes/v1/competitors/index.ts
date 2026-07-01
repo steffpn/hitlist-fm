@@ -7,6 +7,7 @@ import {
   StationIdParamsSchema,
   PeriodQuerySchema,
 } from "./schema.js";
+import type { StationIdParams, PeriodQuery } from "./schema.js";
 import {
   getWatchedStations,
   getOwnStations,
@@ -65,7 +66,7 @@ const competitorRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // GET /competitors/:stationId/detail - Detailed competitor intelligence (premium)
-  fastify.get(
+  fastify.get<{ Params: StationIdParams; Querystring: PeriodQuery }>(
     "/:stationId/detail",
     {
       preHandler: requireFeature("analytics.competitor_intel"),

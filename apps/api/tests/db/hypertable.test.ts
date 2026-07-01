@@ -1,7 +1,8 @@
 import { describe, it, expect, afterAll } from "vitest";
 import { prisma } from "../../src/lib/prisma.js";
+import { dbTestsEnabled } from "../helpers/db.js";
 
-describe("TimescaleDB Hypertable Setup", () => {
+describe.runIf(dbTestsEnabled)("TimescaleDB Hypertable Setup", () => {
   afterAll(async () => {
     await prisma.$disconnect();
   });

@@ -119,19 +119,35 @@ async function handleSubscriptionDeleted(sub: Stripe.Subscription) {
   });
 }
 
+/**
+ * Extract the subscription id from an invoice.
+ *
+ * Since Stripe API version 2025-03-31 (and our pinned "2026-02-25.clover"),
+ * `invoice.subscription` no longer exists — the reference moved to
+ * `invoice.parent.subscription_details.subscription`. The old field would be
+ * `undefined` at runtime, silently skipping subscription status updates.
+ */
+function invoiceSubscriptionId(invoice: Stripe.Invoice): string | undefined {
+  const ref = invoice.parent?.subscription_details?.subscription;
+  if (!ref) return undefined;
+  return typeof ref === "string" ? ref : ref.id;
+}
+
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
-  if (invoice.subscription) {
+  const subscriptionId = invoiceSubscriptionId(invoice);
+  if (subscriptionId) {
     await prisma.subscription.updateMany({
-      where: { stripeSubscriptionId: invoice.subscription as string },
+      where: { stripeSubscriptionId: subscriptionId },
       data: { status: "active" },
     });
   }
 }
 
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-  if (invoice.subscription) {
+  const subscriptionId = invoiceSubscriptionId(invoice);
+  if (subscriptionId) {
     await prisma.subscription.updateMany({
-      where: { stripeSubscriptionId: invoice.subscription as string },
+      where: { stripeSubscriptionId: subscriptionId },
       data: { status: "past_due" },
     });
   }

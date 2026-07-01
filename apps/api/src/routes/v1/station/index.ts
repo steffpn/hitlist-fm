@@ -8,6 +8,7 @@ import {
   StationIdQuerySchema,
   CompetitorIdParamsSchema,
 } from "./schema.js";
+import type { CompetitorIdParams, PeriodQuery } from "./schema.js";
 import {
   getStationOverview,
   getStationTopSongs,
@@ -69,7 +70,7 @@ const stationRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // GET /station/overlap/:competitorId - Playlist overlap analysis (premium)
-  fastify.get(
+  fastify.get<{ Params: CompetitorIdParams; Querystring: PeriodQuery }>(
     "/overlap/:competitorId",
     {
       preHandler: requireFeature("analytics.competitor_intel"),
@@ -93,7 +94,7 @@ const stationRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // GET /station/rotation - Rotation analysis with over-rotation detection (premium)
-  fastify.get(
+  fastify.get<{ Querystring: PeriodQuery }>(
     "/rotation",
     {
       preHandler: requireFeature("analytics.rotation_analysis"),
@@ -105,7 +106,7 @@ const stationRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // GET /station/discovery-score - New song discovery percentage (premium)
-  fastify.get(
+  fastify.get<{ Querystring: PeriodQuery }>(
     "/discovery-score",
     {
       preHandler: requireFeature("analytics.discovery_score"),

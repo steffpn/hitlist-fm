@@ -39,7 +39,25 @@ vi.mock("../../src/lib/redis.js", () => ({
   },
 }));
 
+// ---- BullMQ mock ----
+// The acrcloud webhook route creates a Queue at registration time; without
+// this mock BullMQ would open a real ioredis connection (the mocked
+// createRedisConnection() return value is treated as connection *options*),
+// producing unhandled "Connection is closed" rejections at teardown.
+vi.mock("bullmq", () => ({
+  Queue: vi.fn().mockImplementation(() => ({
+    add: vi.fn().mockResolvedValue({ id: "mock-job-id" }),
+    close: vi.fn().mockResolvedValue(undefined),
+  })),
+  Worker: vi.fn().mockImplementation(() => ({
+    on: vi.fn(),
+    close: vi.fn().mockResolvedValue(undefined),
+  })),
+}));
+
 // ---- Auth mock helper ----
+// authenticate middleware loads the user with scopes + active subscriptions
+// and reads user.subscriptions[0]?.plan?.tier, so the mock must include both.
 const mockAdminUser = {
   id: 1,
   email: "admin@test.com",
@@ -47,6 +65,7 @@ const mockAdminUser = {
   role: "ADMIN",
   isActive: true,
   scopes: [{ id: 1, userId: 1, entityType: "STATION", entityId: 1 }],
+  subscriptions: [],
 };
 
 const mockStationUser = {
@@ -59,6 +78,7 @@ const mockStationUser = {
     { id: 2, userId: 2, entityType: "STATION", entityId: 5 },
     { id: 3, userId: 2, entityType: "STATION", entityId: 10 },
   ],
+  subscriptions: [],
 };
 
 describe("Dashboard Routes", () => {

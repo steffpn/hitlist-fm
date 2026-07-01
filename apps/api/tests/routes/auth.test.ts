@@ -3,6 +3,7 @@ import { prisma } from "../../src/lib/prisma.js";
 import { server } from "../../src/index.js";
 import { hashPassword } from "../../src/lib/auth.js";
 import { INVITE_CODE_EXPIRY_DAYS } from "@myfuckingmusic/shared";
+import { dbTestsEnabled } from "../helpers/db.js";
 
 /**
  * Helper: create an invitation directly in the DB for test setup.
@@ -35,7 +36,7 @@ async function createTestInvitation(
   });
 }
 
-describe("Auth Routes", () => {
+describe.runIf(dbTestsEnabled)("Auth Routes", () => {
   let adminUser: { id: number; email: string };
 
   beforeAll(async () => {

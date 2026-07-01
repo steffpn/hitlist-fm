@@ -1,13 +1,14 @@
 import { describe, it, expect, afterAll, beforeAll, beforeEach } from "vitest";
 import { server } from "../../src/index.js";
 import { prisma } from "../../src/lib/prisma.js";
+import { dbTestsEnabled } from "../helpers/db.js";
 import {
   createTestAdmin,
   getAuthTokens,
   createTestUserWithTokens,
 } from "../helpers/auth.js";
 
-describe("Admin Invitation Routes", () => {
+describe.runIf(dbTestsEnabled)("Admin Invitation Routes", () => {
   let adminToken: string;
 
   beforeAll(async () => {

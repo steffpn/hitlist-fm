@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import type { EventEmitter } from "node:events";
+import { EventEmitter } from "node:events";
 
 // ---- Prisma mock ----
 const mockAirplayEventUpdate = vi.fn().mockResolvedValue({});
@@ -30,10 +30,15 @@ vi.mock("../../src/lib/r2.js", () => ({
 const mockWorkerOn = vi.fn();
 const mockWorkerClose = vi.fn().mockResolvedValue(undefined);
 const mockQueueClose = vi.fn().mockResolvedValue(undefined);
+const mockQueueAdd = vi.fn().mockResolvedValue({});
+const mockQueueUpsertJobScheduler = vi.fn().mockResolvedValue({});
 
 vi.mock("bullmq", () => ({
   Queue: vi.fn().mockImplementation(() => ({
     close: (...args: unknown[]) => mockQueueClose(...args),
+    add: (...args: unknown[]) => mockQueueAdd(...args),
+    upsertJobScheduler: (...args: unknown[]) =>
+      mockQueueUpsertJobScheduler(...args),
   })),
   Worker: vi.fn().mockImplementation(
     (
@@ -69,31 +74,35 @@ vi.mock("pino", () => ({
 }));
 
 // ---- child_process mock ----
+// The worker spawns two binaries per job: "ffmpeg" (extraction, watched via
+// stderr + close) and "ffprobe" (duration check, result read from stdout).
 interface MockProcess extends EventEmitter {
   stderr: EventEmitter | null;
+  stdout: EventEmitter | null;
 }
 
-let mockSpawnResult: {
-  proc: MockProcess;
+let mockFfmpegResult: {
   exitCode: number;
   error?: Error;
 };
 
-const mockSpawn = vi.fn().mockImplementation(() => {
-  const { EventEmitter } = require("node:events");
+// Duration (seconds) reported by the mocked ffprobe. Production requires >= 8s.
+let mockFfprobeDuration: string;
+
+const mockSpawn = vi.fn().mockImplementation((command: string) => {
   const proc = new EventEmitter() as MockProcess;
-  const stderr = new EventEmitter();
-  proc.stderr = stderr;
+  proc.stderr = new EventEmitter();
+  proc.stdout = new EventEmitter();
 
-  // Store for later triggering
-  mockSpawnResult.proc = proc;
-
-  // Simulate FFmpeg completing (success or failure)
+  // Simulate the process completing (success or failure)
   process.nextTick(() => {
-    if (mockSpawnResult.error) {
-      proc.emit("error", mockSpawnResult.error);
+    if (command === "ffprobe") {
+      proc.stdout?.emit("data", Buffer.from(`${mockFfprobeDuration}\n`));
+      proc.emit("close", 0);
+    } else if (mockFfmpegResult.error) {
+      proc.emit("error", mockFfmpegResult.error);
     } else {
-      proc.emit("close", mockSpawnResult.exitCode);
+      proc.emit("close", mockFfmpegResult.exitCode);
     }
   });
 
@@ -106,14 +115,17 @@ vi.mock("node:child_process", () => ({
 
 // ---- fs mock ----
 const mockReadFile = vi.fn().mockResolvedValue(Buffer.from("fake-aac-data"));
+const mockWriteFile = vi.fn().mockResolvedValue(undefined);
 const mockUnlink = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("node:fs/promises", () => ({
   default: {
     readFile: (...args: unknown[]) => mockReadFile(...args),
+    writeFile: (...args: unknown[]) => mockWriteFile(...args),
     unlink: (...args: unknown[]) => mockUnlink(...args),
   },
   readFile: (...args: unknown[]) => mockReadFile(...args),
+  writeFile: (...args: unknown[]) => mockWriteFile(...args),
   unlink: (...args: unknown[]) => mockUnlink(...args),
 }));
 
@@ -145,18 +157,23 @@ describe("Snippet Worker", () => {
     mockUploadToR2.mockReset().mockResolvedValue(undefined);
     mockAirplayEventUpdate.mockReset().mockResolvedValue({});
     mockReadFile.mockReset().mockResolvedValue(Buffer.from("fake-aac-data"));
+    mockWriteFile.mockReset().mockResolvedValue(undefined);
     mockUnlink.mockReset().mockResolvedValue(undefined);
     mockSpawn.mockClear();
+    mockQueueAdd.mockClear();
+    mockQueueUpsertJobScheduler.mockClear();
     mockLoggerInfo.mockClear();
     mockLoggerDebug.mockClear();
     mockLoggerWarn.mockClear();
     mockLoggerError.mockClear();
     mockWorkerOn.mockClear();
 
-    // Default: snippets enabled, segments available, FFmpeg succeeds
+    // Default: snippets enabled, segments available, FFmpeg succeeds,
+    // ffprobe reports a full 10s clip (>= 8s minimum)
     process.env.SNIPPETS_ENABLED = "true";
     mockResolveSegments.mockResolvedValue(MOCK_SEGMENTS);
-    mockSpawnResult = { proc: null as unknown as MockProcess, exitCode: 0 };
+    mockFfmpegResult = { exitCode: 0 };
+    mockFfprobeDuration = "10.0";
 
     const mod = await import("../../src/workers/snippet.js");
     processSnippetJob = mod.processSnippetJob;
@@ -172,11 +189,23 @@ describe("Snippet Worker", () => {
   // Happy path
   // ============================================
   describe("Happy path", () => {
-    it("extracts 5s clip via FFmpeg, uploads to R2, updates AirplayEvent.snippetUrl with R2 key", async () => {
+    it("extracts 10s clip via FFmpeg, uploads to R2, updates AirplayEvent.snippetUrl with R2 key", async () => {
       await processSnippetJob(MOCK_JOB_DATA);
 
-      // FFmpeg was spawned
-      expect(mockSpawn).toHaveBeenCalledTimes(1);
+      // FFmpeg (extraction) + ffprobe (duration verification) were spawned
+      expect(mockSpawn).toHaveBeenCalledTimes(2);
+      expect(mockSpawn).toHaveBeenNthCalledWith(
+        1,
+        "ffmpeg",
+        expect.any(Array),
+        expect.any(Object),
+      );
+      expect(mockSpawn).toHaveBeenNthCalledWith(
+        2,
+        "ffprobe",
+        expect.any(Array),
+        expect.any(Object),
+      );
 
       // R2 upload was called
       expect(mockUploadToR2).toHaveBeenCalledWith(
@@ -211,7 +240,7 @@ describe("Snippet Worker", () => {
   // Kill switch
   // ============================================
   describe("Kill switch", () => {
-    it("skips extraction when SNIPPETS_ENABLED is not 'true'", async () => {
+    it("skips extraction when SNIPPETS_ENABLED is 'false'", async () => {
       process.env.SNIPPETS_ENABLED = "false";
 
       await processSnippetJob(MOCK_JOB_DATA);
@@ -226,10 +255,13 @@ describe("Snippet Worker", () => {
   // Missing segments
   // ============================================
   describe("Missing segments", () => {
-    it("skips extraction when resolveSegments returns null", async () => {
+    it("throws (for BullMQ retry) when resolveSegments returns null", async () => {
       mockResolveSegments.mockResolvedValue(null);
 
-      await processSnippetJob(MOCK_JOB_DATA);
+      // Snippets are mandatory: missing segments reject the job so BullMQ retries
+      await expect(processSnippetJob(MOCK_JOB_DATA)).rejects.toThrow(
+        "No segments available for snippet extraction",
+      );
 
       expect(mockSpawn).not.toHaveBeenCalled();
       expect(mockUploadToR2).not.toHaveBeenCalled();
@@ -241,34 +273,47 @@ describe("Snippet Worker", () => {
   // Temp file cleanup
   // ============================================
   describe("Temp file cleanup", () => {
-    it("cleans up temporary file after successful upload", async () => {
+    // Two files are cleaned per job: the FFmpeg concat list (<temp>.aac.txt,
+    // removed inside extractSnippet) and the temp .aac output (removed in the
+    // finally block of processSnippetJob).
+    it("cleans up concat list and temporary file after successful upload", async () => {
       await processSnippetJob(MOCK_JOB_DATA);
 
-      expect(mockUnlink).toHaveBeenCalledTimes(1);
+      expect(mockUnlink).toHaveBeenCalledTimes(2);
       expect(mockUnlink).toHaveBeenCalledWith(
-        expect.stringContaining("snippet-42-"),
+        expect.stringMatching(/snippet-42-\d+\.aac\.txt$/),
+      );
+      expect(mockUnlink).toHaveBeenCalledWith(
+        expect.stringMatching(/snippet-42-\d+\.aac$/),
       );
     });
 
-    it("cleans up temporary file after failed FFmpeg extraction", async () => {
-      mockSpawnResult = {
-        proc: null as unknown as MockProcess,
-        exitCode: 1,
-      };
+    it("cleans up temporary files after failed FFmpeg extraction", async () => {
+      mockFfmpegResult = { exitCode: 1 };
 
-      await expect(processSnippetJob(MOCK_JOB_DATA)).rejects.toThrow();
+      await expect(processSnippetJob(MOCK_JOB_DATA)).rejects.toThrow(
+        "FFmpeg exited with code 1",
+      );
 
-      expect(mockUnlink).toHaveBeenCalledTimes(1);
+      // Concat list (close handler) + temp output (finally block)
+      expect(mockUnlink).toHaveBeenCalledTimes(2);
+      expect(mockUnlink).toHaveBeenCalledWith(
+        expect.stringMatching(/snippet-42-\d+\.aac$/),
+      );
     });
 
-    it("cleans up temporary file after failed R2 upload", async () => {
+    it("cleans up temporary files after failed R2 upload", async () => {
       mockUploadToR2.mockRejectedValue(new Error("R2 upload failed"));
 
       await expect(processSnippetJob(MOCK_JOB_DATA)).rejects.toThrow(
         "R2 upload failed",
       );
 
-      expect(mockUnlink).toHaveBeenCalledTimes(1);
+      // Concat list (close handler) + temp output (finally block)
+      expect(mockUnlink).toHaveBeenCalledTimes(2);
+      expect(mockUnlink).toHaveBeenCalledWith(
+        expect.stringMatching(/snippet-42-\d+\.aac$/),
+      );
     });
   });
 
@@ -276,18 +321,22 @@ describe("Snippet Worker", () => {
   // FFmpeg arguments
   // ============================================
   describe("FFmpeg arguments", () => {
-    it("spawns FFmpeg with correct args", async () => {
+    it("spawns FFmpeg with concat demuxer, seek offset and 10s duration", async () => {
       await processSnippetJob(MOCK_JOB_DATA);
 
       expect(mockSpawn).toHaveBeenCalledWith(
         "ffmpeg",
         expect.arrayContaining([
+          "-f",
+          "concat",
+          "-safe",
+          "0",
+          "-i",
+          expect.stringMatching(/snippet-42-\d+\.aac\.txt$/),
           "-ss",
           "2.5",
-          "-i",
-          "concat:/mock/data/streams/1/segment-000.ts|/mock/data/streams/1/segment-001.ts",
           "-t",
-          "5",
+          "10",
           "-vn",
           "-c:a",
           "aac",
@@ -301,6 +350,13 @@ describe("Snippet Worker", () => {
           "adts",
         ]),
         expect.any(Object),
+      );
+
+      // The concat list file enumerates the resolved segments in order
+      expect(mockWriteFile).toHaveBeenCalledWith(
+        expect.stringMatching(/snippet-42-\d+\.aac\.txt$/),
+        "file '/mock/data/streams/1/segment-000.ts'\n" +
+          "file '/mock/data/streams/1/segment-001.ts'",
       );
     });
   });
