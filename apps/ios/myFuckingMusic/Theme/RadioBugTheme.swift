@@ -90,6 +90,6 @@ extension Font {
         .custom("Sora", size: size).weight(weight)
     }
     static func mono(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
-        .custom("IBMPlexMono", size: size).weight(weight)
+        .custom("IBM Plex Mono", size: size).weight(weight)
     }
 }

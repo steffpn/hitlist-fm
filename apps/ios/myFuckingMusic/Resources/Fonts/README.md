@@ -1,13 +1,12 @@
 # Fonts (onair.music)
 
-The design uses **Sora** (UI) and **IBM Plex Mono** (timestamps / ISRC / counts).
-Both are open-source (SIL OFL). Add them so `.sora()` / `.mono()` stop falling back to system:
+Bundled and registered automatically — no action needed.
 
-1. Download the **.ttf** files:
-   - Sora — https://fonts.google.com/specimen/Sora  (weights 400/500/600/700/800)
-   - IBM Plex Mono — https://fonts.google.com/specimen/IBM+Plex+Mono  (weights 400/500)
-2. Drop the `.ttf` files into THIS folder.
-3. In Xcode: drag them into the project navigator → check **"Copy items if needed"** and
-   **target membership: myFuckingMusic**. No Info.plist edit needed — `AppDelegate` registers
-   every bundled `.ttf` at launch (CTFontManager).
-4. Font names used in code: family **"Sora"** and **"IBMPlexMono"** (Font.sora / Font.mono).
+- **Sora.ttf** — variable font (Thin→ExtraBold), the UI typeface (`Font.sora`). Family: "Sora".
+- **IBMPlexMono-Regular.ttf** / **IBMPlexMono-Medium.ttf** — timestamps / ISRC / counts
+  (`Font.mono`). Family: "IBM Plex Mono".
+
+They are in the target's Copy Bundle Resources; `AppDelegate.registerBundledFonts()` registers
+every bundled `.ttf` at launch via CoreText (this target uses a generated Info.plist, so no
+`UIAppFonts` entry is needed). Source: Google Fonts (SIL OFL). To add more weights, drop the
+`.ttf` here and add it to the target.
