@@ -5,6 +5,7 @@ const mockStationFindFirst = vi.fn();
 const mockStationUpdate = vi.fn();
 const mockDetectionCreate = vi.fn();
 const mockAirplayEventFindFirst = vi.fn();
+const mockAirplayEventFindMany = vi.fn();
 const mockAirplayEventCreate = vi.fn();
 const mockAirplayEventUpdate = vi.fn();
 const mockNoMatchCallbackCreate = vi.fn();
@@ -20,6 +21,7 @@ vi.mock("../../src/lib/prisma.js", () => ({
     },
     airplayEvent: {
       findFirst: (...args: unknown[]) => mockAirplayEventFindFirst(...args),
+      findMany: (...args: unknown[]) => mockAirplayEventFindMany(...args),
       create: (...args: unknown[]) => mockAirplayEventCreate(...args),
       update: (...args: unknown[]) => mockAirplayEventUpdate(...args),
     },
@@ -50,10 +52,20 @@ vi.mock("bullmq", () => ({
   ),
 }));
 
+// ---- Deezer mock (artwork lookups must never hit the network in tests) ----
+const mockLookupArtwork = vi.fn().mockResolvedValue(null);
+
+vi.mock("../../src/lib/deezer.js", () => ({
+  lookupArtwork: (...args: unknown[]) => mockLookupArtwork(...args),
+}));
+
 // ---- Redis mock ----
 const mockRedisPublish = vi.fn().mockResolvedValue(0);
 const mockRedisZadd = vi.fn().mockResolvedValue(1);
 const mockRedisZremrangebyrank = vi.fn().mockResolvedValue(0);
+// Per-station dedup lock primitives
+const mockRedisSet = vi.fn().mockResolvedValue("OK");
+const mockRedisDel = vi.fn().mockResolvedValue(1);
 
 vi.mock("../../src/lib/redis.js", () => ({
   createRedisConnection: vi.fn().mockReturnValue({}),
@@ -61,6 +73,8 @@ vi.mock("../../src/lib/redis.js", () => ({
     publish: (...args: unknown[]) => mockRedisPublish(...args),
     zadd: (...args: unknown[]) => mockRedisZadd(...args),
     zremrangebyrank: (...args: unknown[]) => mockRedisZremrangebyrank(...args),
+    set: (...args: unknown[]) => mockRedisSet(...args),
+    del: (...args: unknown[]) => mockRedisDel(...args),
   },
 }));
 
@@ -138,6 +152,7 @@ describe("Detection Worker", () => {
     mockStationUpdate.mockClear();
     mockDetectionCreate.mockClear();
     mockAirplayEventFindFirst.mockClear();
+    mockAirplayEventFindMany.mockClear();
     mockAirplayEventCreate.mockClear();
     mockAirplayEventUpdate.mockClear();
     mockNoMatchCallbackCreate.mockClear();
@@ -155,6 +170,7 @@ describe("Detection Worker", () => {
     mockStationUpdate.mockResolvedValue(MOCK_STATION);
     mockDetectionCreate.mockResolvedValue({ id: 1 });
     mockAirplayEventFindFirst.mockResolvedValue(null);
+    mockAirplayEventFindMany.mockResolvedValue([]);
     mockAirplayEventCreate.mockResolvedValue({ id: 1 });
     mockAirplayEventUpdate.mockResolvedValue({ id: 1 });
     mockNoMatchCallbackCreate.mockResolvedValue({ id: 1 });
@@ -349,9 +365,8 @@ describe("Detection Worker", () => {
       const timestamp1 = "2026-03-15 14:30:00";
       const timestamp2 = "2026-03-15 14:32:00"; // 2 minutes later
 
-      // First callback: no existing event
-      mockAirplayEventFindFirst.mockResolvedValueOnce(null);
-
+      // First callback: no existing event (no-ISRC dedup only queries findMany,
+      // which defaults to [] -- no findFirst stub needed)
       const cb1 = buildCallback();
       cb1.data.metadata.timestamp_utc = timestamp1;
       cb1.data.metadata.music[0].external_ids = {}; // no ISRC
@@ -360,6 +375,7 @@ describe("Detection Worker", () => {
       expect(mockAirplayEventCreate).toHaveBeenCalledTimes(1);
 
       // Second callback: existing event matches by normalized title+artist
+      // (no-ISRC dedup goes through the findMany candidates path)
       const existingEvent = {
         id: 20,
         stationId: 1,
@@ -371,7 +387,7 @@ describe("Detection Worker", () => {
         playCount: 1,
         confidence: 0.85,
       };
-      mockAirplayEventFindFirst.mockResolvedValueOnce(existingEvent);
+      mockAirplayEventFindMany.mockResolvedValueOnce([existingEvent]);
 
       const cb2 = buildCallback();
       cb2.data.metadata.timestamp_utc = timestamp2;
@@ -395,9 +411,7 @@ describe("Detection Worker", () => {
       const timestamp1 = "2026-03-15 14:30:00";
       const timestamp2 = "2026-03-15 14:32:00";
 
-      // First callback: no existing event
-      mockAirplayEventFindFirst.mockResolvedValueOnce(null);
-
+      // First callback: no existing event (no-ISRC dedup uses findMany, default [])
       const cb1 = buildCallback();
       cb1.data.metadata.timestamp_utc = timestamp1;
       cb1.data.metadata.music[0].external_ids = {};
@@ -408,8 +422,6 @@ describe("Detection Worker", () => {
       expect(mockAirplayEventCreate).toHaveBeenCalledTimes(1);
 
       // Second callback: different title, no match found
-      mockAirplayEventFindFirst.mockResolvedValueOnce(null);
-
       const cb2 = buildCallback();
       cb2.data.metadata.timestamp_utc = timestamp2;
       cb2.data.metadata.music[0].external_ids = {};
@@ -511,6 +523,169 @@ describe("Detection Worker", () => {
   });
 
   // ============================================
+  // Partial play flag (MIN_FULL_PLAY_SECONDS = 30)
+  // ============================================
+  describe("Partial play flag", () => {
+    it("creates AirplayEvent with partialPlay=true when played_duration < 30s", async () => {
+      const cb = buildCallback();
+      (cb.data.metadata as Record<string, unknown>).played_duration = 5;
+
+      await processCallback(cb);
+
+      expect(mockAirplayEventCreate).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          playedDuration: 5,
+          partialPlay: true,
+        }),
+      });
+    });
+
+    it("creates AirplayEvent with partialPlay=false when played_duration >= 30s", async () => {
+      const cb = buildCallback();
+      (cb.data.metadata as Record<string, unknown>).played_duration = 45;
+
+      await processCallback(cb);
+
+      expect(mockAirplayEventCreate).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          playedDuration: 45,
+          partialPlay: false,
+        }),
+      });
+    });
+
+    it("treats missing played_duration as a full play (partialPlay=false)", async () => {
+      await processCallback(buildCallback());
+
+      expect(mockAirplayEventCreate).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          playedDuration: null,
+          partialPlay: false,
+        }),
+      });
+    });
+
+    it("clears partialPlay when an extension pushes cumulative played duration past 30s", async () => {
+      const existingEvent = {
+        id: 50,
+        stationId: 1,
+        startedAt: new Date("2026-03-15 14:30:00"),
+        endedAt: new Date("2026-03-15 14:30:00"),
+        songTitle: "Doua Inimi",
+        artistName: "Irina Rimes",
+        isrc: "ROA231600001",
+        playCount: 1,
+        confidence: 0.85,
+        partialPlay: true,
+        playedDuration: 20,
+      };
+      mockAirplayEventFindFirst.mockResolvedValueOnce(existingEvent);
+
+      const cb = buildCallback();
+      cb.data.metadata.timestamp_utc = "2026-03-15 14:30:15"; // span only 15s
+      (cb.data.metadata as Record<string, unknown>).played_duration = 15; // 20 + 15 = 35s >= 30s
+
+      await processCallback(cb);
+
+      expect(mockAirplayEventUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 50 },
+          data: expect.objectContaining({ partialPlay: false }),
+        }),
+      );
+    });
+
+    it("clears partialPlay when the event's detection span reaches 30s", async () => {
+      const existingEvent = {
+        id: 51,
+        stationId: 1,
+        startedAt: new Date("2026-03-15 14:30:00"),
+        endedAt: new Date("2026-03-15 14:30:00"),
+        songTitle: "Doua Inimi",
+        artistName: "Irina Rimes",
+        isrc: "ROA231600001",
+        playCount: 1,
+        confidence: 0.85,
+        partialPlay: true,
+        playedDuration: 5,
+      };
+      mockAirplayEventFindFirst.mockResolvedValueOnce(existingEvent);
+
+      const cb = buildCallback();
+      cb.data.metadata.timestamp_utc = "2026-03-15 14:32:00"; // span 120s >= 30s
+      (cb.data.metadata as Record<string, unknown>).played_duration = 10; // cumulative only 15s
+
+      await processCallback(cb);
+
+      expect(mockAirplayEventUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 51 },
+          data: expect.objectContaining({ partialPlay: false }),
+        }),
+      );
+    });
+
+    it("keeps partialPlay=true when extension stays under 30s on all measures", async () => {
+      const existingEvent = {
+        id: 52,
+        stationId: 1,
+        startedAt: new Date("2026-03-15 14:30:00"),
+        endedAt: new Date("2026-03-15 14:30:00"),
+        songTitle: "Doua Inimi",
+        artistName: "Irina Rimes",
+        isrc: "ROA231600001",
+        playCount: 1,
+        confidence: 0.85,
+        partialPlay: true,
+        playedDuration: 10,
+      };
+      mockAirplayEventFindFirst.mockResolvedValueOnce(existingEvent);
+
+      const cb = buildCallback();
+      cb.data.metadata.timestamp_utc = "2026-03-15 14:30:10"; // span 10s
+      (cb.data.metadata as Record<string, unknown>).played_duration = 5; // cumulative 15s
+
+      await processCallback(cb);
+
+      expect(mockAirplayEventUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 52 },
+          data: expect.not.objectContaining({ partialPlay: expect.anything() }),
+        }),
+      );
+    });
+
+    it("clears partialPlay when an extending callback has no played_duration (full play)", async () => {
+      const existingEvent = {
+        id: 53,
+        stationId: 1,
+        startedAt: new Date("2026-03-15 14:30:00"),
+        endedAt: new Date("2026-03-15 14:30:00"),
+        songTitle: "Doua Inimi",
+        artistName: "Irina Rimes",
+        isrc: "ROA231600001",
+        playCount: 1,
+        confidence: 0.85,
+        partialPlay: true,
+        playedDuration: 5,
+      };
+      mockAirplayEventFindFirst.mockResolvedValueOnce(existingEvent);
+
+      const cb = buildCallback();
+      cb.data.metadata.timestamp_utc = "2026-03-15 14:30:10"; // span 10s, no played_duration
+
+      await processCallback(cb);
+
+      expect(mockAirplayEventUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 53 },
+          data: expect.objectContaining({ partialPlay: false }),
+        }),
+      );
+    });
+  });
+
+  // ============================================
   // No-match handling
   // ============================================
   describe("No-match handling", () => {
@@ -604,11 +779,18 @@ describe("Detection Worker", () => {
       await mod.startDetectionWorker({ snippetQueue: mockSnippetQueue });
       await mod.processCallback(buildCallback());
 
-      expect(mockSnippetQueueAdd).toHaveBeenCalledWith("extract", {
-        airplayEventId: 42,
-        stationId: 1,
-        detectedAt: new Date("2026-03-15 14:30:00").toISOString(),
-      });
+      expect(mockSnippetQueueAdd).toHaveBeenCalledWith(
+        "extract",
+        {
+          airplayEventId: 42,
+          stationId: 1,
+          detectedAt: new Date("2026-03-15 14:30:00").toISOString(),
+        },
+        {
+          attempts: 20,
+          backoff: { type: "exponential", delay: 3000 },
+        },
+      );
 
       delete process.env.SNIPPETS_ENABLED;
     });

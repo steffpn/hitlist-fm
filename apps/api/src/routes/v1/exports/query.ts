@@ -35,6 +35,10 @@ export async function queryFilteredEvents(
   // Build where clause
   const where: Record<string, unknown> = {};
 
+  // Exports always exclude partial plays (< 30s teasers/jingles) — they are
+  // not real airplay by industry standards (MediaForest ~30s threshold).
+  where.partialPlay = false;
+
   // Search: OR across songTitle, artistName (contains), isrc (equals)
   if (q) {
     where.OR = [

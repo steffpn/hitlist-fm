@@ -77,19 +77,20 @@ export async function startSupervisor(): Promise<{
   const streamManager = new StreamManager();
   const watchdog = new Watchdog(streamManager);
 
-  // --- Reset ERROR stations and load all for startup ---
-  await prisma.station.updateMany({
-    where: { status: "ERROR" },
-    data: { status: "ACTIVE" },
-  });
-
+  // --- Load stations for startup ---
+  // Deliberately NO blanket ERROR -> ACTIVE reset here: that used to hide dead
+  // stations on every process restart. ERROR/DEGRADED stations are still
+  // *attempted* (the stream may have recovered while the supervisor was down),
+  // but the DB status only flips back to ACTIVE when the StreamManager
+  // confirms a healthy start (first valid segment written), or - for DEGRADED -
+  // when the station-health worker sees fresh ACRCloud callbacks again.
   const stations = await prisma.station.findMany({
-    where: { status: "ACTIVE" },
+    where: { status: { in: ["ACTIVE", "DEGRADED", "ERROR"] } },
   });
 
   logger.info(
     { count: stations.length, stations: stations.map(s => ({ id: s.id, name: s.name, status: s.status, url: s.streamUrl })) },
-    "Loading active stations for startup",
+    "Loading stations for startup (ACTIVE/DEGRADED/ERROR)",
   );
 
   for (let i = 0; i < stations.length; i += STARTUP_BATCH_SIZE) {
@@ -175,8 +176,10 @@ export async function startSupervisor(): Promise<{
   subscriber.on("connect", async () => {
     logger.info("Redis subscriber reconnected, performing reconciliation");
     try {
+      // Same set as startup: ERROR/DEGRADED streams keep being attempted so
+      // they can recover; only INACTIVE stations must not run.
       const activeStations = await prisma.station.findMany({
-        where: { status: "ACTIVE" },
+        where: { status: { in: ["ACTIVE", "DEGRADED", "ERROR"] } },
       });
 
       const activeIds = new Set(activeStations.map((s) => s.id));

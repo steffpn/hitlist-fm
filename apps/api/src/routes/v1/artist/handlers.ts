@@ -7,6 +7,7 @@ import type {
   AddMonitoredSongBody,
   SongAnalyticsQuery,
 } from "./schema.js";
+import type { BrowseTracksQuery } from "./schema.js";
 
 // --- Date helpers ---
 
@@ -136,6 +137,7 @@ export async function getArtistSongs(
           SELECT COUNT(*)::bigint AS plays, COUNT(DISTINCT station_id)::bigint AS stations
           FROM airplay_events
           WHERE isrc = ${song.isrc} AND started_at >= ${song.activatedAt}
+            AND partial_play = false
         `;
 
       const thisWeekRows: Array<{ count: bigint }> =
@@ -145,6 +147,7 @@ export async function getArtistSongs(
           WHERE isrc = ${song.isrc}
             AND started_at >= ${startOfWeek > song.activatedAt ? startOfWeek : song.activatedAt}
             AND started_at <= NOW()
+            AND partial_play = false
         `;
 
       const lastWeekRows: Array<{ count: bigint }> =
@@ -155,6 +158,7 @@ export async function getArtistSongs(
             AND started_at >= ${startOfLastWeek > song.activatedAt ? startOfLastWeek : song.activatedAt}
             AND started_at <= ${endOfLastWeek}
             AND started_at >= ${song.activatedAt}
+            AND partial_play = false
         `;
 
       const thisWeekCount = Number(thisWeekRows[0]?.count ?? 0);
@@ -266,6 +270,7 @@ export async function getSongAnalytics(
       SELECT DATE_TRUNC('day', started_at) AS date, COUNT(*)::bigint AS count
       FROM airplay_events
       WHERE isrc = ${song.isrc} AND started_at >= ${song.activatedAt}
+        AND partial_play = false
       GROUP BY DATE_TRUNC('day', started_at)
       ORDER BY date ASC
     `;
@@ -275,6 +280,7 @@ export async function getSongAnalytics(
       SELECT COUNT(*)::bigint AS plays, COUNT(DISTINCT station_id)::bigint AS stations
       FROM airplay_events
       WHERE isrc = ${song.isrc} AND started_at >= ${song.activatedAt}
+        AND partial_play = false
     `;
 
   return reply.send({
@@ -323,6 +329,7 @@ export async function getStationBreakdown(
     FROM airplay_events ae
     JOIN stations s ON s.id = ae.station_id
     WHERE ae.isrc = ${song.isrc} AND ae.started_at >= ${song.activatedAt}
+      AND ae.partial_play = false
     GROUP BY ae.station_id, s.name, s.logo_url
     ORDER BY play_count DESC
   `;
@@ -363,6 +370,7 @@ export async function getHourlyHeatmap(
       COUNT(*)::int AS plays
     FROM airplay_events
     WHERE isrc = ${song.isrc} AND started_at >= ${song.activatedAt}
+      AND partial_play = false
     GROUP BY day_of_week, hour
     ORDER BY day_of_week, hour
   `;
@@ -409,6 +417,7 @@ export async function getPeakHours(
       COUNT(*)::int AS plays
     FROM airplay_events
     WHERE isrc = ${song.isrc} AND started_at >= ${song.activatedAt}
+      AND partial_play = false
     GROUP BY day_of_week, hour
     ORDER BY plays DESC
     LIMIT 5
@@ -456,6 +465,7 @@ export async function getSongTrend(
     WHERE isrc = ${song.isrc}
       AND started_at >= ${thisWeekStart}
       AND started_at <= ${now}
+      AND partial_play = false
   `;
 
   const lastWeekRows: Array<{ count: bigint }> = await prisma.$queryRaw`
@@ -465,6 +475,7 @@ export async function getSongTrend(
       AND started_at >= ${lastWeekStart}
       AND started_at <= ${endOfLastWeek}
       AND started_at >= ${song.activatedAt}
+      AND partial_play = false
   `;
 
   const thisWeek = Number(thisWeekRows[0]?.count ?? 0);
@@ -525,6 +536,7 @@ export async function getArtistDashboard(
       WHERE isrc = ${song.isrc}
         AND started_at >= ${todayStart}
         AND started_at <= ${now}
+        AND partial_play = false
     `;
 
     const weekRows: Array<{ count: bigint }> = await prisma.$queryRaw`
@@ -533,6 +545,7 @@ export async function getArtistDashboard(
       WHERE isrc = ${song.isrc}
         AND started_at >= ${weekStart}
         AND started_at <= ${now}
+        AND partial_play = false
     `;
 
     const todayCount = Number(todayRows[0]?.count ?? 0);
@@ -591,6 +604,7 @@ export async function getWeeklyDigest(
           WHERE isrc = ${song.isrc}
             AND started_at >= ${thisWeekStart}
             AND started_at <= ${now}
+            AND partial_play = false
         `;
 
       const lastWeekRows: Array<{ count: bigint }> =
@@ -601,6 +615,7 @@ export async function getWeeklyDigest(
             AND started_at >= ${lastWeekStart}
             AND started_at <= ${endOfLastWeek}
             AND started_at >= ${song.activatedAt}
+            AND partial_play = false
         `;
 
       const playsThisWeek = Number(thisWeekRows[0]?.count ?? 0);
@@ -618,6 +633,7 @@ export async function getWeeklyDigest(
           JOIN stations s ON s.id = ae.station_id
           WHERE ae.isrc = ${song.isrc}
             AND ae.started_at >= ${song.activatedAt}
+            AND ae.partial_play = false
           GROUP BY s.id, s.name
           HAVING MIN(ae.started_at) >= ${startOfWeek}
         `;
@@ -636,4 +652,104 @@ export async function getWeeklyDigest(
   );
 
   return reply.send({ songs: digest });
+}
+
+/**
+ * GET /artist/browse-tracks?q=numele piesei
+ * Catalog search for artist onboarding — same Deezer mechanism as the label
+ * browse endpoints (search + per-track ISRC lookup, since Deezer's search
+ * payload doesn't include ISRC). Only tracks with a non-null ISRC are returned.
+ */
+export async function browseTracks(
+  request: FastifyRequest<{ Querystring: BrowseTracksQuery }>,
+  reply: FastifyReply,
+): Promise<void> {
+  const { q } = request.query;
+
+  if (!q || q.trim().length === 0) {
+    return reply.send([]);
+  }
+
+  try {
+    const params = new URLSearchParams({
+      q: q.trim(),
+      limit: "25",
+    });
+
+    const response = await fetch(
+      `https://api.deezer.com/search/track?${params}`,
+    );
+
+    if (!response.ok) {
+      return reply.status(502).send({ error: "Deezer API error" });
+    }
+
+    const data = (await response.json()) as {
+      data?: Array<{
+        id: number;
+        title: string;
+        artist?: { name?: string };
+        album?: { cover_medium?: string };
+      }>;
+    };
+
+    // Fetch ISRC per track (Deezer search endpoint doesn't include it)
+    const tracks = await Promise.all(
+      (data.data || []).slice(0, 25).map(async (t) => {
+        let isrc: string | null = null;
+        try {
+          const trackResponse = await fetch(
+            `https://api.deezer.com/track/${t.id}`,
+          );
+          if (trackResponse.ok) {
+            const trackData = (await trackResponse.json()) as {
+              isrc?: string;
+            };
+            isrc = trackData.isrc || null;
+          }
+        } catch {
+          // Best effort
+        }
+
+        return {
+          title: t.title,
+          artist: t.artist?.name ?? "",
+          isrc,
+          coverUrl: t.album?.cover_medium ?? null,
+          deezerTrackId: t.id,
+        };
+      }),
+    );
+
+    // Only tracks with a usable ISRC are actionable for monitoring
+    return reply.send(tracks.filter((t) => t.isrc !== null));
+  } catch {
+    return reply.status(502).send({ error: "Failed to search tracks" });
+  }
+}
+
+/**
+ * DELETE /artist/songs/:id - Remove one of the artist's own monitored songs.
+ * Strict ownership: only songs where userId = currentUser.id can be deleted.
+ * LabelMonitoredSong link rows referencing this song are removed automatically
+ * by Postgres (FK onDelete: Cascade in schema.prisma).
+ */
+export async function deleteArtistSong(
+  request: FastifyRequest<{ Params: SongIdParams }>,
+  reply: FastifyReply,
+): Promise<void> {
+  const userId = request.currentUser.id;
+  const { id } = request.params;
+
+  const song = await prisma.monitoredSong.findFirst({
+    where: { id, userId },
+  });
+
+  if (!song) {
+    return reply.status(404).send({ error: "Song not found" });
+  }
+
+  await prisma.monitoredSong.delete({ where: { id } });
+
+  return reply.status(204).send();
 }

@@ -3,18 +3,32 @@
  *
  * Manages the lifecycle of stream recording processes: start, stop, restart.
  * Implements exponential backoff restart on failure and circuit-breaking
- * after 5 consecutive failures.
+ * after 5 consecutive failures (station -> ERROR + admin push).
+ *
+ * A station only transitions ERROR -> ACTIVE in the DB after a healthy start
+ * is confirmed (first valid segment written by the new process) - never as a
+ * blind reset at boot.
  */
 
 import type { ChildProcess } from "node:child_process";
+import path from "node:path";
 import pino from "pino";
-import { spawnFFmpeg } from "./ffmpeg.js";
+import { spawnFFmpeg, DATA_DIR } from "./ffmpeg.js";
+import { getLatestSegmentMtime } from "./watchdog.js";
+import { notifyAdmins } from "./admin-notify.js";
 import { prisma } from "../../lib/prisma.js";
 
 const logger = pino({ name: "supervisor:stream-manager" });
 
 const BASE_BACKOFF_MS = 10_000;
 const MAX_RESTARTS = 5;
+
+/** Minimum segment file size to count as a valid segment (matches watchdog). */
+const MIN_SEGMENT_BYTES = 1024;
+/** Delay between healthy-start confirmation checks. */
+const HEALTH_CONFIRM_DELAY_MS = 15_000;
+/** How many confirmation checks to attempt before giving up. */
+const HEALTH_CONFIRM_MAX_ATTEMPTS = 4;
 
 /**
  * Represents a tracked FFmpeg process for a single station.
@@ -82,11 +96,10 @@ export class StreamManager {
         }
       });
 
-      // Update station status to ACTIVE in DB
-      await prisma.station.update({
-        where: { id: stationId },
-        data: { status: "ACTIVE" },
-      });
+      // Do NOT mark the station ACTIVE yet: spawning FFmpeg succeeds even for
+      // dead stream URLs. The station flips ERROR -> ACTIVE only after the
+      // new process writes its first valid segment (confirmed below).
+      this.scheduleHealthConfirmation(stationId, proc);
 
       logger.info({ stationId, pid: entry.pid }, "Stream started");
     } catch (err) {
@@ -158,17 +171,7 @@ export class StreamManager {
       entry.status = "error";
       entry.backoffTimer = null;
 
-      prisma.station
-        .update({
-          where: { id: stationId },
-          data: {
-            status: "ERROR",
-            restartCount: entry.restartCount,
-          },
-        })
-        .catch((err) => {
-          logger.error({ stationId, err }, "Failed to update station status to ERROR");
-        });
+      void this.tripCircuitBreaker(stationId, entry.restartCount);
 
       logger.error(
         { stationId, restartCount: entry.restartCount },
@@ -205,6 +208,8 @@ export class StreamManager {
             }
           });
 
+          this.scheduleHealthConfirmation(stationId, proc);
+
           logger.info(
             { stationId, pid: current.pid },
             "Stream restarted after backoff",
@@ -215,6 +220,115 @@ export class StreamManager {
         }
       }
     }, delay);
+  }
+
+  /**
+   * Persist the circuit-breaker trip (station -> ERROR) and alert admins.
+   *
+   * Deduplication: the status guard in the WHERE clause means only the
+   * transition into ERROR sends a push. If the station was already ERROR
+   * (e.g. it tripped in a previous supervisor run and never recovered),
+   * updateMany matches 0 rows and no push is sent.
+   */
+  private async tripCircuitBreaker(
+    stationId: number,
+    restartCount: number,
+  ): Promise<void> {
+    try {
+      const res = await prisma.station.updateMany({
+        where: { id: stationId, status: { not: "ERROR" } },
+        data: { status: "ERROR", restartCount },
+      });
+
+      if (res.count === 0) {
+        // Already ERROR - do not re-notify.
+        return;
+      }
+
+      const station = await prisma.station.findUnique({
+        where: { id: stationId },
+        select: { name: true },
+      });
+
+      await notifyAdmins({
+        title: "Stație căzută",
+        body: `Stația ${station?.name ?? `#${stationId}`} a căzut (${MAX_RESTARTS} eșecuri consecutive)`,
+        data: { type: "station_down", stationId: String(stationId) },
+      });
+    } catch (err) {
+      logger.error(
+        { stationId, err },
+        "Failed to update station status to ERROR",
+      );
+    }
+  }
+
+  /**
+   * Confirm a healthy stream start: once the newly spawned process writes its
+   * first valid segment, flip the station ERROR -> ACTIVE in the DB.
+   *
+   * Checks up to HEALTH_CONFIRM_MAX_ATTEMPTS times, HEALTH_CONFIRM_DELAY_MS
+   * apart, and aborts if the stream was stopped, replaced, or failed in the
+   * meantime. Only the ERROR status is overwritten: ACTIVE needs no write,
+   * DEGRADED is owned by the station-health worker (ACR callbacks, not the
+   * local recorder), and INACTIVE stations should not be resurrected.
+   */
+  private scheduleHealthConfirmation(
+    stationId: number,
+    proc: ChildProcess,
+  ): void {
+    const spawnedAt = Date.now();
+    let attempts = 0;
+
+    const check = async (): Promise<void> => {
+      attempts += 1;
+
+      const entry = this.streams.get(stationId);
+      // Stream stopped, replaced, or already failed -> abandon confirmation
+      if (!entry || entry.process !== proc || entry.status !== "recording") {
+        return;
+      }
+
+      const segmentDir = path.join(DATA_DIR, String(stationId));
+      const latestMtime = await getLatestSegmentMtime(
+        segmentDir,
+        MIN_SEGMENT_BYTES,
+      );
+      // Require a segment written by THIS process (older segments from a
+      // previous run may still be on disk).
+      const hasFreshSegment =
+        latestMtime !== null && latestMtime.getTime() >= spawnedAt;
+
+      if (hasFreshSegment) {
+        const res = await prisma.station.updateMany({
+          where: { id: stationId, status: "ERROR" },
+          data: { status: "ACTIVE", restartCount: 0 },
+        });
+        if (res.count > 0) {
+          logger.info(
+            { stationId },
+            "Healthy start confirmed - station recovered ERROR -> ACTIVE",
+          );
+        }
+        return;
+      }
+
+      if (attempts < HEALTH_CONFIRM_MAX_ATTEMPTS) {
+        const timer = setTimeout(() => {
+          check().catch((err) =>
+            logger.error({ stationId, err }, "Health confirmation check failed"),
+          );
+        }, HEALTH_CONFIRM_DELAY_MS);
+        timer.unref?.();
+      }
+    };
+
+    const timer = setTimeout(() => {
+      check().catch((err) =>
+        logger.error({ stationId, err }, "Health confirmation check failed"),
+      );
+    }, HEALTH_CONFIRM_DELAY_MS);
+    timer.unref?.();
   }
 
   /**

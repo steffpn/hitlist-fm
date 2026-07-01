@@ -29,3 +29,16 @@ export const LogoutSchema = Type.Object({
 });
 
 export type LogoutBody = Static<typeof LogoutSchema>;
+
+export const ForgotPasswordSchema = Type.Object({
+  email: Type.String({ format: "email" }),
+});
+
+export type ForgotPasswordBody = Static<typeof ForgotPasswordSchema>;
+
+export const ResetPasswordSchema = Type.Object({
+  token: Type.String({ minLength: 1 }),
+  newPassword: Type.String({ minLength: 8 }),
+});
+
+export type ResetPasswordBody = Static<typeof ResetPasswordSchema>;

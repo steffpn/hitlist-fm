@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { Prisma } from "../../../../generated/prisma/client.js";
 import { prisma } from "../../../lib/prisma.js";
+import { fetchArtistPicture } from "../../../lib/deezer.js";
 import { userHasFeature } from "../../../middleware/require-feature.js";
 import type {
   AddArtistBody,
@@ -57,6 +58,7 @@ export async function getLabelArtists(
                 FROM airplay_events
                 WHERE isrc = ${ms.isrc}
                   AND started_at >= ${ms.activatedAt}
+                  AND partial_play = false
                 GROUP BY isrc
               `,
             ),
@@ -151,22 +153,14 @@ export async function addLabelArtist(
       },
     });
 
-    // Auto-fetch picture from Deezer
+    // Auto-fetch picture from Deezer (best effort)
     try {
-      const deezerRes = await fetch(
-        `https://api.deezer.com/search/artist?q=${encodeURIComponent(artistName)}&limit=1`,
-      );
-      if (deezerRes.ok) {
-        const deezerData = (await deezerRes.json()) as {
-          data?: Array<{ picture_medium?: string }>;
-        };
-        const pictureUrl = deezerData.data?.[0]?.picture_medium;
-        if (pictureUrl) {
-          labelArtist = await prisma.labelArtist.update({
-            where: { id: labelArtist.id },
-            data: { pictureUrl },
-          });
-        }
+      const pictureUrl = await fetchArtistPicture(artistName);
+      if (pictureUrl) {
+        labelArtist = await prisma.labelArtist.update({
+          where: { id: labelArtist.id },
+          data: { pictureUrl },
+        });
       }
     } catch {
       /* best effort */
@@ -258,6 +252,7 @@ export async function getLabelArtistSongs(
           FROM airplay_events
           WHERE isrc = ${song.isrc}
             AND started_at >= ${song.activatedAt}
+            AND partial_play = false
         `;
 
         if (playData.length > 0) {
@@ -424,6 +419,7 @@ export async function getLabelDashboard(
         FROM airplay_events
         WHERE isrc = ${ms.isrc}
           AND started_at >= ${ms.activatedAt}
+          AND partial_play = false
       `;
       songPlays.set(ms.id, rows.length > 0 ? Number(rows[0].play_count) : 0);
       songStations.set(ms.id, rows.length > 0 ? Number(rows[0].station_count) : 0);
@@ -540,6 +536,7 @@ export async function getArtistComparison(
           WHERE isrc IN (${Prisma.join(isrcs)})
             AND started_at >= ${earliestActivatedAt}
             AND started_at >= NOW() - ${days + " days"}::interval
+            AND partial_play = false
           GROUP BY DATE_TRUNC('day', started_at)
           ORDER BY day ASC
         `;
@@ -618,6 +615,7 @@ export async function getStationAffinity(
     JOIN stations s ON s.id = ae.station_id
     WHERE ae.isrc IN (${Prisma.join(isrcs)})
       AND ae.started_at >= ${earliestActivatedAt}
+      AND ae.partial_play = false
     GROUP BY ae.station_id, s.name, s.logo_url
     ORDER BY label_plays DESC
   `;
@@ -637,6 +635,7 @@ export async function getStationAffinity(
     FROM airplay_events
     WHERE station_id IN (${Prisma.join(stationIds)})
       AND started_at >= ${earliestActivatedAt}
+      AND partial_play = false
     GROUP BY station_id
   `;
 
@@ -711,6 +710,7 @@ export async function getReleaseTracker(
     WHERE isrc = ${song.isrc}
       AND started_at >= ${song.activatedAt}
       AND started_at < ${fourteenDaysLater}
+      AND partial_play = false
     GROUP BY DATE_TRUNC('day', started_at)
     ORDER BY day ASC
   `;

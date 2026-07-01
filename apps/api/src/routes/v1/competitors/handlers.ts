@@ -184,6 +184,7 @@ export async function getCompetitorSummary(
     FROM airplay_events
     WHERE station_id IN (${Prisma.join(watchedIds)})
       AND started_at >= NOW() - ${days + " days"}::interval
+      AND partial_play = false
     GROUP BY station_id
   `;
 
@@ -197,6 +198,7 @@ export async function getCompetitorSummary(
       FROM airplay_events
       WHERE station_id IN (${Prisma.join(watchedIds)})
         AND started_at >= NOW() - ${days + " days"}::interval
+        AND partial_play = false
       GROUP BY station_id, song_title, artist_name
       ORDER BY station_id, cnt DESC
     ) sub
@@ -278,6 +280,7 @@ export async function getCompetitorDetail(
     FROM airplay_events
     WHERE station_id = ${competitorStationId}
       AND started_at >= NOW() - ${days + " days"}::interval
+      AND partial_play = false
     GROUP BY song_title, artist_name, isrc
     ORDER BY play_count DESC
     LIMIT 20
@@ -317,6 +320,7 @@ export async function getCompetitorDetail(
       FROM airplay_events
       WHERE (station_id = ${competitorStationId} OR station_id IN (${Prisma.join(ownStationIds)}))
         AND started_at >= NOW() - ${days + " days"}::interval
+        AND partial_play = false
       GROUP BY song_title, artist_name
       HAVING SUM(CASE WHEN station_id = ${competitorStationId} THEN 1 ELSE 0 END) > 0
         AND SUM(CASE WHEN station_id IN (${Prisma.join(ownStationIds)}) THEN 1 ELSE 0 END) > 0

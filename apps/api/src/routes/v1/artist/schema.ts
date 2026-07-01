@@ -47,3 +47,9 @@ export const SongAnalyticsQuerySchema = Type.Object({
 });
 
 export type SongAnalyticsQuery = Static<typeof SongAnalyticsQuerySchema>;
+
+export const BrowseTracksQuerySchema = Type.Object({
+  q: Type.Optional(Type.String()),
+});
+
+export type BrowseTracksQuery = Static<typeof BrowseTracksQuerySchema>;

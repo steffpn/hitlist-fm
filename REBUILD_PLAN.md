@@ -62,3 +62,10 @@ executată autonom de Claude. Utilizatorul face analiza before/after la final.
 
 ## Jurnal
 - 2026-07-01: Plan creat. Snippet 5s+5s aplicat. Railway verificat (MFM, workspace personal).
+- 2026-07-02: F1 val 1 comis (60f26c6): scoping ARTIST/LABEL peste tot, requireFeature + limite,
+  digest→daily-report, cod mort șters, migrare reconciliere baseline (lanțul merge pe DB gol,
+  marcată applied pe prod) + phase1_cleanup (verificată pe clonă de prod). Backup prod în backups/.
+  Teste: fără fișiere noi picate vs HEAD (121 eșecuri PRE-EXISTENTE — reparația suitei = item val 3).
+  tsc: 7 erori noi TS2345 (boala pre-existentă fastify schema+preHandler) — fix global în val 3.
+- F1 val 2 (în curs): partial_play wiring + artwork caching; /billing move; forgot/reset password
+  + delete account; station health alerts; browse-tracks artist + /artists/summary + DELETE song.

@@ -88,6 +88,7 @@ export async function getStationOverview(
     WHERE station_id IN (${Prisma.join(ownStationIds)})
       AND started_at >= ${start}
       AND started_at <= ${end}
+      AND partial_play = false
   `;
 
   const stations = await prisma.station.findMany({
@@ -137,6 +138,7 @@ export async function getStationTopSongs(
     WHERE station_id IN (${Prisma.join(ownStationIds)})
       AND started_at >= ${start}
       AND started_at <= ${end}
+      AND partial_play = false
     GROUP BY song_title, artist_name, isrc
     ORDER BY play_count DESC
     LIMIT ${limit}
@@ -187,6 +189,7 @@ export async function getNewSongs(
       MIN(ae.started_at) AS first_played
     FROM airplay_events ae
     WHERE ae.station_id = ${stationId}
+      AND ae.partial_play = false
     GROUP BY ae.song_title, ae.artist_name, ae.isrc
     HAVING MIN(ae.started_at) >= ${start}
       AND MIN(ae.started_at) <= ${end}
@@ -241,6 +244,7 @@ export async function getExclusiveSongs(
     WHERE ae.station_id = ${stationId}
       AND ae.started_at >= ${start}
       AND ae.started_at <= ${end}
+      AND ae.partial_play = false
       AND NOT EXISTS (
         SELECT 1 FROM airplay_events ae2
         WHERE ae2.isrc = ae.isrc
@@ -248,6 +252,7 @@ export async function getExclusiveSongs(
           AND ae2.station_id != ${stationId}
           AND ae2.started_at >= ${start}
           AND ae2.started_at <= ${end}
+          AND ae2.partial_play = false
       )
     GROUP BY ae.song_title, ae.artist_name, ae.isrc
     ORDER BY play_count DESC
@@ -300,6 +305,7 @@ export async function getPlaylistOverlap(
       AND started_at >= ${start}
       AND started_at <= ${end}
       AND isrc IS NOT NULL
+      AND partial_play = false
   `;
 
   // Get ISRCs for competitor station
@@ -310,6 +316,7 @@ export async function getPlaylistOverlap(
       AND started_at >= ${start}
       AND started_at <= ${end}
       AND isrc IS NOT NULL
+      AND partial_play = false
   `;
 
   const ownSet = new Set(ownIsrcs.map((r) => r.isrc));
@@ -354,6 +361,7 @@ export async function getPlaylistOverlap(
         AND (station_id IN (${Prisma.join(ownStationIds)}) OR station_id = ${competitorId})
         AND started_at >= ${start}
         AND started_at <= ${end}
+        AND partial_play = false
       GROUP BY song_title, artist_name
       ORDER BY (SUM(CASE WHEN station_id IN (${Prisma.join(ownStationIds)}) THEN 1 ELSE 0 END)
               + SUM(CASE WHEN station_id = ${competitorId} THEN 1 ELSE 0 END)) DESC
@@ -404,6 +412,7 @@ export async function getGenreDistribution(
       AND started_at >= ${start}
       AND started_at <= ${end}
       AND label IS NOT NULL
+      AND partial_play = false
     GROUP BY label
     ORDER BY play_count DESC
   `;
@@ -455,6 +464,7 @@ export async function getRotationAnalysis(
       AND started_at >= ${start}
       AND started_at <= ${end}
       AND isrc IS NOT NULL
+      AND partial_play = false
     GROUP BY EXTRACT(hour FROM started_at)
     ORDER BY hour ASC
   `;
@@ -477,6 +487,7 @@ export async function getRotationAnalysis(
     WHERE station_id IN (${Prisma.join(ownStationIds)})
       AND started_at >= ${start}
       AND started_at <= ${end}
+      AND partial_play = false
     GROUP BY song_title, artist_name, isrc
   `;
 
@@ -540,6 +551,7 @@ export async function getDiscoveryScore(
     SELECT isrc
     FROM airplay_events
     WHERE isrc IS NOT NULL
+      AND partial_play = false
     GROUP BY isrc
     HAVING MIN(started_at) >= ${thirtyDaysAgo}
   `;
@@ -557,6 +569,7 @@ export async function getDiscoveryScore(
     WHERE station_id IN (${Prisma.join(ownStationIds)})
       AND started_at >= ${start}
       AND started_at <= ${end}
+      AND partial_play = false
     GROUP BY isrc
   `;
 

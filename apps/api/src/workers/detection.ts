@@ -18,6 +18,7 @@ import { prisma } from "../lib/prisma.js";
 import { normalizeTitle, normalizeArtist } from "../lib/normalization.js";
 import { filterDetection } from "../lib/false-positive-filter.js";
 import { isFuzzyMatch } from "../lib/fuzzy-match.js";
+import { lookupArtwork } from "../lib/deezer.js";
 import {
   CHANNELS,
   BACKFILL_KEY,
@@ -31,6 +32,25 @@ import {
 import pino from "pino";
 
 const logger = pino({ name: "detection-worker" });
+
+/**
+ * Industry-standard minimum play duration (MediaForest uses ~30s).
+ *
+ * ACRCloud reports `played_duration` (seconds) per callback. Plays shorter
+ * than this threshold are teasers/jingles/transitions, not real airplay:
+ * they are stored with `partialPlay: true` and excluded from all user-facing
+ * aggregations (they stay visible, flagged, in the raw detections list).
+ *
+ * When a callback has no `played_duration`, we assume a full play.
+ */
+export const MIN_FULL_PLAY_SECONDS = 30;
+
+function isPartialPlay(playedDurationSeconds: number | null): boolean {
+  return (
+    playedDurationSeconds !== null &&
+    playedDurationSeconds < MIN_FULL_PLAY_SECONDS
+  );
+}
 
 // ---- Module-scope snippet queue reference ----
 let _snippetQueue: Queue | null = null;
@@ -123,6 +143,80 @@ function normalizeIsrc(
     return isrc;
   }
   return null;
+}
+
+// ---- Artwork caching ----
+
+/**
+ * In-memory memo of resolved artwork per track (keyed by ISRC, or normalized
+ * title|artist when no ISRC). Caches null results too, so we never hit Deezer
+ * twice for the same track — even when it has no artwork there.
+ * Capped at ~5000 entries with FIFO eviction (Map preserves insertion order).
+ */
+const ARTWORK_CACHE_MAX = 5000;
+const artworkCache = new Map<string, string | null>();
+
+function cacheArtwork(key: string, url: string | null): void {
+  if (!artworkCache.has(key) && artworkCache.size >= ARTWORK_CACHE_MAX) {
+    const oldest = artworkCache.keys().next().value;
+    if (oldest !== undefined) {
+      artworkCache.delete(oldest);
+    }
+  }
+  artworkCache.set(key, url);
+}
+
+/**
+ * Fire-and-forget artwork resolution for a freshly created AirplayEvent.
+ * Order: in-memory memo -> copy from another event with the same ISRC
+ * (zero HTTP) -> Deezer ISRC lookup -> Deezer title+artist search.
+ * Never throws into the detection pipeline; callers attach a .catch.
+ */
+async function resolveArtwork(
+  eventId: number,
+  isrc: string | null,
+  title: string,
+  artist: string,
+): Promise<void> {
+  const cacheKey =
+    isrc ?? `t:${normalizeTitle(title)}|${normalizeArtist(artist)}`;
+
+  if (artworkCache.has(cacheKey)) {
+    const cached = artworkCache.get(cacheKey) ?? null;
+    if (cached) {
+      await prisma.airplayEvent.update({
+        where: { id: eventId },
+        data: { artworkUrl: cached },
+      });
+    }
+    return;
+  }
+
+  // Reuse artwork already resolved for the same recording (zero HTTP)
+  if (isrc) {
+    const existing = await prisma.airplayEvent.findFirst({
+      where: { isrc, artworkUrl: { not: null }, id: { not: eventId } },
+      select: { artworkUrl: true },
+    });
+    if (existing?.artworkUrl) {
+      cacheArtwork(cacheKey, existing.artworkUrl);
+      await prisma.airplayEvent.update({
+        where: { id: eventId },
+        data: { artworkUrl: existing.artworkUrl },
+      });
+      return;
+    }
+  }
+
+  const artworkUrl = await lookupArtwork(isrc, title, artist);
+  cacheArtwork(cacheKey, artworkUrl);
+
+  if (artworkUrl) {
+    await prisma.airplayEvent.update({
+      where: { id: eventId },
+      data: { artworkUrl },
+    });
+  }
 }
 
 // ---- Core Processor ----
@@ -304,6 +398,32 @@ export async function processCallback(
           playCount: { increment: 1 },
         };
 
+        // Partial-play promotion: an event created from a short segment
+        // (< MIN_FULL_PLAY_SECONDS) becomes a full play once we can prove
+        // enough airtime. We clear the flag when any of these holds:
+        //  - the new segment alone is a full play (or has no played_duration,
+        //    which we treat as a full play),
+        //  - stored + new played_duration reach the threshold,
+        //  - the event's detection span (new endedAt - startedAt) reaches
+        //    the threshold (robust even when intermediate segment durations
+        //    were not accumulated on the row).
+        // The flag is monotonic: once false, it is never set back to true.
+        if (recentEvent.partialPlay) {
+          const cumulativeSeconds =
+            (recentEvent.playedDuration ?? 0) + (playedDuration ?? 0);
+          const spanSeconds =
+            (detectedAt.getTime() - recentEvent.startedAt.getTime()) / 1000;
+          const segmentIsFull = !isPartialPlay(playedDuration);
+
+          if (
+            segmentIsFull ||
+            cumulativeSeconds >= MIN_FULL_PLAY_SECONDS ||
+            spanSeconds >= MIN_FULL_PLAY_SECONDS
+          ) {
+            updateData.partialPlay = false;
+          }
+        }
+
         if (confidence > recentEvent.confidence) {
           updateData.songTitle = music.title;
           updateData.artistName = artistName;
@@ -335,11 +455,23 @@ export async function processCallback(
             albumTitle,
             label,
             playedDuration,
+            // Missing played_duration -> assume full play (partialPlay false)
+            partialPlay: isPartialPlay(playedDuration),
             deezerUrl,
             spotifyId,
             youtubeId,
           },
         });
+
+        // Fire-and-forget artwork lookup (never blocks detection processing)
+        resolveArtwork(newEvent.id, isrc, music.title, artistName).catch(
+          (err) => {
+            logger.warn(
+              { err, airplayEventId: newEvent.id, isrc },
+              "Artwork lookup failed",
+            );
+          },
+        );
 
         // Enqueue snippet extraction (always, unless explicitly disabled)
         if (process.env.SNIPPETS_ENABLED !== "false" && _snippetQueue) {

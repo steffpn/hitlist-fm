@@ -177,12 +177,14 @@ async function generateArtistReport(userId: number, isPremium: boolean): Promise
       WHERE started_at >= CURRENT_DATE - INTERVAL '1 day'
         AND started_at < CURRENT_DATE
         AND isrc = ANY(${isrcs}::text[])
+        AND partial_play = false
     `,
     prisma.$queryRaw<Array<{ count: number }>>`
       SELECT COUNT(*)::int AS count FROM airplay_events
       WHERE started_at >= CURRENT_DATE - INTERVAL '2 days'
         AND started_at < CURRENT_DATE - INTERVAL '1 day'
         AND isrc = ANY(${isrcs}::text[])
+        AND partial_play = false
     `,
     prisma.$queryRaw<Array<{ song_title: string; count: number; station_name: string; peak_hour: string }>>`
       SELECT ae.song_title, COUNT(*)::int AS count,
@@ -191,12 +193,14 @@ async function generateArtistReport(userId: number, isPremium: boolean): Promise
          WHERE ae2.isrc = ae.isrc
            AND ae2.started_at >= CURRENT_DATE - INTERVAL '1 day'
            AND ae2.started_at < CURRENT_DATE
+           AND ae2.partial_play = false
          GROUP BY s.name ORDER BY COUNT(*) DESC LIMIT 1) AS station_name,
         EXTRACT(HOUR FROM ae.started_at)::text || ':00' AS peak_hour
       FROM airplay_events ae
       WHERE ae.started_at >= CURRENT_DATE - INTERVAL '1 day'
         AND ae.started_at < CURRENT_DATE
         AND ae.isrc = ANY(${isrcs}::text[])
+        AND ae.partial_play = false
       GROUP BY ae.song_title, ae.isrc, peak_hour
       ORDER BY count DESC
       LIMIT 1
@@ -287,6 +291,7 @@ async function generateLabelReport(userId: number, isPremium: boolean): Promise<
       WHERE started_at >= CURRENT_DATE - INTERVAL '1 day'
         AND started_at < CURRENT_DATE
         AND isrc = ANY(${allIsrcs}::text[])
+        AND partial_play = false
     `,
     prisma.$queryRaw<Array<{ artist_name: string; song_title: string; count: number; station_name: string }>>`
       SELECT ae.artist_name, ae.song_title, COUNT(*)::int AS count,
@@ -295,12 +300,14 @@ async function generateLabelReport(userId: number, isPremium: boolean): Promise<
           WHERE ae2.artist_name = ae.artist_name
             AND ae2.started_at >= CURRENT_DATE - INTERVAL '1 day'
             AND ae2.started_at < CURRENT_DATE
+            AND ae2.partial_play = false
           GROUP BY ae2.station_id ORDER BY COUNT(*) DESC LIMIT 1
         )) AS station_name
       FROM airplay_events ae
       WHERE ae.started_at >= CURRENT_DATE - INTERVAL '1 day'
         AND ae.started_at < CURRENT_DATE
         AND ae.isrc = ANY(${allIsrcs}::text[])
+        AND ae.partial_play = false
       GROUP BY ae.artist_name, ae.song_title
       ORDER BY count DESC
       LIMIT 1
@@ -319,6 +326,7 @@ async function generateLabelReport(userId: number, isPremium: boolean): Promise<
         AND isrc = ANY(${allIsrcs}::text[])
         AND artist_name = ${topArtistRows[0].artist_name}
         AND song_title = ${topArtistRows[0].song_title}
+        AND partial_play = false
     `;
     topArtistDayBefore = Number(dayBeforeRows[0]?.count ?? 0);
   }
@@ -383,6 +391,7 @@ async function generateStationReport(userId: number, stationIds: number[], isPre
       WHERE started_at >= CURRENT_DATE - INTERVAL '1 day'
         AND started_at < CURRENT_DATE
         AND station_id = ANY(${stationIds}::int[])
+        AND partial_play = false
     `,
     prisma.$queryRaw<Array<{ count: number }>>`
       SELECT COUNT(DISTINCT isrc)::int AS count FROM airplay_events
@@ -390,6 +399,7 @@ async function generateStationReport(userId: number, stationIds: number[], isPre
         AND started_at < CURRENT_DATE
         AND station_id = ANY(${stationIds}::int[])
         AND isrc IS NOT NULL
+        AND partial_play = false
     `,
   ]);
 
@@ -439,12 +449,14 @@ async function generateArtistWeeklyReport(userId: number, isPremium: boolean): P
       WHERE started_at >= CURRENT_DATE - INTERVAL '7 days'
         AND started_at < CURRENT_DATE
         AND isrc = ANY(${isrcs}::text[])
+        AND partial_play = false
     `,
     prisma.$queryRaw<Array<{ count: number }>>`
       SELECT COUNT(*)::int AS count FROM airplay_events
       WHERE started_at >= CURRENT_DATE - INTERVAL '14 days'
         AND started_at < CURRENT_DATE - INTERVAL '7 days'
         AND isrc = ANY(${isrcs}::text[])
+        AND partial_play = false
     `,
     prisma.$queryRaw<Array<{ song_title: string; count: number }>>`
       SELECT song_title, COUNT(*)::int AS count
@@ -452,6 +464,7 @@ async function generateArtistWeeklyReport(userId: number, isPremium: boolean): P
       WHERE started_at >= CURRENT_DATE - INTERVAL '7 days'
         AND started_at < CURRENT_DATE
         AND isrc = ANY(${isrcs}::text[])
+        AND partial_play = false
       GROUP BY song_title
       ORDER BY count DESC
       LIMIT 1
@@ -463,6 +476,7 @@ async function generateArtistWeeklyReport(userId: number, isPremium: boolean): P
       WHERE ae.started_at >= CURRENT_DATE - INTERVAL '7 days'
         AND ae.started_at < CURRENT_DATE
         AND ae.isrc = ANY(${isrcs}::text[])
+        AND ae.partial_play = false
       GROUP BY s.name
       ORDER BY count DESC
       LIMIT 1
@@ -473,11 +487,13 @@ async function generateArtistWeeklyReport(userId: number, isPremium: boolean): P
       WHERE started_at >= CURRENT_DATE - INTERVAL '7 days'
         AND started_at < CURRENT_DATE
         AND isrc = ANY(${isrcs}::text[])
+        AND partial_play = false
         AND station_id NOT IN (
           SELECT DISTINCT station_id FROM airplay_events
           WHERE started_at >= CURRENT_DATE - INTERVAL '14 days'
             AND started_at < CURRENT_DATE - INTERVAL '7 days'
             AND isrc = ANY(${isrcs}::text[])
+            AND partial_play = false
         )
     `,
   ]);
@@ -563,12 +579,14 @@ async function generateLabelWeeklyReport(userId: number, isPremium: boolean): Pr
       WHERE started_at >= CURRENT_DATE - INTERVAL '7 days'
         AND started_at < CURRENT_DATE
         AND isrc = ANY(${allIsrcs}::text[])
+        AND partial_play = false
     `,
     prisma.$queryRaw<Array<{ count: number }>>`
       SELECT COUNT(*)::int AS count FROM airplay_events
       WHERE started_at >= CURRENT_DATE - INTERVAL '14 days'
         AND started_at < CURRENT_DATE - INTERVAL '7 days'
         AND isrc = ANY(${allIsrcs}::text[])
+        AND partial_play = false
     `,
     prisma.$queryRaw<Array<{ artist_name: string; song_title: string; count: number }>>`
       SELECT artist_name, song_title, COUNT(*)::int AS count
@@ -576,6 +594,7 @@ async function generateLabelWeeklyReport(userId: number, isPremium: boolean): Pr
       WHERE started_at >= CURRENT_DATE - INTERVAL '7 days'
         AND started_at < CURRENT_DATE
         AND isrc = ANY(${allIsrcs}::text[])
+        AND partial_play = false
       GROUP BY artist_name, song_title
       ORDER BY count DESC
       LIMIT 1
@@ -587,6 +606,7 @@ async function generateLabelWeeklyReport(userId: number, isPremium: boolean): Pr
       WHERE ae.started_at >= CURRENT_DATE - INTERVAL '7 days'
         AND ae.started_at < CURRENT_DATE
         AND ae.isrc = ANY(${allIsrcs}::text[])
+        AND ae.partial_play = false
       GROUP BY s.name
       ORDER BY count DESC
       LIMIT 1
@@ -653,12 +673,14 @@ async function generateStationWeeklyReport(userId: number, stationIds: number[],
       WHERE started_at >= CURRENT_DATE - INTERVAL '7 days'
         AND started_at < CURRENT_DATE
         AND station_id = ANY(${stationIds}::int[])
+        AND partial_play = false
     `,
     prisma.$queryRaw<Array<{ count: number }>>`
       SELECT COUNT(*)::int AS count FROM airplay_events
       WHERE started_at >= CURRENT_DATE - INTERVAL '14 days'
         AND started_at < CURRENT_DATE - INTERVAL '7 days'
         AND station_id = ANY(${stationIds}::int[])
+        AND partial_play = false
     `,
     prisma.$queryRaw<Array<{ count: number }>>`
       SELECT COUNT(DISTINCT isrc)::int AS count FROM airplay_events
@@ -666,6 +688,7 @@ async function generateStationWeeklyReport(userId: number, stationIds: number[],
         AND started_at < CURRENT_DATE
         AND station_id = ANY(${stationIds}::int[])
         AND isrc IS NOT NULL
+        AND partial_play = false
     `,
   ]);
 

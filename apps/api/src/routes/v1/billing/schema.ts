@@ -8,11 +8,6 @@ export const CreateCheckoutSchema = Type.Object({
 });
 export type CreateCheckoutBody = Static<typeof CreateCheckoutSchema>;
 
-export const SubscriptionParamsSchema = Type.Object({
-  id: Type.Number(),
-});
-export type SubscriptionParams = Static<typeof SubscriptionParamsSchema>;
-
 export const CustomerPortalSchema = Type.Object({
   returnUrl: Type.String(),
 });

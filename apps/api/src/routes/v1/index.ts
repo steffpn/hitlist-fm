@@ -39,6 +39,10 @@ const v1Routes: FastifyPluginAsync = async (fastify) => {
   fastify.register(import("./artist/index.js"), {
     prefix: "/artist",
   });
+  // Global per-artist aggregation (admin Artists tab)
+  fastify.register(import("./artists/index.js"), {
+    prefix: "/artists",
+  });
   fastify.register(import("./admin/missing-songs/index.js"), {
     prefix: "/admin/missing-songs",
   });
@@ -54,6 +58,12 @@ const v1Routes: FastifyPluginAsync = async (fastify) => {
   fastify.register(import("./admin/plans/index.js"), {
     prefix: "/admin/plans",
   });
+  // Self-service billing (any authenticated user; covered by "view as role"
+  // impersonation, unlike /admin/*)
+  fastify.register(import("./billing/index.js"), {
+    prefix: "/billing",
+  });
+  // Admin subscription management + deprecated /me|/checkout|/portal aliases
   fastify.register(import("./admin/subscriptions/index.js"), {
     prefix: "/admin/subscriptions",
   });

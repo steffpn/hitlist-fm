@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../../../lib/prisma.js";
 import {
@@ -5,7 +6,22 @@ import {
   verifyPassword,
   generateTokenPair,
 } from "../../../lib/auth.js";
-import type { RegisterBody, LoginBody, RefreshBody, LogoutBody } from "./schema.js";
+import { sendEmail } from "../../../lib/email.js";
+import type {
+  RegisterBody,
+  LoginBody,
+  RefreshBody,
+  LogoutBody,
+  ForgotPasswordBody,
+  ResetPasswordBody,
+} from "./schema.js";
+
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+/** SHA-256 hex digest — used so raw reset tokens are never stored. */
+function sha256(value: string): string {
+  return crypto.createHash("sha256").update(value).digest("hex");
+}
 
 /**
  * Format a user record for API responses.
@@ -237,4 +253,167 @@ export async function logout(
   }
 
   return reply.code(200).send({ message: "Logged out" });
+}
+
+/**
+ * POST /auth/forgot-password
+ *
+ * Always answers with the same generic 200 so the endpoint cannot be used
+ * for user enumeration. When the email belongs to an active user, a
+ * single-use reset token (1h TTL) is created — only its SHA-256 hash is
+ * stored — and a reset link is emailed.
+ */
+export async function forgotPassword(
+  request: FastifyRequest<{ Body: ForgotPasswordBody }>,
+  reply: FastifyReply
+): Promise<void> {
+  const { email } = request.body;
+  const genericResponse = {
+    message:
+      "If an account exists for that email, a password reset link has been sent.",
+  };
+
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user || !user.isActive) {
+    return reply.code(200).send(genericResponse);
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  const tokenHash = sha256(token);
+  const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS);
+
+  // Invalidate any previous unused tokens, then store only the hash.
+  await prisma.$transaction([
+    prisma.passwordResetToken.deleteMany({
+      where: { userId: user.id, usedAt: null },
+    }),
+    prisma.passwordResetToken.create({
+      data: { userId: user.id, tokenHash, expiresAt },
+    }),
+  ]);
+
+  const baseUrl =
+    process.env.APP_BASE_URL || process.env.WEB_APP_URL || "http://localhost:3001";
+  const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${token}`;
+
+  // sendEmail never throws — a delivery failure cannot alter the generic 200.
+  await sendEmail({
+    to: user.email,
+    subject: "Reset your onair.music password",
+    text: [
+      `Hi ${user.name},`,
+      "",
+      "We received a request to reset your onair.music password.",
+      "Open the link below to choose a new one (valid for 1 hour):",
+      "",
+      resetUrl,
+      "",
+      "If you didn't request this, you can safely ignore this email.",
+    ].join("\n"),
+    html: [
+      `<p>Hi ${user.name},</p>`,
+      "<p>We received a request to reset your onair.music password.</p>",
+      `<p><a href="${resetUrl}">Reset your password</a> (link valid for 1 hour)</p>`,
+      "<p>If you didn't request this, you can safely ignore this email.</p>",
+    ].join("\n"),
+  });
+
+  return reply.code(200).send(genericResponse);
+}
+
+/**
+ * POST /auth/reset-password
+ *
+ * Validates the reset token (hash match, unexpired, unused), sets the new
+ * password with the same argon2id hashing as register, marks the token as
+ * used, and revokes ALL of the user's refresh tokens so stolen sessions die.
+ */
+export async function resetPassword(
+  request: FastifyRequest<{ Body: ResetPasswordBody }>,
+  reply: FastifyReply
+): Promise<void> {
+  const { token, newPassword } = request.body;
+
+  const storedToken = await prisma.passwordResetToken.findUnique({
+    where: { tokenHash: sha256(token) },
+    include: { user: true },
+  });
+
+  if (
+    !storedToken ||
+    storedToken.usedAt !== null ||
+    storedToken.expiresAt < new Date() ||
+    !storedToken.user.isActive
+  ) {
+    return reply.code(400).send({ error: "Invalid or expired reset token" });
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: storedToken.userId },
+      data: { passwordHash },
+    }),
+    prisma.passwordResetToken.update({
+      where: { id: storedToken.id },
+      data: { usedAt: new Date() },
+    }),
+    prisma.refreshToken.updateMany({
+      where: { userId: storedToken.userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    }),
+  ]);
+
+  return reply.code(200).send({ message: "Password has been reset" });
+}
+
+/**
+ * DELETE /auth/account
+ *
+ * Permanently deletes the authenticated user's account and all their data.
+ * Most relations cascade at the DB level; the three that don't are handled
+ * explicitly in the same transaction:
+ *   - Invitation.createdBy      -> invitations created by the user are deleted
+ *   - MissingSongReport.reporter -> the user's reports are deleted
+ *   - LabelArtist.artistUser     -> nullable link, set to NULL (the label's
+ *                                   roster entry survives, just unlinked)
+ *
+ * Always operates on the *real* authenticated user (never an impersonated
+ * persona), and refuses to delete the last active ADMIN account.
+ */
+export async function deleteAccount(
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
+  // Deletion is destructive — never let admin "view as role" impersonation
+  // redirect it to another account.
+  const user = request.realUser ?? request.currentUser;
+
+  if (user.role === "ADMIN") {
+    const activeAdminCount = await prisma.user.count({
+      where: { role: "ADMIN", isActive: true },
+    });
+    if (activeAdminCount <= 1) {
+      return reply
+        .code(409)
+        .send({ error: "Cannot delete the last active admin account" });
+    }
+  }
+
+  await prisma.$transaction([
+    prisma.invitation.deleteMany({ where: { createdById: user.id } }),
+    prisma.missingSongReport.deleteMany({ where: { reportedBy: user.id } }),
+    prisma.labelArtist.updateMany({
+      where: { artistUserId: user.id },
+      data: { artistUserId: null },
+    }),
+    // Everything else (refresh/device/reset tokens, scopes, watched stations,
+    // monitored songs, label rosters, subscriptions, alerts, reports,
+    // settings) cascades via onDelete: Cascade.
+    prisma.user.delete({ where: { id: user.id } }),
+  ]);
+
+  return reply.code(204).send();
 }

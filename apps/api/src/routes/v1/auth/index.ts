@@ -6,8 +6,18 @@ import {
   LoginSchema,
   RefreshSchema,
   LogoutSchema,
+  ForgotPasswordSchema,
+  ResetPasswordSchema,
 } from "./schema.js";
-import { register, login, refresh, logout } from "./handlers.js";
+import {
+  register,
+  login,
+  refresh,
+  logout,
+  forgotPassword,
+  resetPassword,
+  deleteAccount,
+} from "./handlers.js";
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
   // Rate limiter registered locally with global:false so ONLY routes that
@@ -55,6 +65,40 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       schema: { body: LogoutSchema },
     },
     logout
+  );
+
+  // POST /forgot-password - Public (no auth), always 200 generic,
+  // rate limited: 3 requests/hour per IP
+  fastify.post(
+    "/forgot-password",
+    {
+      config: {
+        rateLimit: {
+          max: 3,
+          timeWindow: "1 hour",
+        },
+      },
+      schema: { body: ForgotPasswordSchema },
+    },
+    forgotPassword
+  );
+
+  // POST /reset-password - Public (no auth), consumes a reset token
+  fastify.post(
+    "/reset-password",
+    {
+      schema: { body: ResetPasswordSchema },
+    },
+    resetPassword
+  );
+
+  // DELETE /account - Requires authentication, permanently deletes the account
+  fastify.delete(
+    "/account",
+    {
+      preHandler: [authenticate],
+    },
+    deleteAccount
   );
 };
 

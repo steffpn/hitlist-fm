@@ -46,6 +46,8 @@ export const StationResponseSchema = Type.Object({
   country: Type.String(),
   status: Type.String(),
   lastHeartbeat: Type.Union([Type.String(), Type.Null()]),
+  // Most recent ACRCloud callback (max of Detection.detectedAt / NoMatchCallback.callbackAt)
+  lastAcrCallbackAt: Type.Union([Type.String(), Type.Null()]),
   restartCount: Type.Number(),
   createdAt: Type.String(),
   updatedAt: Type.String(),

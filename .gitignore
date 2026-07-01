@@ -14,3 +14,4 @@ apps/ios/myFuckingMusic.xcodeproj/xcuserdata
 *.xcuserstate
 *.pbxproj.backup
 .DS_Store
+backups/

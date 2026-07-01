@@ -18,6 +18,8 @@ import {
   getArtistDashboard,
   getWeeklyDigest,
 } from "./handlers.js";
+import { BrowseTracksQuerySchema } from "./schema.js";
+import { browseTracks, deleteArtistSong } from "./handlers.js";
 
 const artistRoutes: FastifyPluginAsync = async (fastify) => {
   // All routes require ARTIST or ADMIN role
@@ -99,6 +101,28 @@ const artistRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     getSongTrend,
+  );
+
+  // GET /artist/browse-tracks - Deezer catalog search for onboarding
+  fastify.get(
+    "/browse-tracks",
+    {
+      schema: {
+        querystring: BrowseTracksQuerySchema,
+      },
+    },
+    browseTracks,
+  );
+
+  // DELETE /artist/songs/:id - Remove own monitored song
+  fastify.delete(
+    "/songs/:id",
+    {
+      schema: {
+        params: SongIdParamsSchema,
+      },
+    },
+    deleteArtistSong,
   );
 };
 

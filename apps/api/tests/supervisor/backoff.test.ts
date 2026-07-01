@@ -11,15 +11,27 @@ vi.mock("node:child_process", () => ({
 vi.mock("node:fs/promises", () => ({
   default: {
     mkdir: vi.fn().mockResolvedValue(undefined),
+    readdir: vi.fn().mockResolvedValue([]),
+    stat: vi.fn().mockResolvedValue({ size: 0, mtime: new Date(0) }),
   },
 }));
 
 // Mock prisma
 const mockPrismaStationUpdate = vi.fn().mockResolvedValue({});
+const mockPrismaStationUpdateMany = vi.fn().mockResolvedValue({ count: 1 });
+const mockPrismaStationFindUnique = vi
+  .fn()
+  .mockResolvedValue({ name: "Test Station" });
+const mockPrismaUserFindMany = vi.fn().mockResolvedValue([]);
 vi.mock("../../src/lib/prisma.js", () => ({
   prisma: {
     station: {
       update: (...args: unknown[]) => mockPrismaStationUpdate(...args),
+      updateMany: (...args: unknown[]) => mockPrismaStationUpdateMany(...args),
+      findUnique: (...args: unknown[]) => mockPrismaStationFindUnique(...args),
+    },
+    user: {
+      findMany: (...args: unknown[]) => mockPrismaUserFindMany(...args),
     },
   },
 }));
@@ -53,6 +65,9 @@ describe("Exponential Backoff", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockPrismaStationUpdate.mockResolvedValue({});
+    mockPrismaStationUpdateMany.mockResolvedValue({ count: 1 });
+    mockPrismaStationFindUnique.mockResolvedValue({ name: "Test Station" });
+    mockPrismaUserFindMany.mockResolvedValue([]);
     vi.useFakeTimers();
     const mod = await import("../../src/services/supervisor/stream-manager.js");
     StreamManager = mod.StreamManager;
@@ -160,9 +175,11 @@ describe("Exponential Backoff", () => {
       }
     }
 
-    expect(mockPrismaStationUpdate).toHaveBeenCalledWith(
+    // Circuit breaker persists ERROR guarded on previous status (dedup:
+    // no admin re-notification if the station was already ERROR).
+    expect(mockPrismaStationUpdateMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: 1 },
+        where: { id: 1, status: { not: "ERROR" } },
         data: expect.objectContaining({
           status: "ERROR",
           restartCount: 5,

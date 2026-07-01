@@ -43,6 +43,11 @@ export const AirplayEventSchema = Type.Object({
   confidence: Type.Number(),
   playCount: Type.Number(),
   snippetUrl: Type.Union([Type.String(), Type.Null()]),
+  // Played < 30s (teaser/jingle). Kept visible in the raw list so clients
+  // can render these differently; excluded from all aggregations.
+  partialPlay: Type.Boolean(),
+  // Cached Deezer album artwork, resolved asynchronously after detection.
+  artworkUrl: Type.Union([Type.String(), Type.Null()]),
   createdAt: Type.String(),
   station: Type.Object({ name: Type.String() }),
 });

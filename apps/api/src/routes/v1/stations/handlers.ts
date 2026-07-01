@@ -79,9 +79,14 @@ export async function createStationsBulk(
 
 /**
  * GET /stations - List all stations with health fields.
+ *
+ * Adds lastAcrCallbackAt: the most recent ACRCloud callback per station
+ * (max of Detection.detectedAt and NoMatchCallback.callbackAt), computed with
+ * two grouped aggregate queries - no per-station N+1. All pre-existing fields
+ * keep their exact shape for existing clients.
  */
 export async function listStations(): Promise<unknown> {
-  return prisma.station.findMany({
+  const stations = await prisma.station.findMany({
     select: {
       id: true,
       name: true,
@@ -96,6 +101,40 @@ export async function listStations(): Promise<unknown> {
       updatedAt: true,
     },
   });
+
+  if (stations.length === 0) return stations;
+
+  const ids = stations.map((s) => s.id);
+  const [detectionMax, noMatchMax] = await Promise.all([
+    prisma.detection.groupBy({
+      by: ["stationId"],
+      where: { stationId: { in: ids } },
+      _max: { detectedAt: true },
+    }),
+    prisma.noMatchCallback.groupBy({
+      by: ["stationId"],
+      where: { stationId: { in: ids } },
+      _max: { callbackAt: true },
+    }),
+  ]);
+
+  const lastAcrCallbackByStation = new Map<number, Date>();
+  for (const row of detectionMax) {
+    if (row._max.detectedAt) {
+      lastAcrCallbackByStation.set(row.stationId, row._max.detectedAt);
+    }
+  }
+  for (const row of noMatchMax) {
+    const prev = lastAcrCallbackByStation.get(row.stationId);
+    if (row._max.callbackAt && (!prev || row._max.callbackAt > prev)) {
+      lastAcrCallbackByStation.set(row.stationId, row._max.callbackAt);
+    }
+  }
+
+  return stations.map((s) => ({
+    ...s,
+    lastAcrCallbackAt: lastAcrCallbackByStation.get(s.id) ?? null,
+  }));
 }
 
 /**
