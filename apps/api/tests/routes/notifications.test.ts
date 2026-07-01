@@ -3,7 +3,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // ---- Prisma mock ----
 const mockQueryRaw = vi.fn();
 const mockUserFindUnique = vi.fn();
-const mockUserUpdate = vi.fn();
+const mockUserSettingsFindUnique = vi.fn();
+const mockUserSettingsUpsert = vi.fn();
+const mockDailyReportFindFirst = vi.fn();
 const mockDeviceTokenUpsert = vi.fn();
 const mockDeviceTokenDeleteMany = vi.fn();
 
@@ -13,8 +15,14 @@ vi.mock("../../src/lib/prisma.js", () => ({
     $disconnect: vi.fn().mockResolvedValue(undefined),
     user: {
       findUnique: (...args: unknown[]) => mockUserFindUnique(...args),
-      update: (...args: unknown[]) => mockUserUpdate(...args),
       count: vi.fn().mockResolvedValue(1),
+    },
+    userSettings: {
+      findUnique: (...args: unknown[]) => mockUserSettingsFindUnique(...args),
+      upsert: (...args: unknown[]) => mockUserSettingsUpsert(...args),
+    },
+    dailyReport: {
+      findFirst: (...args: unknown[]) => mockDailyReportFindFirst(...args),
     },
     deviceToken: {
       upsert: (...args: unknown[]) => mockDeviceTokenUpsert(...args),
@@ -54,9 +62,8 @@ const mockUser = {
   name: "Test User",
   role: "ADMIN",
   isActive: true,
-  dailyDigestEnabled: true,
-  weeklyDigestEnabled: true,
   scopes: [{ id: 1, userId: 1, entityType: "STATION", entityId: 1 }],
+  subscriptions: [],
 };
 
 describe("Notification Routes", () => {
@@ -66,7 +73,9 @@ describe("Notification Routes", () => {
   beforeEach(async () => {
     mockQueryRaw.mockClear();
     mockUserFindUnique.mockClear();
-    mockUserUpdate.mockClear();
+    mockUserSettingsFindUnique.mockClear();
+    mockUserSettingsUpsert.mockClear();
+    mockDailyReportFindFirst.mockClear();
     mockDeviceTokenUpsert.mockClear();
     mockDeviceTokenDeleteMany.mockClear();
 
@@ -95,19 +104,8 @@ describe("Notification Routes", () => {
       expect(response.statusCode).toBe(401);
     });
 
-    it("returns default preferences (both true) for authenticated user", async () => {
-      mockUserFindUnique.mockImplementation(({ where, select }: { where: { id: number }; select?: unknown }) => {
-        if (where.id === mockUser.id) {
-          if (select) {
-            return Promise.resolve({
-              dailyDigestEnabled: true,
-              weeklyDigestEnabled: true,
-            });
-          }
-          return Promise.resolve(mockUser);
-        }
-        return Promise.resolve(null);
-      });
+    it("returns defaults (both true) when the user has no settings row", async () => {
+      mockUserSettingsFindUnique.mockResolvedValueOnce(null);
 
       const response = await server.inject({
         method: "GET",
@@ -119,6 +117,26 @@ describe("Notification Routes", () => {
       const body = JSON.parse(response.payload);
       expect(body).toMatchObject({
         dailyDigestEnabled: true,
+        weeklyDigestEnabled: true,
+      });
+    });
+
+    it("maps UserSettings report flags to digest wire format", async () => {
+      mockUserSettingsFindUnique.mockResolvedValueOnce({
+        dailyReportEnabled: false,
+        weeklyReportEnabled: true,
+      });
+
+      const response = await server.inject({
+        method: "GET",
+        url: "/api/v1/notifications/preferences",
+        headers: { authorization: `Bearer ${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.payload);
+      expect(body).toMatchObject({
+        dailyDigestEnabled: false,
         weeklyDigestEnabled: true,
       });
     });
@@ -138,9 +156,9 @@ describe("Notification Routes", () => {
     });
 
     it("updates daily digest preference only", async () => {
-      mockUserUpdate.mockResolvedValueOnce({
-        dailyDigestEnabled: false,
-        weeklyDigestEnabled: true,
+      mockUserSettingsUpsert.mockResolvedValueOnce({
+        dailyReportEnabled: false,
+        weeklyReportEnabled: true,
       });
 
       const response = await server.inject({
@@ -156,12 +174,18 @@ describe("Notification Routes", () => {
         dailyDigestEnabled: false,
         weeklyDigestEnabled: true,
       });
+      expect(mockUserSettingsUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId: mockUser.id },
+          update: { dailyReportEnabled: false },
+        }),
+      );
     });
 
     it("updates weekly digest preference only", async () => {
-      mockUserUpdate.mockResolvedValueOnce({
-        dailyDigestEnabled: true,
-        weeklyDigestEnabled: false,
+      mockUserSettingsUpsert.mockResolvedValueOnce({
+        dailyReportEnabled: true,
+        weeklyReportEnabled: false,
       });
 
       const response = await server.inject({
@@ -177,12 +201,17 @@ describe("Notification Routes", () => {
         dailyDigestEnabled: true,
         weeklyDigestEnabled: false,
       });
+      expect(mockUserSettingsUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          update: { weeklyReportEnabled: false },
+        }),
+      );
     });
 
     it("updates both preferences", async () => {
-      mockUserUpdate.mockResolvedValueOnce({
-        dailyDigestEnabled: false,
-        weeklyDigestEnabled: false,
+      mockUserSettingsUpsert.mockResolvedValueOnce({
+        dailyReportEnabled: false,
+        weeklyReportEnabled: false,
       });
 
       const response = await server.inject({
@@ -198,6 +227,129 @@ describe("Notification Routes", () => {
         dailyDigestEnabled: false,
         weeklyDigestEnabled: false,
       });
+    });
+  });
+
+  // --- GET /api/v1/notifications/digest/:date ---
+
+  describe("GET /api/v1/notifications/digest/:date", () => {
+    it("returns 401 without authentication", async () => {
+      const response = await server.inject({
+        method: "GET",
+        url: "/api/v1/notifications/digest/2026-03-15",
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it("returns 400 for a malformed date", async () => {
+      const response = await server.inject({
+        method: "GET",
+        url: "/api/v1/notifications/digest/not-a-date",
+        headers: { authorization: `Bearer ${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("returns 404 when no report exists for the date", async () => {
+      mockDailyReportFindFirst.mockResolvedValueOnce(null);
+
+      const response = await server.inject({
+        method: "GET",
+        url: "/api/v1/notifications/digest/2026-03-15?type=daily",
+        headers: { authorization: `Bearer ${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.payload);
+      expect(body.error).toContain("No daily report found for 2026-03-15");
+    });
+
+    it("maps an artist daily report to the DigestDetail shape", async () => {
+      mockDailyReportFindFirst.mockResolvedValueOnce({
+        id: 1,
+        userId: mockUser.id,
+        reportDate: new Date("2026-03-15T00:00:00"),
+        reportType: "daily",
+        content: {
+          totalPlays: 42,
+          yesterdayPlays: 42,
+          dayBeforePlays: 30,
+          weekOverWeekPercent: 40,
+          topSong: { title: "My Song", plays: 12, station: "Kiss FM", peakHour: "14:00", delta: 12 },
+        },
+        tips: ["tip"],
+        isPremium: true,
+        deliveredVia: ["push"],
+        sentAt: new Date(),
+      });
+
+      const response = await server.inject({
+        method: "GET",
+        url: "/api/v1/notifications/digest/2026-03-15?type=daily",
+        headers: { authorization: `Bearer ${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.payload);
+      expect(body).toEqual({
+        playCount: 42,
+        topSong: { title: "My Song", artist: null, name: null, count: 12 },
+        topStation: { title: "Kiss FM", artist: null, name: "Kiss FM", count: 12 },
+        weekOverWeekChange: null,
+        newStationsCount: null,
+      });
+      expect(mockDailyReportFindFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: mockUser.id,
+            reportType: "daily",
+          }),
+        }),
+      );
+    });
+
+    it("maps a weekly report including week-over-week stats", async () => {
+      mockDailyReportFindFirst.mockResolvedValueOnce({
+        id: 2,
+        userId: mockUser.id,
+        reportDate: new Date("2026-03-16T00:00:00"),
+        reportType: "weekly",
+        content: {
+          totalPlays: 210,
+          prevWeekPlays: 180,
+          weekOverWeekPercent: 17,
+          topSong: { title: "My Song", plays: 80, station: "Virgin Radio" },
+          topStation: { name: "Virgin Radio", plays: 95 },
+          newStationsCount: 3,
+        },
+        tips: ["tip"],
+        isPremium: true,
+        deliveredVia: ["push"],
+        sentAt: new Date(),
+      });
+
+      const response = await server.inject({
+        method: "GET",
+        url: "/api/v1/notifications/digest/2026-03-16?type=weekly",
+        headers: { authorization: `Bearer ${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.payload);
+      expect(body).toEqual({
+        playCount: 210,
+        topSong: { title: "My Song", artist: null, name: null, count: 80 },
+        topStation: { title: "Virgin Radio", artist: null, name: "Virgin Radio", count: 95 },
+        weekOverWeekChange: 17,
+        newStationsCount: 3,
+      });
+      expect(mockDailyReportFindFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ reportType: "weekly" }),
+        }),
+      );
     });
   });
 

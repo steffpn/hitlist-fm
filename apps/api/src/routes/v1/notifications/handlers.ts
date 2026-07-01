@@ -4,32 +4,33 @@ import type {
   UpdatePreferencesBody,
   RegisterDeviceTokenBody,
   DeleteDeviceTokenBody,
+  DigestDetailParams,
+  DigestDetailQuery,
 } from "./schema.js";
 
 /**
  * GET /notifications/preferences
  *
  * Returns the current user's notification preferences.
+ * Wire format (dailyDigestEnabled/weeklyDigestEnabled) is kept for iOS
+ * compatibility; values are backed by UserSettings.dailyReportEnabled /
+ * weeklyReportEnabled (the single consolidated report system).
  */
 export async function getNotificationPreferences(
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<void> {
-  const user = await prisma.user.findUnique({
-    where: { id: request.currentUser.id },
+  const settings = await prisma.userSettings.findUnique({
+    where: { userId: request.currentUser.id },
     select: {
-      dailyDigestEnabled: true,
-      weeklyDigestEnabled: true,
+      dailyReportEnabled: true,
+      weeklyReportEnabled: true,
     },
   });
 
-  if (!user) {
-    return reply.code(404).send({ error: "User not found" });
-  }
-
   return reply.send({
-    dailyDigestEnabled: user.dailyDigestEnabled,
-    weeklyDigestEnabled: user.weeklyDigestEnabled,
+    dailyDigestEnabled: settings?.dailyReportEnabled ?? true,
+    weeklyDigestEnabled: settings?.weeklyReportEnabled ?? true,
   });
 }
 
@@ -37,6 +38,8 @@ export async function getNotificationPreferences(
  * PUT /notifications/preferences
  *
  * Updates the current user's notification preferences (partial update).
+ * Maps dailyDigest -> UserSettings.dailyReportEnabled and
+ * weeklyDigest -> UserSettings.weeklyReportEnabled.
  */
 export async function updateNotificationPreferences(
   request: FastifyRequest<{ Body: UpdatePreferencesBody }>,
@@ -45,21 +48,125 @@ export async function updateNotificationPreferences(
   const { dailyDigestEnabled, weeklyDigestEnabled } = request.body;
 
   const data: Record<string, boolean> = {};
-  if (dailyDigestEnabled !== undefined) data.dailyDigestEnabled = dailyDigestEnabled;
-  if (weeklyDigestEnabled !== undefined) data.weeklyDigestEnabled = weeklyDigestEnabled;
+  if (dailyDigestEnabled !== undefined) data.dailyReportEnabled = dailyDigestEnabled;
+  if (weeklyDigestEnabled !== undefined) data.weeklyReportEnabled = weeklyDigestEnabled;
 
-  const updated = await prisma.user.update({
-    where: { id: request.currentUser.id },
-    data,
+  const updated = await prisma.userSettings.upsert({
+    where: { userId: request.currentUser.id },
+    update: data,
+    create: { userId: request.currentUser.id, ...data },
     select: {
-      dailyDigestEnabled: true,
-      weeklyDigestEnabled: true,
+      dailyReportEnabled: true,
+      weeklyReportEnabled: true,
     },
   });
 
   return reply.send({
-    dailyDigestEnabled: updated.dailyDigestEnabled,
-    weeklyDigestEnabled: updated.weeklyDigestEnabled,
+    dailyDigestEnabled: updated.dailyReportEnabled,
+    weeklyDigestEnabled: updated.weeklyReportEnabled,
+  });
+}
+
+/**
+ * GET /notifications/digest/:date?type=daily|weekly
+ *
+ * Returns the user's stored DailyReport for the given date (YYYY-MM-DD),
+ * mapped to the shape the iOS DigestDetailView expects
+ * (apps/ios/onairMusic/Models/NotificationModels.swift: DigestDetail/TopItem).
+ * Opened when the user taps a daily_digest/weekly_digest push notification.
+ */
+export async function getDigestDetail(
+  request: FastifyRequest<{ Params: DigestDetailParams; Querystring: DigestDetailQuery }>,
+  reply: FastifyReply,
+): Promise<void> {
+  const { date } = request.params;
+  const reportType = request.query.type === "weekly" ? "weekly" : "daily";
+
+  // Reports are stored with reportDate at server-local midnight
+  // (worker uses new Date() + setHours(0,0,0,0)), so match the whole day.
+  const dayStart = new Date(`${date}T00:00:00`);
+  if (Number.isNaN(dayStart.getTime())) {
+    return reply.code(400).send({ error: "Invalid date. Expected YYYY-MM-DD." });
+  }
+  const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+
+  const report = await prisma.dailyReport.findFirst({
+    where: {
+      userId: request.currentUser.id,
+      reportType,
+      reportDate: { gte: dayStart, lt: dayEnd },
+    },
+  });
+
+  if (!report) {
+    return reply.code(404).send({
+      error: `No ${reportType} report found for ${date}`,
+    });
+  }
+
+  const content = (report.content ?? {}) as Record<string, unknown>;
+
+  // Map role-specific report content to the DigestDetail shape.
+  const rawTopSong = content.topSong as
+    | { title?: string; plays?: number; station?: string }
+    | null
+    | undefined;
+  const rawTopArtist = content.topArtist as
+    | { name?: string; song?: string; plays?: number; station?: string }
+    | null
+    | undefined;
+  const rawTopStation = content.topStation as
+    | { name?: string; plays?: number }
+    | null
+    | undefined;
+
+  let topSong: { title: string; artist: string | null; name: string | null; count: number } | null = null;
+  if (rawTopSong?.title) {
+    topSong = {
+      title: rawTopSong.title,
+      artist: null,
+      name: null,
+      count: Number(rawTopSong.plays ?? 0),
+    };
+  } else if (rawTopArtist?.song) {
+    topSong = {
+      title: rawTopArtist.song,
+      artist: rawTopArtist.name ?? null,
+      name: null,
+      count: Number(rawTopArtist.plays ?? 0),
+    };
+  }
+
+  let topStation: { title: string; artist: string | null; name: string | null; count: number } | null = null;
+  if (rawTopStation?.name) {
+    topStation = {
+      title: rawTopStation.name,
+      artist: null,
+      name: rawTopStation.name,
+      count: Number(rawTopStation.plays ?? 0),
+    };
+  } else {
+    // Daily reports don't store a dedicated top station; fall back to the
+    // station of the top song/artist when available.
+    const fallbackStation = rawTopSong?.station || rawTopArtist?.station;
+    if (fallbackStation && fallbackStation !== "multiple stations") {
+      topStation = {
+        title: fallbackStation,
+        artist: null,
+        name: fallbackStation,
+        count: Number(rawTopSong?.plays ?? rawTopArtist?.plays ?? 0),
+      };
+    }
+  }
+
+  return reply.send({
+    playCount: Number(content.totalPlays ?? 0),
+    topSong,
+    topStation,
+    weekOverWeekChange:
+      reportType === "weekly" ? Number(content.weekOverWeekPercent ?? 0) : null,
+    newStationsCount:
+      reportType === "weekly" ? Number(content.newStationsCount ?? 0) : null,
   });
 }
 

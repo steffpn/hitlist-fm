@@ -62,7 +62,8 @@ export async function getSnippetUrl(
  * Scope filtering:
  * - ADMIN: sees all events
  * - STATION: only events from scoped station IDs
- * - ARTIST/LABEL: sees all events (scope filtering deferred)
+ * - ARTIST: only events matching their active MonitoredSong ISRCs
+ * - LABEL: only events matching their LabelMonitoredSong ISRCs
  */
 export async function listEvents(
   request: FastifyRequest<{ Querystring: ListEventsQuery }>,

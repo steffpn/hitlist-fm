@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { Prisma } from "../../../../generated/prisma/client.js";
 import { prisma } from "../../../lib/prisma.js";
+import { userHasFeature } from "../../../middleware/require-feature.js";
 import type {
   AddArtistBody,
   ArtistIdParams,
@@ -113,6 +114,28 @@ export async function addLabelArtist(
 ): Promise<void> {
   const labelUserId = request.currentUser.id;
   const { artistName } = request.body;
+
+  // Free plan limit: max 3 roster artists unless the plan includes
+  // unlimited artists. Same payload shape as requireFeature so clients
+  // can show the upgrade paywall consistently.
+  const FREE_LABEL_ARTIST_LIMIT = 3;
+  const artistCount = await prisma.labelArtist.count({
+    where: { labelUserId },
+  });
+  if (artistCount >= FREE_LABEL_ARTIST_LIMIT) {
+    const hasUnlimited = await userHasFeature(
+      labelUserId,
+      request.currentUser.role,
+      "label.unlimited_artists",
+    );
+    if (!hasUnlimited) {
+      return reply.status(403).send({
+        error: "Premium feature",
+        message: `Free plan allows up to ${FREE_LABEL_ARTIST_LIMIT} artists. Upgrade your plan to monitor unlimited artists.`,
+        featureKey: "label.unlimited_artists",
+      });
+    }
+  }
 
   // Try to find an existing artist user with matching name
   const existingArtist = await prisma.user.findFirst({

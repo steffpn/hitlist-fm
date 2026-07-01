@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { authenticate } from "../../../middleware/authenticate.js";
 import { requireRole } from "../../../middleware/authorize.js";
+import { requireFeature } from "../../../middleware/require-feature.js";
 import {
   AddWatchedStationBodySchema,
   StationIdParamsSchema,
@@ -16,9 +17,9 @@ import {
 } from "./handlers.js";
 
 const competitorRoutes: FastifyPluginAsync = async (fastify) => {
-  // Plugin-level hooks: authenticate + require STATION role
+  // Plugin-level hooks: authenticate + require STATION or ADMIN role
   fastify.addHook("preHandler", authenticate);
-  fastify.addHook("preHandler", requireRole("STATION"));
+  fastify.addHook("preHandler", requireRole("STATION", "ADMIN"));
 
   // GET /competitors/watched - List watched competitor stations
   fastify.get(
@@ -63,10 +64,11 @@ const competitorRoutes: FastifyPluginAsync = async (fastify) => {
     getCompetitorSummary,
   );
 
-  // GET /competitors/:stationId/detail - Detailed competitor intelligence
+  // GET /competitors/:stationId/detail - Detailed competitor intelligence (premium)
   fastify.get(
     "/:stationId/detail",
     {
+      preHandler: requireFeature("analytics.competitor_intel"),
       schema: {
         params: StationIdParamsSchema,
         querystring: PeriodQuerySchema,

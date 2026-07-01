@@ -23,7 +23,7 @@ export const DATA_DIR = path.resolve("./data/streams");
  *
  * Uses `-c copy` for codec pass-through (no re-encoding) to minimize CPU usage.
  * Uses `.ts` (MPEG-TS) container for maximum codec compatibility.
- * Uses `-segment_wrap 20` for 20 segments * 10s = 200s (~3.3 min rolling buffer).
+ * Uses `-segment_wrap 60` for 60 segments * 10s = 600s (~10 min rolling buffer).
  *
  * @param stationId - Station database ID
  * @param streamUrl - URL of the internet audio stream

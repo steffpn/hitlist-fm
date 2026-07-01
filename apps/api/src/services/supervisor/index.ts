@@ -18,7 +18,6 @@ import { DATA_DIR } from "./ffmpeg.js";
 import { startCleanupWorker } from "../../workers/cleanup.js";
 import { startDetectionWorker } from "../../workers/detection.js";
 import { startSnippetWorker } from "../../workers/snippet.js";
-import { startDigestWorker } from "../../workers/digest.js";
 
 const logger = pino({ name: "supervisor" });
 
@@ -124,10 +123,6 @@ export async function startSupervisor(): Promise<{
   const { queue: cleanupQueue, worker: cleanupWorker } =
     await startCleanupWorker();
 
-  // --- Start digest worker ---
-  const { queue: digestQueue, worker: digestWorker } =
-    await startDigestWorker();
-
   // --- Start snippet worker (before detection so queue is available for injection) ---
   const { queue: snippetQueue, worker: snippetWorker } =
     await startSnippetWorker();
@@ -224,8 +219,6 @@ export async function startSupervisor(): Promise<{
     await detectionQueue.close();
     await snippetWorker.close();
     await snippetQueue.close();
-    await digestWorker.close();
-    await digestQueue.close();
     await cleanupWorker.close();
     await cleanupQueue.close();
     await streamManager.stopAll();

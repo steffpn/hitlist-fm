@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { authenticate } from "../../../middleware/authenticate.js";
 import { requireRole } from "../../../middleware/authorize.js";
+import { requireFeature } from "../../../middleware/require-feature.js";
 import {
   PeriodQuerySchema,
   TopSongsQuerySchema,
@@ -67,10 +68,11 @@ const stationRoutes: FastifyPluginAsync = async (fastify) => {
     getExclusiveSongs,
   );
 
-  // GET /station/overlap/:competitorId - Playlist overlap analysis
+  // GET /station/overlap/:competitorId - Playlist overlap analysis (premium)
   fastify.get(
     "/overlap/:competitorId",
     {
+      preHandler: requireFeature("analytics.competitor_intel"),
       schema: {
         params: CompetitorIdParamsSchema,
         querystring: PeriodQuerySchema,
@@ -90,10 +92,11 @@ const stationRoutes: FastifyPluginAsync = async (fastify) => {
     getGenreDistribution,
   );
 
-  // GET /station/rotation - Rotation analysis with over-rotation detection
+  // GET /station/rotation - Rotation analysis with over-rotation detection (premium)
   fastify.get(
     "/rotation",
     {
+      preHandler: requireFeature("analytics.rotation_analysis"),
       schema: {
         querystring: PeriodQuerySchema,
       },
@@ -101,10 +104,11 @@ const stationRoutes: FastifyPluginAsync = async (fastify) => {
     getRotationAnalysis,
   );
 
-  // GET /station/discovery-score - New song discovery percentage
+  // GET /station/discovery-score - New song discovery percentage (premium)
   fastify.get(
     "/discovery-score",
     {
+      preHandler: requireFeature("analytics.discovery_score"),
       schema: {
         querystring: PeriodQuerySchema,
       },

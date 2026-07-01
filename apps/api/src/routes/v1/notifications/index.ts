@@ -4,10 +4,14 @@ import {
   RegisterDeviceTokenBodySchema,
   DeleteDeviceTokenBodySchema,
   NotificationPreferencesResponseSchema,
+  DigestDetailParamsSchema,
+  DigestDetailQuerySchema,
+  DigestDetailResponseSchema,
 } from "./schema.js";
 import {
   getNotificationPreferences,
   updateNotificationPreferences,
+  getDigestDetail,
   registerDeviceToken,
   deleteDeviceToken,
 } from "./handlers.js";
@@ -42,6 +46,21 @@ const notificationRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     updateNotificationPreferences,
+  );
+
+  // GET /notifications/digest/:date — stored report mapped for the iOS DigestDetailView
+  fastify.get(
+    "/digest/:date",
+    {
+      schema: {
+        params: DigestDetailParamsSchema,
+        querystring: DigestDetailQuerySchema,
+        response: {
+          200: DigestDetailResponseSchema,
+        },
+      },
+    },
+    getDigestDetail,
   );
 
   // POST /notifications/device-token

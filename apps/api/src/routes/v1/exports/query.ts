@@ -57,7 +57,7 @@ export async function queryFilteredEvents(
     where.stationId = stationId;
   }
 
-  // Scope-based filtering
+  // Scope-based filtering (mirrors listEvents in airplay-events/handlers.ts)
   if (currentUser.role === "STATION") {
     const stationScopes = currentUser.scopes
       .filter((s) => s.entityType === "STATION")
@@ -65,8 +65,34 @@ export async function queryFilteredEvents(
 
     // Override any explicit stationId with scope constraint
     where.stationId = { in: stationScopes };
+  } else if (currentUser.role === "ARTIST") {
+    // Artists only export events matching their monitored song ISRCs
+    const monitored = await prisma.monitoredSong.findMany({
+      where: { userId: currentUser.id, status: "active" },
+      select: { isrc: true },
+    });
+    const isrcs = monitored.map((m) => m.isrc);
+    if (isrcs.length > 0) {
+      where.isrc = { in: isrcs };
+    } else {
+      // No monitored songs -> no rows (never the whole market)
+      return { events: [], exceeded: false };
+    }
+  } else if (currentUser.role === "LABEL") {
+    // Labels export events for their managed artists' monitored songs
+    const labelSongs = await prisma.labelMonitoredSong.findMany({
+      where: { labelArtist: { labelUserId: currentUser.id } },
+      include: { monitoredSong: { select: { isrc: true } } },
+    });
+    const isrcs = labelSongs.map((ls) => ls.monitoredSong.isrc);
+    if (isrcs.length > 0) {
+      where.isrc = { in: isrcs };
+    } else {
+      // No monitored songs -> no rows (never the whole market)
+      return { events: [], exceeded: false };
+    }
   }
-  // ADMIN, ARTIST, LABEL: no additional scope filter
+  // ADMIN: no additional scope filter
 
   const maxRows = options?.maxRows;
   const take = maxRows ? maxRows + 1 : undefined;

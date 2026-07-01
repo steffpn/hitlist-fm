@@ -39,8 +39,8 @@ export async function todayReport(
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const report = await prisma.dailyReport.findUnique({
-    where: { userId_reportDate: { userId: user.id, reportDate: today } },
+  const report = await prisma.dailyReport.findFirst({
+    where: { userId: user.id, reportDate: today, reportType: "daily" },
   });
 
   if (!report) {

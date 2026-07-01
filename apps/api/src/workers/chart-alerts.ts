@@ -274,14 +274,16 @@ async function generateAlerts(snapshotDate: Date): Promise<void> {
         continue; // No alert for steady or declining
       }
 
-      // Send to artist user
+      // Send to artist user. The artist's country filter only suppresses the
+      // artist's own notification -- label notifications below must still run.
       const artistSettings = ms.user.settings;
-      if (!artistSettings || artistSettings.chartAlertsEnabled !== false) {
-        if (artistSettings?.chartAlertCountries?.length &&
-            !artistSettings.chartAlertCountries.includes(entry.country)) {
-          continue;
-        }
+      const artistEnabled =
+        !artistSettings || artistSettings.chartAlertsEnabled !== false;
+      const artistCountryMatch =
+        !artistSettings?.chartAlertCountries?.length ||
+        artistSettings.chartAlertCountries.includes(entry.country);
 
+      if (artistEnabled && artistCountryMatch) {
         await createAndSendAlert(
           ms.userId,
           entry,

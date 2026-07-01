@@ -66,9 +66,6 @@ const v1Routes: FastifyPluginAsync = async (fastify) => {
   fastify.register(import("./settings/index.js"), {
     prefix: "/settings",
   });
-  fastify.register(import("./curation/index.js"), {
-    prefix: "/curation",
-  });
   fastify.register(import("./chart-alerts/index.js"), {
     prefix: "/chart-alerts",
   });

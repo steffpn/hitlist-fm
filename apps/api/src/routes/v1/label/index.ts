@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { authenticate } from "../../../middleware/authenticate.js";
 import { requireRole } from "../../../middleware/authorize.js";
+import { requireFeature } from "../../../middleware/require-feature.js";
 import {
   AddArtistBodySchema,
   ArtistIdParamsSchema,
@@ -93,10 +94,11 @@ const labelRoutes: FastifyPluginAsync = async (fastify) => {
   // GET /station-affinity - Station affinity report
   fastify.get("/station-affinity", getStationAffinity);
 
-  // GET /releases/:id/tracker - Release performance tracker
+  // GET /releases/:id/tracker - Release performance tracker (premium)
   fastify.get(
     "/releases/:id/tracker",
     {
+      preHandler: requireFeature("label.release_tracker"),
       schema: {
         params: SongIdParamsSchema,
       },

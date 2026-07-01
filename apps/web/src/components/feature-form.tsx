@@ -9,7 +9,6 @@ import type { Feature, MatrixFeature, FeatureFormData, Role } from "@/lib/types"
 const CATEGORIES = [
   "analytics",
   "exports",
-  "curation",
   "alerts",
   "reports",
   "live",

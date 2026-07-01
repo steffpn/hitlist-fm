@@ -38,11 +38,6 @@ const FEATURES = [
   { key: "reports.daily_premium", name: "Daily Report (Premium)", description: "Detailed daily report with actionable, tailored insights", category: "reports", roles: ["ARTIST", "LABEL", "STATION"] },
   { key: "reports.weekly_digest", name: "Weekly Digest", description: "Weekly performance summary", category: "reports", roles: ["ARTIST", "LABEL", "STATION"] },
 
-  // Curation
-  { key: "curation.embed_widget", name: "Curation Embed Widget", description: "Embed song curation on your website", category: "curation", roles: ["STATION"] },
-  { key: "curation.leaderboard", name: "Curation Leaderboard", description: "View full song curation scores and rankings", category: "curation", roles: ["STATION"] },
-  { key: "curation.manage_songs", name: "Manage Curation Songs", description: "Add/remove songs from curation and sync from rotation", category: "curation", roles: ["STATION"] },
-
   // Alerts
   { key: "alerts.chart_monitoring", name: "Chart Monitoring", description: "Get alerts when your songs enter Shazam/Spotify/Apple Music charts", category: "alerts", roles: ["ARTIST", "LABEL"] },
   { key: "alerts.push_notifications", name: "Push Notifications", description: "Real-time push notifications for important events", category: "alerts", roles: ["ARTIST", "LABEL", "STATION"] },

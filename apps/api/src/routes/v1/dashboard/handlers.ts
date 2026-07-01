@@ -18,15 +18,35 @@ function periodToDays(period: string): number {
 }
 
 /**
+ * These endpoints expose network-wide market data, so they are restricted
+ * to ADMIN and STATION roles. ARTIST/LABEL users have their own scoped
+ * dashboards (/artist/dashboard and /label/dashboard).
+ *
+ * Returns true (and sends a 403) if the request was rejected.
+ */
+function rejectArtistAndLabel(
+  request: FastifyRequest,
+  reply: FastifyReply,
+): boolean {
+  const { role } = request.currentUser;
+  if (role === "ARTIST" || role === "LABEL") {
+    reply
+      .status(403)
+      .send({ error: "Use /artist/dashboard or /label/dashboard" });
+    return true;
+  }
+  return false;
+}
+
+/**
  * Extract station IDs from STATION role user scopes.
- * Returns null for roles that see all data (ADMIN, ARTIST, LABEL).
+ * Returns null for ADMIN (sees all data).
+ * ARTIST/LABEL never reach this — they are rejected with 403 upfront.
  */
 function getScopedStationIds(
   request: FastifyRequest,
 ): number[] | null {
   const { currentUser } = request;
-
-  if (currentUser.role === "ADMIN") return null;
 
   if (currentUser.role === "STATION") {
     return currentUser.scopes
@@ -34,7 +54,7 @@ function getScopedStationIds(
       .map((s) => s.entityId);
   }
 
-  // ARTIST/LABEL: see all data (scope filtering deferred per Phase 5 decision)
+  // ADMIN: no station restriction
   return null;
 }
 
@@ -43,12 +63,15 @@ function getScopedStationIds(
  *
  * Returns aggregated play counts from daily_station_plays continuous aggregate.
  * Supports period=day|week|month (default: day).
- * STATION role users see only data for their scoped station IDs.
+ * ADMIN and STATION only; STATION users see only their scoped station IDs.
+ * ARTIST/LABEL receive 403 (they must use /artist/dashboard or /label/dashboard).
  */
 export async function getDashboardSummary(
   request: FastifyRequest<{ Querystring: DashboardSummaryQuery }>,
   reply: FastifyReply,
 ): Promise<void> {
+  if (rejectArtistAndLabel(request, reply)) return;
+
   const period = request.query.period || "day";
   const days = periodToDays(period);
   const stationIds = getScopedStationIds(request);
@@ -107,12 +130,15 @@ export async function getDashboardSummary(
  * Returns ranked station list with play counts from daily_station_plays
  * joined with stations for station name.
  * Supports period=day|week|month (default: day) and limit (default: 10, max: 50).
- * STATION role users see only their scoped stations.
+ * ADMIN and STATION only; STATION users see only their scoped stations.
+ * ARTIST/LABEL receive 403 (they must use /artist/dashboard or /label/dashboard).
  */
 export async function getTopStations(
   request: FastifyRequest<{ Querystring: TopStationsQuery }>,
   reply: FastifyReply,
 ): Promise<void> {
+  if (rejectArtistAndLabel(request, reply)) return;
+
   const period = request.query.period || "day";
   const limit = request.query.limit || 10;
   const days = periodToDays(period);

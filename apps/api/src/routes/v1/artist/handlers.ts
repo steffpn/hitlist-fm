@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { Prisma } from "../../../../generated/prisma/client.js";
 import { prisma } from "../../../lib/prisma.js";
+import { userHasFeature } from "../../../middleware/require-feature.js";
 import type {
   SongIdParams,
   AddMonitoredSongBody,
@@ -192,6 +193,28 @@ export async function addArtistSong(
     return reply.status(403).send({
       error: "Artists can only monitor their own songs",
     });
+  }
+
+  // Free plan limit: max 5 active monitored songs unless the plan
+  // includes unlimited monitoring. Same payload shape as requireFeature
+  // so clients can show the upgrade paywall consistently.
+  const FREE_MONITORED_SONG_LIMIT = 5;
+  const activeCount = await prisma.monitoredSong.count({
+    where: { userId, status: "active" },
+  });
+  if (activeCount >= FREE_MONITORED_SONG_LIMIT) {
+    const hasUnlimited = await userHasFeature(
+      userId,
+      request.currentUser.role,
+      "songs.monitor_unlimited",
+    );
+    if (!hasUnlimited) {
+      return reply.status(403).send({
+        error: "Premium feature",
+        message: `Free plan allows up to ${FREE_MONITORED_SONG_LIMIT} monitored songs. Upgrade your plan to monitor unlimited songs.`,
+        featureKey: "songs.monitor_unlimited",
+      });
+    }
   }
 
   try {

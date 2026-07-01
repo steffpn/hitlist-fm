@@ -3,8 +3,8 @@
  *
  * Runs on a 30-second schedule via BullMQ job scheduler. Scans all station
  * directories in data/streams/ and deletes segment files with mtime older
- * than 3 minutes. Also removes orphaned directories from deleted/inactive
- * stations.
+ * than 11 minutes (just past FFmpeg's ~10 min segment_wrap ring buffer).
+ * Also removes orphaned directories from deleted/inactive stations.
  *
  * Acts as a safety net alongside FFmpeg's segment_wrap.
  */
@@ -20,7 +20,11 @@ const logger = pino({ name: "cleanup-worker" });
 
 const CLEANUP_QUEUE = "segment-cleanup";
 const DATA_DIR = path.resolve("./data/streams");
-const MAX_AGE_MS = 3 * 60 * 1000; // 3 minutes per user decision
+// 11 minutes: FFmpeg's ring buffer holds ~10 min of audio (segment_wrap 60 x 10s
+// segments, see services/supervisor/ffmpeg.ts), and the snippet worker retries
+// for up to 10 min. Deleting any earlier would guarantee those retries fail;
+// the 1-minute margin lets FFmpeg's own segment_wrap overwrite files first.
+const MAX_AGE_MS = 11 * 60 * 1000;
 const NO_MATCH_MAX_AGE_DAYS = 7;
 
 /**

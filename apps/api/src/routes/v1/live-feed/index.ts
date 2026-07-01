@@ -91,7 +91,7 @@ const liveFeedRoutes: FastifyPluginAsync = async (fastify) => {
         for (const entry of raw) {
           try {
             const event = JSON.parse(entry) as LiveDetectionEvent;
-            if (shouldDeliverToUser(event, currentUser)) {
+            if (await shouldDeliverToUser(event, currentUser)) {
               await reply.sse.send({
                 id: String(event.id),
                 event: "detection",
@@ -114,7 +114,7 @@ const liveFeedRoutes: FastifyPluginAsync = async (fastify) => {
 
         try {
           const event = JSON.parse(message) as LiveDetectionEvent;
-          if (shouldDeliverToUser(event, currentUser)) {
+          if (await shouldDeliverToUser(event, currentUser)) {
             await reply.sse.send({
               id: String(event.id),
               event: "detection",

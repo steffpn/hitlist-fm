@@ -1,4 +1,4 @@
-import type { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyRequest, FastifyReply, preHandlerHookHandler } from "fastify";
 import { prisma } from "../lib/prisma.js";
 
 /**
@@ -10,15 +10,18 @@ import { prisma } from "../lib/prisma.js";
  *
  * Usage: fastify.get("/premium-route", { preHandler: requireFeature("artist.detailed_analytics") }, handler)
  */
-export function requireFeature(
-  featureKey: string,
-): (request: FastifyRequest, reply: FastifyReply) => Promise<void> {
+export function requireFeature(featureKey: string): preHandlerHookHandler {
   return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     const user = request.currentUser;
     if (!user) {
       reply.code(401).send({ error: "Authentication required" });
       return;
     }
+
+    // Platform admins have no subscription; gating applies to customer roles.
+    // Impersonated personas carry their own role, so "view as role" still
+    // exercises the real paywall.
+    if (user.role === "ADMIN") return;
 
     const hasFeature = await userHasFeature(user.id, user.role, featureKey);
     if (!hasFeature) {

@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { authenticate } from "../../../middleware/authenticate.js";
 import { requireRole } from "../../../middleware/authorize.js";
+import { requireFeature } from "../../../middleware/require-feature.js";
 import {
   SongIdParamsSchema,
   AddMonitoredSongSchema,
@@ -66,10 +67,11 @@ const artistRoutes: FastifyPluginAsync = async (fastify) => {
     getStationBreakdown,
   );
 
-  // GET /artist/songs/:id/hourly-heatmap - 7x24 play heatmap
+  // GET /artist/songs/:id/hourly-heatmap - 7x24 play heatmap (premium)
   fastify.get(
     "/songs/:id/hourly-heatmap",
     {
+      preHandler: requireFeature("analytics.hourly_heatmap"),
       schema: {
         params: SongIdParamsSchema,
       },
