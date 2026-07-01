@@ -4,18 +4,21 @@ import {
   StationBulkCreateSchema,
   StationUpdateSchema,
   StationParamsSchema,
+  CoverageQuerySchema,
 } from "./schema.js";
 import type {
   StationCreateBody,
   StationBulkCreateBody,
   StationUpdateBody,
   StationParams,
+  CoverageQuery,
 } from "./schema.js";
 import {
   createStation,
   createStationsBulk,
   listStations,
   getStation,
+  getStationCoverage,
   updateStation,
   deleteStation,
 } from "./handlers.js";
@@ -38,6 +41,18 @@ const stationRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     getStation,
+  );
+
+  // GET /:id/coverage - Monitoring coverage transparency (any authenticated user)
+  fastify.get<{ Params: StationParams; Querystring: CoverageQuery }>(
+    "/:id/coverage",
+    {
+      schema: {
+        params: StationParamsSchema,
+        querystring: CoverageQuerySchema,
+      },
+    },
+    getStationCoverage,
   );
 
   // Write operations require ADMIN role

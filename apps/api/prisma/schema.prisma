@@ -25,8 +25,27 @@ model Station {
   airplayEvents    AirplayEvent[]
   noMatchCallbacks NoMatchCallback[]
   watchedBy        WatchedStation[]
+  monitoringGaps   MonitoringGap[]
 
   @@map("stations")
+}
+
+// A period during which monitoring for a station was down or unreliable.
+// Opened by the station-health worker on ACTIVE -> DEGRADED/ERROR transitions,
+// closed on recovery. Powers coverage transparency (GET /stations/:id/coverage).
+model MonitoringGap {
+  id        Int       @id @default(autoincrement())
+  stationId Int       @map("station_id")
+  startedAt DateTime  @map("started_at")
+  endedAt   DateTime? @map("ended_at")
+  reason    String // "stream_error" (stream down / circuit breaker) | "acr_silent" (no ACRCloud callbacks)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  station Station @relation(fields: [stationId], references: [id])
+
+  @@index([stationId, startedAt])
+  @@index([stationId, endedAt])
+  @@map("monitoring_gaps")
 }
 
 model Detection {
@@ -433,6 +452,8 @@ model UserSettings {
   weeklyReportEnabled   Boolean   @default(true) @map("weekly_report_enabled")
   chartAlertsEnabled    Boolean   @default(true) @map("chart_alerts_enabled")
   chartAlertCountries   String[]  @default(["RO"]) @map("chart_alert_countries") // ISO country codes
+  firstPlayAlertsEnabled Boolean  @default(true) @map("first_play_alerts_enabled") // "your song is ON AIR" push
+  rotationAlertsEnabled  Boolean  @default(true) @map("rotation_alerts_enabled") // "new song in rotation at competitor" push (STATION)
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
 

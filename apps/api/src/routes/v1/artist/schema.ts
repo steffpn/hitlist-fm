@@ -53,3 +53,11 @@ export const BrowseTracksQuerySchema = Type.Object({
 });
 
 export type BrowseTracksQuery = Static<typeof BrowseTracksQuerySchema>;
+
+export const ShareOfAirplayQuerySchema = Type.Object({
+  period: Type.Optional(
+    Type.Union([Type.Literal("week"), Type.Literal("month")]),
+  ),
+});
+
+export type ShareOfAirplayQuery = Static<typeof ShareOfAirplayQuerySchema>;

@@ -10,7 +10,59 @@ import type {
   StationBulkCreateBody,
   StationUpdateBody,
   StationParams,
+  CoverageQuery,
 } from "./schema.js";
+
+// --- Coverage helpers (monitoring gap math) ---
+
+interface GapInterval {
+  startedAt: Date;
+  endedAt: Date | null;
+}
+
+/**
+ * Percentage of the [windowStart, now] window NOT covered by monitoring gaps.
+ * Gaps are clamped to the window and merged first, so overlapping/duplicate
+ * gap rows never double-count downtime. Result rounded to 2 decimals.
+ */
+export function computeCoveragePercent(
+  gaps: GapInterval[],
+  windowStart: Date,
+  now: Date,
+): number {
+  const windowMs = now.getTime() - windowStart.getTime();
+  if (windowMs <= 0) return 100;
+
+  // Clamp to window and drop empty intervals
+  const clamped = gaps
+    .map((g) => ({
+      start: Math.max(g.startedAt.getTime(), windowStart.getTime()),
+      end: Math.min(g.endedAt?.getTime() ?? now.getTime(), now.getTime()),
+    }))
+    .filter((g) => g.end > g.start)
+    .sort((a, b) => a.start - b.start);
+
+  // Merge overlapping intervals, sum downtime
+  let downtimeMs = 0;
+  let curStart = -1;
+  let curEnd = -1;
+  for (const g of clamped) {
+    if (curEnd < 0) {
+      curStart = g.start;
+      curEnd = g.end;
+    } else if (g.start <= curEnd) {
+      curEnd = Math.max(curEnd, g.end);
+    } else {
+      downtimeMs += curEnd - curStart;
+      curStart = g.start;
+      curEnd = g.end;
+    }
+  }
+  if (curEnd >= 0) downtimeMs += curEnd - curStart;
+
+  const percent = (1 - downtimeMs / windowMs) * 100;
+  return Math.round(Math.min(100, Math.max(0, percent)) * 100) / 100;
+}
 
 /**
  * POST /stations - Create a single station.
@@ -84,6 +136,9 @@ export async function createStationsBulk(
  * (max of Detection.detectedAt and NoMatchCallback.callbackAt), computed with
  * two grouped aggregate queries - no per-station N+1. All pre-existing fields
  * keep their exact shape for existing clients.
+ *
+ * Adds coveragePercent7d: monitoring coverage over the last 7 days from
+ * MonitoringGap rows — one aggregate query for all stations (no N+1).
  */
 export async function listStations(): Promise<unknown> {
   const stations = await prisma.station.findMany({
@@ -104,8 +159,11 @@ export async function listStations(): Promise<unknown> {
 
   if (stations.length === 0) return stations;
 
+  const now = new Date();
+  const coverageWindowStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
   const ids = stations.map((s) => s.id);
-  const [detectionMax, noMatchMax] = await Promise.all([
+  const [detectionMax, noMatchMax, gapRows] = await Promise.all([
     prisma.detection.groupBy({
       by: ["stationId"],
       where: { stationId: { in: ids } },
@@ -116,7 +174,23 @@ export async function listStations(): Promise<unknown> {
       where: { stationId: { in: ids } },
       _max: { callbackAt: true },
     }),
+    // All gaps overlapping the last 7 days, for every station, in one query
+    prisma.monitoringGap.findMany({
+      where: {
+        stationId: { in: ids },
+        startedAt: { lt: now },
+        OR: [{ endedAt: null }, { endedAt: { gt: coverageWindowStart } }],
+      },
+      select: { stationId: true, startedAt: true, endedAt: true },
+    }),
   ]);
+
+  const gapsByStation = new Map<number, Array<{ startedAt: Date; endedAt: Date | null }>>();
+  for (const gap of gapRows) {
+    const list = gapsByStation.get(gap.stationId) ?? [];
+    list.push({ startedAt: gap.startedAt, endedAt: gap.endedAt });
+    gapsByStation.set(gap.stationId, list);
+  }
 
   const lastAcrCallbackByStation = new Map<number, Date>();
   for (const row of detectionMax) {
@@ -134,6 +208,11 @@ export async function listStations(): Promise<unknown> {
   return stations.map((s) => ({
     ...s,
     lastAcrCallbackAt: lastAcrCallbackByStation.get(s.id) ?? null,
+    coveragePercent7d: computeCoveragePercent(
+      gapsByStation.get(s.id) ?? [],
+      coverageWindowStart,
+      now,
+    ),
   }));
 }
 
@@ -153,6 +232,52 @@ export async function getStation(
   }
 
   return reply.send(station);
+}
+
+/**
+ * GET /stations/:id/coverage?days=7 - Monitoring coverage transparency.
+ *
+ * Returns the percentage of the last N days during which the station was
+ * actually monitored, plus the raw monitoring gaps overlapping the window
+ * (as recorded by the station-health worker). Open gaps (endedAt null) count
+ * as downtime up to "now".
+ */
+export async function getStationCoverage(
+  request: FastifyRequest<{ Params: StationParams; Querystring: CoverageQuery }>,
+  reply: FastifyReply,
+): Promise<void> {
+  const station = await prisma.station.findUnique({
+    where: { id: request.params.id },
+    select: { id: true },
+  });
+  if (!station) {
+    return reply.status(404).send({ error: "Station not found" });
+  }
+
+  const days = request.query.days ?? 7;
+  const now = new Date();
+  const windowStart = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
+  const gaps = await prisma.monitoringGap.findMany({
+    where: {
+      stationId: station.id,
+      startedAt: { lt: now },
+      OR: [{ endedAt: null }, { endedAt: { gt: windowStart } }],
+    },
+    orderBy: { startedAt: "asc" },
+    select: { startedAt: true, endedAt: true, reason: true },
+  });
+
+  return reply.send({
+    stationId: station.id,
+    days,
+    coveragePercent: computeCoveragePercent(gaps, windowStart, now),
+    gaps: gaps.map((g) => ({
+      startedAt: g.startedAt,
+      endedAt: g.endedAt,
+      reason: g.reason,
+    })),
+  });
 }
 
 /**

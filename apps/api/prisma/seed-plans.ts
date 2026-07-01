@@ -19,6 +19,9 @@ const FEATURES = [
   { key: "analytics.trend_comparison", name: "Trend Comparison", description: "This week vs last week performance comparison", category: "analytics", roles: ["ARTIST", "LABEL"] },
   { key: "analytics.peak_hours", name: "Peak Hours Analysis", description: "Top 5 busiest hours for your songs", category: "analytics", roles: ["ARTIST", "LABEL"] },
   { key: "analytics.competitor_intel", name: "Competitor Intelligence", description: "Detailed competitor analysis with overlap and exclusive songs", category: "analytics", roles: ["STATION"] },
+  // Premium-only (not listed in FREE_FEATURES): premium plans receive every
+  // applicable feature automatically, so artist-premium + label-premium get it.
+  { key: "analytics.share_of_airplay", name: "Share of Airplay", description: "Your share of total market airplay with artist ranking", category: "analytics", roles: ["ARTIST", "LABEL"] },
   { key: "analytics.rotation_analysis", name: "Rotation Analysis", description: "Over-rotation detection and rotation health", category: "analytics", roles: ["STATION"] },
   { key: "analytics.discovery_score", name: "Discovery Score", description: "New song discovery percentage and metrics", category: "analytics", roles: ["STATION"] },
   { key: "analytics.genre_distribution", name: "Genre Distribution", description: "Label and genre breakdown of your playlist", category: "analytics", roles: ["STATION"] },

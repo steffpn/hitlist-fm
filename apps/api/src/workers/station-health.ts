@@ -13,6 +13,14 @@
  *
  * ERROR stations (stream down entirely, owned by the StreamManager circuit
  * breaker) and INACTIVE stations are ignored here.
+ *
+ * Coverage transparency (additive, does not change the transitions above):
+ * the worker also maintains MonitoringGap rows. A gap opens when a station
+ * leaves ACTIVE (DEGRADED -> reason "acr_silent", opened at the last known
+ * callback so the silent stretch is counted; ERROR -> reason "stream_error")
+ * and closes when the station is ACTIVE again — including recoveries done
+ * elsewhere (circuit breaker / admin), since every run reconciles open gaps
+ * against the station's current status.
  */
 
 import { Worker, Queue } from "bullmq";
@@ -27,14 +35,60 @@ const QUEUE_NAME = "station-health";
 /** A station is considered degraded when no ACR callback arrived for this long. */
 const STALE_CALLBACK_MS = 20 * 60 * 1000;
 
+// ─── Monitoring gap bookkeeping (coverage transparency) ────────────
+
+type GapReason = "stream_error" | "acr_silent";
+
+async function ensureOpenGap(
+  stationId: number,
+  openGapByStation: Map<number, { id: number; reason: string }>,
+  reason: GapReason,
+  startedAt: Date,
+): Promise<void> {
+  if (openGapByStation.has(stationId)) return;
+  const gap = await prisma.monitoringGap.create({
+    data: { stationId, startedAt, reason },
+  });
+  openGapByStation.set(stationId, { id: gap.id, reason });
+  logger.info({ stationId, reason, startedAt }, "Monitoring gap opened");
+}
+
+async function closeOpenGap(
+  stationId: number,
+  openGapByStation: Map<number, { id: number; reason: string }>,
+  endedAt: Date,
+): Promise<void> {
+  const open = openGapByStation.get(stationId);
+  if (!open) return;
+  await prisma.monitoringGap.updateMany({
+    where: { stationId, endedAt: null },
+    data: { endedAt },
+  });
+  openGapByStation.delete(stationId);
+  logger.info({ stationId, reason: open.reason, endedAt }, "Monitoring gap closed");
+}
+
 async function checkStationHealth(): Promise<void> {
+  // ERROR stations are included only for monitoring-gap bookkeeping; the
+  // health transitions below still only touch ACTIVE/DEGRADED stations.
   const stations = await prisma.station.findMany({
-    where: { status: { in: ["ACTIVE", "DEGRADED"] } },
+    where: { status: { in: ["ACTIVE", "DEGRADED", "ERROR"] } },
     select: { id: true, name: true, status: true, createdAt: true },
   });
   if (stations.length === 0) return;
 
   const ids = stations.map((s) => s.id);
+
+  // Open gaps for all inspected stations in one query (at most one open gap
+  // per station is ever created by this worker).
+  const openGaps = await prisma.monitoringGap.findMany({
+    where: { stationId: { in: ids }, endedAt: null },
+    select: { id: true, stationId: true, reason: true },
+  });
+  const openGapByStation = new Map<number, { id: number; reason: string }>();
+  for (const gap of openGaps) {
+    openGapByStation.set(gap.stationId, { id: gap.id, reason: gap.reason });
+  }
 
   // Last ACR callback per station via two grouped aggregates (no N+1).
   const [detectionMax, noMatchMax] = await Promise.all([
@@ -70,6 +124,9 @@ async function checkStationHealth(): Promise<void> {
     const isStale =
       !lastCallback || now - lastCallback.getTime() > STALE_CALLBACK_MS;
 
+    // Status after this run's transition (used for gap reconciliation below).
+    let effectiveStatus = station.status;
+
     if (station.status === "ACTIVE" && isStale) {
       // Grace period: a recently created station with no callbacks yet is
       // still warming up, not degraded.
@@ -86,6 +143,7 @@ async function checkStationHealth(): Promise<void> {
       });
 
       if (res.count > 0) {
+        effectiveStatus = "DEGRADED";
         const minutes = lastCallback
           ? Math.round((now - lastCallback.getTime()) / 60_000)
           : null;
@@ -109,6 +167,7 @@ async function checkStationHealth(): Promise<void> {
       });
 
       if (res.count > 0) {
+        effectiveStatus = "ACTIVE";
         logger.info(
           { stationId: station.id, lastCallback },
           "Station recovered - ACRCloud callbacks resumed",
@@ -119,6 +178,31 @@ async function checkStationHealth(): Promise<void> {
           data: { type: "station_recovered", stationId: String(station.id) },
         });
       }
+    }
+
+    // ── Gap reconciliation (additive; never alters statuses/notifications).
+    // DEGRADED: open an "acr_silent" gap anchored at the last known callback
+    //   (the silence started then, not when we noticed it).
+    // ERROR: open a "stream_error" gap (owned by the circuit breaker; we just
+    //   record it) from this run's timestamp.
+    // ACTIVE: close any open gap — also covers recoveries performed outside
+    //   this worker (circuit breaker / admin flipping ERROR back to ACTIVE).
+    if (effectiveStatus === "DEGRADED") {
+      await ensureOpenGap(
+        station.id,
+        openGapByStation,
+        "acr_silent",
+        lastCallback ?? new Date(now),
+      );
+    } else if (effectiveStatus === "ERROR") {
+      await ensureOpenGap(
+        station.id,
+        openGapByStation,
+        "stream_error",
+        new Date(now),
+      );
+    } else if (effectiveStatus === "ACTIVE") {
+      await closeOpenGap(station.id, openGapByStation, new Date(now));
     }
   }
 }

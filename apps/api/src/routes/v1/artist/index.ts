@@ -6,8 +6,9 @@ import {
   SongIdParamsSchema,
   AddMonitoredSongSchema,
   SongAnalyticsQuerySchema,
+  ShareOfAirplayQuerySchema,
 } from "./schema.js";
-import type { SongIdParams } from "./schema.js";
+import type { SongIdParams, ShareOfAirplayQuery } from "./schema.js";
 import {
   getArtistSongs,
   addArtistSong,
@@ -20,7 +21,7 @@ import {
   getWeeklyDigest,
 } from "./handlers.js";
 import { BrowseTracksQuerySchema } from "./schema.js";
-import { browseTracks, deleteArtistSong } from "./handlers.js";
+import { browseTracks, deleteArtistSong, getShareOfAirplay } from "./handlers.js";
 
 const artistRoutes: FastifyPluginAsync = async (fastify) => {
   // All routes require ARTIST or ADMIN role
@@ -46,6 +47,18 @@ const artistRoutes: FastifyPluginAsync = async (fastify) => {
 
   // GET /artist/weekly-digest - Weekly comparison digest
   fastify.get("/weekly-digest", getWeeklyDigest);
+
+  // GET /artist/share-of-airplay - Market share + artist rank (premium)
+  fastify.get<{ Querystring: ShareOfAirplayQuery }>(
+    "/share-of-airplay",
+    {
+      preHandler: requireFeature("analytics.share_of_airplay"),
+      schema: {
+        querystring: ShareOfAirplayQuerySchema,
+      },
+    },
+    getShareOfAirplay,
+  );
 
   // GET /artist/songs/:id/analytics - Daily play analytics
   fastify.get(

@@ -35,6 +35,12 @@ export const StationParamsSchema = Type.Object({
 
 export type StationParams = Static<typeof StationParamsSchema>;
 
+export const CoverageQuerySchema = Type.Object({
+  days: Type.Optional(Type.Integer({ minimum: 1, maximum: 90 })),
+});
+
+export type CoverageQuery = Static<typeof CoverageQuerySchema>;
+
 // --- Response Schemas ---
 
 export const StationResponseSchema = Type.Object({

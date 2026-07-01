@@ -79,6 +79,10 @@ const v1Routes: FastifyPluginAsync = async (fastify) => {
   fastify.register(import("./chart-alerts/index.js"), {
     prefix: "/chart-alerts",
   });
+  // Public airplay chart (no auth, per-IP rate limited inside the plugin)
+  fastify.register(import("./charts/index.js"), {
+    prefix: "/charts",
+  });
 };
 
 export default v1Routes;

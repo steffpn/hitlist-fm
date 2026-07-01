@@ -19,6 +19,7 @@ import { normalizeTitle, normalizeArtist } from "../lib/normalization.js";
 import { filterDetection } from "../lib/false-positive-filter.js";
 import { isFuzzyMatch } from "../lib/fuzzy-match.js";
 import { lookupArtwork } from "../lib/deezer.js";
+import { sendPush } from "../lib/push.js";
 import {
   CHANNELS,
   BACKFILL_KEY,
@@ -216,6 +217,123 @@ async function resolveArtwork(
       where: { id: eventId },
       data: { artworkUrl },
     });
+  }
+}
+
+// ---- First-play "ON AIR" push ----
+
+/** Max first-play pushes per user per rolling 24h (Redis counter with TTL). */
+export const FIRST_PLAY_DAILY_LIMIT = 5;
+const FIRST_PLAY_CAP_TTL_SECONDS = 24 * 60 * 60;
+
+function firstPlayCapKey(userId: number): string {
+  return `first-play-cap:${userId}`;
+}
+
+/**
+ * "Your song is ON AIR" push — sent when a NEW AirplayEvent (not an extension)
+ * with a full play (partialPlay=false) is created for a monitored ISRC.
+ *
+ * Anti-spam rules:
+ *  (a) only for the FIRST play of that ISRC on that station (no earlier
+ *      AirplayEvent with the same isrc+stationId) — which also covers the
+ *      "first play ever" case;
+ *  (b) max FIRST_PLAY_DAILY_LIMIT pushes of this type per user per 24h,
+ *      enforced with a Redis INCR counter that gets a 24h TTL on first use;
+ *  (c) honors UserSettings.firstPlayAlertsEnabled (default true — a missing
+ *      settings row means enabled).
+ *
+ * Recipients: the owning artist of each active MonitoredSong with this ISRC,
+ * plus every label user linked through LabelMonitoredSong. Users are
+ * de-duplicated so nobody gets two pushes for one play.
+ *
+ * Fire-and-forget: callers attach .catch — this must never block or fail
+ * detection processing.
+ */
+export async function notifyFirstPlay(params: {
+  airplayEventId: number;
+  isrc: string;
+  songTitle: string;
+  stationId: number;
+  stationName: string;
+}): Promise<void> {
+  const { airplayEventId, isrc, songTitle, stationId, stationName } = params;
+
+  // Rule (a): first play of this ISRC on this station. The freshly created
+  // event is already in the DB, so exclude it from the lookup.
+  const priorOnStation = await prisma.airplayEvent.findFirst({
+    where: { isrc, stationId, id: { not: airplayEventId } },
+    select: { id: true },
+  });
+  if (priorOnStation) return;
+
+  // Recipients: artists monitoring this ISRC + their linked label users.
+  const monitored = await prisma.monitoredSong.findMany({
+    where: { isrc, status: "active" },
+    include: {
+      user: { include: { deviceTokens: true, settings: true } },
+      labelMonitoredSongs: {
+        include: {
+          labelArtist: {
+            include: {
+              labelUser: { include: { deviceTokens: true, settings: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+  if (monitored.length === 0) return;
+
+  type Recipient = {
+    id: number;
+    deviceTokens: Array<{ token: string; platform: string }>;
+    settings: { firstPlayAlertsEnabled: boolean } | null;
+  };
+
+  const recipients = new Map<number, Recipient>();
+  for (const ms of monitored) {
+    recipients.set(ms.user.id, ms.user);
+    for (const lms of ms.labelMonitoredSongs) {
+      const labelUser = lms.labelArtist.labelUser;
+      recipients.set(labelUser.id, labelUser);
+    }
+  }
+
+  const payload = {
+    title: `🔴 ON AIR: ${songTitle}`,
+    body: `${songTitle} rulează acum pe ${stationName}`,
+    data: {
+      type: "first_play",
+      airplayEventId: String(airplayEventId),
+      isrc,
+    },
+  };
+
+  for (const user of recipients.values()) {
+    // Rule (c): user setting (missing settings row = enabled by default).
+    if (user.settings && user.settings.firstPlayAlertsEnabled === false) {
+      continue;
+    }
+    if (user.deviceTokens.length === 0) continue;
+
+    // Rule (b): daily cap per user (Redis counter, 24h TTL from first push).
+    const key = firstPlayCapKey(user.id);
+    const count = await redis.incr(key);
+    if (count === 1) {
+      await redis.expire(key, FIRST_PLAY_CAP_TTL_SECONDS);
+    }
+    if (count > FIRST_PLAY_DAILY_LIMIT) {
+      logger.debug(
+        { userId: user.id, count },
+        "First-play push suppressed (daily cap reached)",
+      );
+      continue;
+    }
+
+    for (const dt of user.deviceTokens) {
+      await sendPush(dt, payload);
+    }
   }
 }
 
@@ -472,6 +590,24 @@ export async function processCallback(
             );
           },
         );
+
+        // Fire-and-forget "your song is ON AIR" push for monitored ISRCs.
+        // Only for NEW events that are full plays at creation time (events
+        // later promoted from partial to full do not re-trigger the push).
+        if (isrc && !newEvent.partialPlay) {
+          notifyFirstPlay({
+            airplayEventId: newEvent.id,
+            isrc,
+            songTitle: newEvent.songTitle,
+            stationId: station.id,
+            stationName: station.name,
+          }).catch((err) => {
+            logger.warn(
+              { err, airplayEventId: newEvent.id, isrc },
+              "First-play push failed",
+            );
+          });
+        }
 
         // Enqueue snippet extraction (always, unless explicitly disabled)
         if (process.env.SNIPPETS_ENABLED !== "false" && _snippetQueue) {

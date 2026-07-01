@@ -7,7 +7,8 @@ import type {
   AddMonitoredSongBody,
   SongAnalyticsQuery,
 } from "./schema.js";
-import type { BrowseTracksQuery } from "./schema.js";
+import type { BrowseTracksQuery, ShareOfAirplayQuery } from "./schema.js";
+import { periodWindow } from "../../../lib/period.js";
 
 // --- Date helpers ---
 
@@ -752,4 +753,93 @@ export async function deleteArtistSong(
   await prisma.monitoredSong.delete({ where: { id } });
 
   return reply.status(204).send();
+}
+
+/**
+ * GET /artist/share-of-airplay?period=week|month — premium market-share view
+ * (feature gate: "analytics.share_of_airplay", premium artist+label plans).
+ *
+ * Compares the user's monitored catalog (ARTIST/ADMIN: own MonitoredSongs;
+ * LABEL: roster songs linked via LabelMonitoredSong) against the whole market
+ * in the running Bucharest week/month. Partial plays are always excluded.
+ *
+ * rank = the position the user's aggregated catalog plays would occupy in the
+ * per-artist-name play ranking for the period (1 + number of artists with
+ * strictly more plays); null when the user had 0 plays in the period.
+ * totalArtists = distinct artist names with at least one full play.
+ */
+export async function getShareOfAirplay(
+  request: FastifyRequest<{ Querystring: ShareOfAirplayQuery }>,
+  reply: FastifyReply,
+): Promise<void> {
+  const user = request.currentUser;
+  const period = request.query.period ?? "week";
+  const window = periodWindow(period);
+
+  // The user's monitored ISRCs
+  let isrcs: string[];
+  if (user.role === "LABEL") {
+    const links = await prisma.labelMonitoredSong.findMany({
+      where: {
+        labelArtist: { labelUserId: user.id },
+        monitoredSong: { status: "active" },
+      },
+      include: { monitoredSong: { select: { isrc: true } } },
+    });
+    isrcs = [...new Set(links.map((l) => l.monitoredSong.isrc))];
+  } else {
+    const songs = await prisma.monitoredSong.findMany({
+      where: { userId: user.id, status: "active" },
+      select: { isrc: true },
+    });
+    isrcs = [...new Set(songs.map((s) => s.isrc))];
+  }
+
+  const playWindow = { gte: window.start, lt: window.end };
+
+  const [yourPlays, marketPlays] = await Promise.all([
+    isrcs.length === 0
+      ? Promise.resolve(0)
+      : prisma.airplayEvent.count({
+          where: {
+            isrc: { in: isrcs },
+            partialPlay: false,
+            startedAt: playWindow,
+          },
+        }),
+    prisma.airplayEvent.count({
+      where: { partialPlay: false, startedAt: playWindow },
+    }),
+  ]);
+
+  const rankRows: Array<{ total_artists: bigint | number; artists_above: bigint | number }> =
+    await prisma.$queryRaw`
+      WITH artist_plays AS (
+        SELECT artist_name, COUNT(*)::bigint AS plays
+        FROM airplay_events
+        WHERE partial_play = false
+          AND started_at >= ${window.start}
+          AND started_at < ${window.end}
+        GROUP BY artist_name
+      )
+      SELECT
+        COUNT(*)::bigint AS total_artists,
+        (SELECT COUNT(*)::bigint FROM artist_plays WHERE plays > ${yourPlays}) AS artists_above
+      FROM artist_plays
+    `;
+
+  const totalArtists = Number(rankRows[0]?.total_artists ?? 0);
+  const artistsAbove = Number(rankRows[0]?.artists_above ?? 0);
+
+  return reply.send({
+    period,
+    yourPlays,
+    marketPlays,
+    sharePercent:
+      marketPlays > 0
+        ? Math.round((yourPlays / marketPlays) * 10000) / 100
+        : 0,
+    rank: yourPlays > 0 ? artistsAbove + 1 : null,
+    totalArtists,
+  });
 }

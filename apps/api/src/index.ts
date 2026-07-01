@@ -9,6 +9,7 @@ import { startSupervisor } from "./services/supervisor/index.js";
 import { startDailyReportWorker } from "./workers/daily-report.js";
 import { startChartAlertsWorker } from "./workers/chart-alerts.js";
 import { startStationHealthWorker } from "./workers/station-health.js";
+import { startRotationAlertsWorker } from "./workers/rotation-alerts.js";
 
 const server = Fastify({ logger: true });
 
@@ -91,6 +92,9 @@ const start = async () => {
     );
     startStationHealthWorker().catch((err) =>
       server.log.error(err, "Station health worker failed to start"),
+    );
+    startRotationAlertsWorker().catch((err) =>
+      server.log.error(err, "Rotation alerts worker failed to start"),
     );
   } catch (err) {
     server.log.error(err);
