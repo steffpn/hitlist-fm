@@ -69,11 +69,8 @@ struct CompetitorComparison: Codable, Sendable, Identifiable {
 
 // MARK: - Request Bodies
 
-/// Request body for POST /competitors/watched
+/// Request body for POST /competitors/watched.
+/// Backend schema expects camelCase `stationId` (no snake_case mapping).
 struct AddWatchedStationRequest: Encodable {
     let stationId: Int
-
-    enum CodingKeys: String, CodingKey {
-        case stationId = "station_id"
-    }
 }

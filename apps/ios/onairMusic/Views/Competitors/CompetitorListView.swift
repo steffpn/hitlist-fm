@@ -7,7 +7,9 @@ struct CompetitorListView: View {
     @State private var showingStationPicker = false
 
     var body: some View {
-        ZStack {
+        VStack(spacing: 0) {
+            competitorsHeader
+            ZStack {
             if viewModel.isLoading && viewModel.cards.isEmpty {
                 LoadingView()
             } else if let errorMessage = viewModel.error, viewModel.cards.isEmpty {
@@ -62,23 +64,11 @@ struct CompetitorListView: View {
                     await viewModel.loadSummary()
                 }
             }
-        }
-        .onairGlow(subtle: true)
-        .navigationTitle("Competitors")
-        .navigationBarTitleDisplayMode(.large)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .toolbarBackground(Color.rbBackground, for: .navigationBar)
-        .preferredColorScheme(.dark)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showingStationPicker = true
-                } label: {
-                    Image(systemName: "plus")
-                        .foregroundStyle(Color.rbAccent)
-                }
             }
         }
+        .onairGlow(subtle: true)
+        .toolbar(.hidden, for: .navigationBar)
+        .preferredColorScheme(.dark)
         .sheet(isPresented: $showingStationPicker) {
             NavigationStack {
                 CompetitorStationPickerView(viewModel: viewModel)
@@ -87,6 +77,35 @@ struct CompetitorListView: View {
         .task(id: viewModel.selectedPeriod) {
             await viewModel.loadSummary()
         }
+    }
+
+    // MARK: - Header
+
+    /// Custom header so the title and the "+" action sit on the SAME row
+    /// (the system large-title toolbar renders the button above the title).
+    private var competitorsHeader: some View {
+        HStack {
+            Text("Competitors")
+                .font(.sora(30, .bold))
+                .foregroundStyle(Color.rbTextPrimary)
+            Spacer()
+            Button {
+                showingStationPicker = true
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 38, height: 38)
+                    .background(
+                        LinearGradient.rbAccentGradient,
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    )
+                    .shadow(color: Color.rbAccent.opacity(0.5), radius: 10, y: 5)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .padding(.bottom, 6)
     }
 
     // MARK: - Empty State
