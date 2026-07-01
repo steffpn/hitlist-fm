@@ -3,7 +3,7 @@ import UserNotifications
 import CoreText
 
 /// UIApplicationDelegate for APNS token registration and notification handling.
-/// Wired into SwiftUI via @UIApplicationDelegateAdaptor in myFuckingMusicApp.
+/// Wired into SwiftUI via @UIApplicationDelegateAdaptor in onairMusicApp.
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, @unchecked Sendable {
 
     // MARK: - UIApplicationDelegate

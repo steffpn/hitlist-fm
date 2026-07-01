@@ -8,3 +8,9 @@ coverage
 .DS_Store
 apps/ios/myFuckingMusic.xcodeproj/project.xcworkspace/xcuserdata
 apps/ios/myFuckingMusic.xcodeproj/xcuserdata
+
+# Xcode user state / local artifacts (robust — any path)
+**/xcuserdata/
+*.xcuserstate
+*.pbxproj.backup
+.DS_Store

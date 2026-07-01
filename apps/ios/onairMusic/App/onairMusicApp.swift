@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct myFuckingMusicApp: App {
+struct onairMusicApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var authManager = AuthManager()
     @State private var audioPlayer = AudioPlayerManager()
