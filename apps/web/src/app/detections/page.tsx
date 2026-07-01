@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { apiFetch } from "@/lib/api";
+import { apiDownload, apiFetch } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 
@@ -16,6 +16,10 @@ interface AirplayEvent {
   confidence: number;
   playCount: number;
   snippetUrl: string | null;
+  // Played < 30s (teaser/jingle) — rendered with a "partial" marker.
+  partialPlay: boolean;
+  // Cached Deezer album artwork, if resolved.
+  artworkUrl: string | null;
   station: { name: string };
 }
 
@@ -124,11 +128,58 @@ export default function DetectionsPage() {
 
   const hasFilters = q || stationId || startDate || endDate;
 
+  // Build the /exports/{csv,pdf} query string from the CURRENT filters.
+  function exportQuery(): string {
+    const params = new URLSearchParams();
+    if (q.trim()) params.set("q", q.trim());
+    if (stationId) params.set("stationId", stationId);
+    if (startDate) params.set("startDate", startDate);
+    if (endDate) params.set("endDate", endDate);
+    const s = params.toString();
+    return s ? `?${s}` : "";
+  }
+
+  const [exporting, setExporting] = useState<"csv" | "pdf" | null>(null);
+  const pdfReady = !!startDate && !!endDate; // PDF export requires a date range
+
+  async function handleExport(kind: "csv" | "pdf") {
+    setExporting(kind);
+    try {
+      await apiDownload(
+        `/exports/${kind}${exportQuery()}`,
+        kind === "csv" ? "airplay-export.csv" : "airplay-report.pdf",
+      );
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Export failed");
+    } finally {
+      setExporting(null);
+    }
+  }
+
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Detections</h1>
-        <p className="text-sm text-zinc-400 mt-1">Live airplay events from ACRCloud detection pipeline.</p>
+      <div className="mb-6 flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Detections</h1>
+          <p className="text-sm text-zinc-400 mt-1">Live airplay events from ACRCloud detection pipeline.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleExport("csv")}
+            disabled={exporting !== null}
+            className="px-3 py-2 text-xs font-semibold text-zinc-300 border border-zinc-800 hover:border-zinc-600 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {exporting === "csv" ? "Exporting…" : "Export CSV"}
+          </button>
+          <button
+            onClick={() => handleExport("pdf")}
+            disabled={exporting !== null || !pdfReady}
+            title={pdfReady ? "Branded PDF report" : "Pick a From + To date first"}
+            className="px-3 py-2 text-xs font-semibold text-zinc-300 border border-zinc-800 hover:border-zinc-600 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {exporting === "pdf" ? "Exporting…" : "Export PDF"}
+          </button>
+        </div>
       </div>
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-6 flex flex-wrap gap-3 items-end">
@@ -215,8 +266,43 @@ export default function DetectionsPage() {
                       <div className="text-zinc-500">{formatTime(e.startedAt)} · {durationSec(e.startedAt, e.endedAt)}s</div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-white font-medium">{e.songTitle}</div>
-                      <div className="text-xs text-zinc-400">{e.artistName}</div>
+                      <div className="flex items-center gap-3">
+                        {e.artworkUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={e.artworkUrl}
+                            alt=""
+                            loading="lazy"
+                            className="w-9 h-9 rounded-md object-cover border border-zinc-800 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-md bg-zinc-800/60 border border-zinc-800 flex items-center justify-center shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4 text-zinc-600">
+                              <path d="M9 18V5l12-2v13" />
+                              <circle cx="6" cy="18" r="3" />
+                              <circle cx="18" cy="16" r="3" />
+                            </svg>
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="text-white font-medium flex items-center gap-2">
+                            <span className="truncate">{e.songTitle}</span>
+                            {e.partialPlay && (
+                              <span
+                                title="Partial play — under 30 seconds (teaser/jingle), excluded from aggregations"
+                                className="inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-full px-1.5 py-0.5 shrink-0"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5">
+                                  <circle cx="12" cy="12" r="10" />
+                                  <path d="M12 6v6l4 2" />
+                                </svg>
+                                partial &lt;30s
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-zinc-400 truncate">{e.artistName}</div>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-zinc-300">{e.station.name}</td>
                     <td className="px-4 py-3">

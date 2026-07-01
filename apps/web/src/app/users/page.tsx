@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, FormEvent } from "react";
 import { apiFetch } from "@/lib/api";
 import { getToken } from "@/lib/auth";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { cn } from "@/lib/cn";
 
 interface User {
@@ -37,6 +38,8 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  // Role changes are confirmed via a custom dialog (not the native confirm()).
+  const [pendingRole, setPendingRole] = useState<{ user: User; newRole: string } | null>(null);
 
   const fetchUsers = useCallback(async () => {
     const token = getToken();
@@ -99,11 +102,20 @@ export default function UsersPage() {
       setUsers((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
       );
+      setPendingRole(null);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to change role");
     } finally {
       setActionLoading(null);
     }
+  }
+
+  function scopeLabel(scope: { entityType: string; entityId: number }): string {
+    if (scope.entityType === "STATION") {
+      const station = stations.find((s) => s.id === scope.entityId);
+      if (station) return station.name;
+    }
+    return `${scope.entityType}:${scope.entityId}`;
   }
 
   if (loading) {
@@ -187,7 +199,11 @@ export default function UsersPage() {
                   <td className="px-4 py-3">
                     <select
                       value={user.role}
-                      onChange={(e) => changeRole(user.id, e.target.value)}
+                      onChange={(e) => {
+                        if (e.target.value !== user.role) {
+                          setPendingRole({ user, newRole: e.target.value });
+                        }
+                      }}
                       disabled={actionLoading === user.id}
                       className={cn(
                         "text-xs font-medium px-2 py-1 rounded-md border bg-transparent cursor-pointer",
@@ -224,9 +240,10 @@ export default function UsersPage() {
                         ? user.scopes.map((scope, i) => (
                             <span
                               key={`${scope.entityType}-${scope.entityId}-${i}`}
-                              className="text-[10px] font-mono text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded"
+                              title={`${scope.entityType}:${scope.entityId}`}
+                              className="text-[10px] text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded"
                             >
-                              {scope.entityType}:{scope.entityId}
+                              {scopeLabel(scope)}
                             </span>
                           ))
                         : <span className="text-xs text-zinc-500">--</span>}
@@ -257,6 +274,27 @@ export default function UsersPage() {
           <div className="py-16 text-center text-zinc-500">No users found.</div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={pendingRole !== null}
+        title="Change user role"
+        message={
+          pendingRole ? (
+            <>
+              Change <span className="text-white font-medium">{pendingRole.user.name}</span> (
+              {pendingRole.user.email}) from{" "}
+              <span className="text-white font-medium">{pendingRole.user.role}</span> to{" "}
+              <span className="text-white font-medium">{pendingRole.newRole}</span>? Their access
+              changes immediately.
+            </>
+          ) : ""
+        }
+        confirmLabel="Change role"
+        danger
+        loading={pendingRole !== null && actionLoading === pendingRole.user.id}
+        onConfirm={() => pendingRole && changeRole(pendingRole.user.id, pendingRole.newRole)}
+        onCancel={() => setPendingRole(null)}
+      />
     </div>
   );
 }

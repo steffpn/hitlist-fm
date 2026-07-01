@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
 import { getToken } from "@/lib/auth";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { cn } from "@/lib/cn";
 
 interface Plan {
@@ -28,11 +29,12 @@ type PlanFormData = {
   slug: string;
   role: string;
   tier: string;
-  monthlyPriceCents: string;
-  annualPriceCents: string;
+  // Prices are edited in currency ("4.99") and converted to cents on submit.
+  monthlyPrice: string;
+  annualPrice: string;
   trialDays: string;
   perSeatEnabled: boolean;
-  perSeatPriceCents: string;
+  perSeatPrice: string;
   stripeProductId: string;
   stripeMonthlyPriceId: string;
   stripeAnnualPriceId: string;
@@ -56,16 +58,27 @@ function centsToDisplay(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
+/** "4.99" → 499. Empty/invalid → 0. */
+function currencyToCents(value: string): number {
+  const parsed = parseFloat(value.replace(",", "."));
+  if (Number.isNaN(parsed) || parsed < 0) return 0;
+  return Math.round(parsed * 100);
+}
+
+function centsToInput(cents: number): string {
+  return (cents / 100).toFixed(2);
+}
+
 const emptyForm: PlanFormData = {
   name: "",
   slug: "",
   role: "ARTIST",
   tier: "FREE",
-  monthlyPriceCents: "0",
-  annualPriceCents: "0",
+  monthlyPrice: "0.00",
+  annualPrice: "0.00",
   trialDays: "0",
   perSeatEnabled: false,
-  perSeatPriceCents: "0",
+  perSeatPrice: "0.00",
   stripeProductId: "",
   stripeMonthlyPriceId: "",
   stripeAnnualPriceId: "",
@@ -77,11 +90,11 @@ function planToForm(plan: Plan): PlanFormData {
     slug: plan.slug,
     role: plan.role,
     tier: plan.tier,
-    monthlyPriceCents: String(plan.monthlyPriceCents),
-    annualPriceCents: String(plan.annualPriceCents),
+    monthlyPrice: centsToInput(plan.monthlyPriceCents),
+    annualPrice: centsToInput(plan.annualPriceCents),
     trialDays: String(plan.trialDays),
     perSeatEnabled: plan.perSeatEnabled,
-    perSeatPriceCents: String(plan.perSeatPriceCents ?? 0),
+    perSeatPrice: centsToInput(plan.perSeatPriceCents ?? 0),
     stripeProductId: plan.stripeProductId ?? "",
     stripeMonthlyPriceId: plan.stripeMonthlyPriceId ?? "",
     stripeAnnualPriceId: plan.stripeAnnualPriceId ?? "",
@@ -152,11 +165,11 @@ export default function PlansPage() {
       slug: form.slug,
       role: form.role,
       tier: form.tier,
-      monthlyPriceCents: parseInt(form.monthlyPriceCents, 10) || 0,
-      annualPriceCents: parseInt(form.annualPriceCents, 10) || 0,
+      monthlyPriceCents: currencyToCents(form.monthlyPrice),
+      annualPriceCents: currencyToCents(form.annualPrice),
       trialDays: parseInt(form.trialDays, 10) || 0,
       perSeatEnabled: form.perSeatEnabled,
-      perSeatPriceCents: form.perSeatEnabled ? parseInt(form.perSeatPriceCents, 10) || 0 : null,
+      perSeatPriceCents: form.perSeatEnabled ? currencyToCents(form.perSeatPrice) : null,
     };
     if (form.stripeProductId) body.stripeProductId = form.stripeProductId;
     if (form.stripeMonthlyPriceId) body.stripeMonthlyPriceId = form.stripeMonthlyPriceId;
@@ -185,15 +198,21 @@ export default function PlansPage() {
     }
   }
 
+  const [confirmDelete, setConfirmDelete] = useState<Plan | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   async function handleDelete(id: number) {
-    if (!confirm("Are you sure you want to delete this plan?")) return;
     const token = getToken();
     if (!token) return;
+    setDeleting(true);
     try {
       await apiFetch(`/admin/plans/${id}`, { method: "DELETE", token });
+      setConfirmDelete(null);
       fetchPlans();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to delete plan");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -305,23 +324,17 @@ export default function PlansPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Monthly Price (cents)</label>
-                <input
-                  type="number"
-                  value={form.monthlyPriceCents}
-                  onChange={(e) => updateForm("monthlyPriceCents", e.target.value)}
-                  min="0"
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500/60"
+                <label className="block text-sm font-medium text-zinc-400 mb-1">Monthly Price ($)</label>
+                <PriceInput
+                  value={form.monthlyPrice}
+                  onChange={(v) => updateForm("monthlyPrice", v)}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Annual Price (cents)</label>
-                <input
-                  type="number"
-                  value={form.annualPriceCents}
-                  onChange={(e) => updateForm("annualPriceCents", e.target.value)}
-                  min="0"
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500/60"
+                <label className="block text-sm font-medium text-zinc-400 mb-1">Annual Price ($)</label>
+                <PriceInput
+                  value={form.annualPrice}
+                  onChange={(v) => updateForm("annualPrice", v)}
                 />
               </div>
               <div>
@@ -380,14 +393,11 @@ export default function PlansPage() {
                 <span className="text-sm text-zinc-400">Per-seat pricing</span>
               </label>
               {form.perSeatEnabled && (
-                <div>
-                  <input
-                    type="number"
-                    value={form.perSeatPriceCents}
-                    onChange={(e) => updateForm("perSeatPriceCents", e.target.value)}
-                    min="0"
-                    placeholder="Cents per seat"
-                    className="w-40 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500/60"
+                <div className="w-40">
+                  <PriceInput
+                    value={form.perSeatPrice}
+                    onChange={(v) => updateForm("perSeatPrice", v)}
+                    placeholder="$ per seat"
                   />
                 </div>
               )}
@@ -494,7 +504,7 @@ export default function PlansPage() {
                 Edit
               </button>
               <button
-                onClick={() => handleDelete(plan.id)}
+                onClick={() => setConfirmDelete(plan)}
                 className="px-3 py-1.5 text-xs font-medium bg-brand-400/10 text-brand-400 rounded-lg hover:bg-brand-400/20 transition-colors"
               >
                 Delete
@@ -512,6 +522,56 @@ export default function PlansPage() {
           </button>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDelete !== null}
+        title="Delete plan"
+        message={
+          confirmDelete ? (
+            <>
+              Delete <span className="text-white font-medium">{confirmDelete.name}</span> (
+              {confirmDelete.role} · {confirmDelete.tier})? This cannot be undone and may affect
+              feature gating for subscribed users.
+            </>
+          ) : ""
+        }
+        confirmLabel="Delete plan"
+        danger
+        loading={deleting}
+        onConfirm={() => confirmDelete && handleDelete(confirmDelete.id)}
+        onCancel={() => setConfirmDelete(null)}
+      />
+    </div>
+  );
+}
+
+function PriceInput({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="relative">
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-500 pointer-events-none">$</span>
+      <input
+        type="number"
+        inputMode="decimal"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={(e) => {
+          // Normalize to two decimals on blur ("5" → "5.00")
+          const cents = currencyToCents(e.target.value);
+          onChange(centsToInput(cents));
+        }}
+        min="0"
+        step="0.01"
+        placeholder={placeholder ?? "0.00"}
+        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-7 pr-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brand-500/60"
+      />
     </div>
   );
 }

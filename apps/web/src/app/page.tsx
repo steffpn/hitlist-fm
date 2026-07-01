@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api";
+import { API_BASE, apiFetch } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 
@@ -14,6 +14,7 @@ interface Station {
   country: string | null;
   status: string;
   lastHeartbeat: string | null;
+  lastAcrCallbackAt: string | null;
 }
 
 interface AirplayEvent {
@@ -22,8 +23,29 @@ interface AirplayEvent {
   startedAt: string;
   songTitle: string;
   artistName: string;
-  confidence: number;
   station: { name: string };
+}
+
+// SSE payload from /live-feed (event: "detection")
+interface LiveDetectionEvent {
+  id: number;
+  stationId: number;
+  songTitle: string;
+  artistName: string;
+  isrc: string | null;
+  snippetUrl: string | null;
+  stationName: string;
+  startedAt: string;
+  publishedAt: string;
+}
+
+interface RecentDetection {
+  id: number;
+  songTitle: string;
+  artistName: string;
+  stationName: string;
+  startedAt: string;
+  live?: boolean;
 }
 
 interface DashboardTotals {
@@ -32,29 +54,106 @@ interface DashboardTotals {
   uniqueArtists: number;
 }
 
+const REFRESH_INTERVAL_MS = 60_000;
+const RECENT_LIMIT = 10;
+
 export default function OverviewPage() {
   const [stations, setStations] = useState<Station[]>([]);
-  const [recentEvents, setRecentEvents] = useState<AirplayEvent[]>([]);
+  const [recentEvents, setRecentEvents] = useState<RecentDetection[]>([]);
   const [dayTotals, setDayTotals] = useState<DashboardTotals | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [liveConnected, setLiveConnected] = useState(false);
 
+  const load = useCallback(async (initial = false) => {
+    try {
+      const [s, e, d] = await Promise.all([
+        apiFetch<Station[]>("/stations"),
+        apiFetch<{ data: AirplayEvent[] }>(`/airplay-events?limit=${RECENT_LIMIT}`),
+        apiFetch<{ totals: DashboardTotals }>("/dashboard/summary?period=day").catch(
+          () => ({ totals: null as DashboardTotals | null }),
+        ),
+      ]);
+      setStations(s);
+      setRecentEvents(
+        e.data.map((ev) => ({
+          id: ev.id,
+          songTitle: ev.songTitle,
+          artistName: ev.artistName,
+          stationName: ev.station.name,
+          startedAt: ev.startedAt,
+        })),
+      );
+      setDayTotals(d?.totals ?? null);
+      setError(null);
+    } catch (err) {
+      if (initial) setError(err instanceof Error ? err.message : "Failed to load");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Initial load + 60s auto-refresh of the stats.
   useEffect(() => {
-    const token = getToken();
-    if (!token) return;
+    load(true);
+    const interval = setInterval(() => load(), REFRESH_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [load]);
 
-    Promise.all([
-      apiFetch<Station[]>("/stations", { token }),
-      apiFetch<{ data: AirplayEvent[] }>("/airplay-events?limit=10", { token }),
-      apiFetch<{ totals: DashboardTotals }>("/dashboard/summary?period=day", { token }).catch(() => ({ totals: null })),
-    ])
-      .then(([s, e, d]) => {
-        setStations(s);
-        setRecentEvents(e.data);
-        setDayTotals(d?.totals ?? null);
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"))
-      .finally(() => setLoading(false));
+  // SSE live feed: /live-feed?token= (JWT in query — EventSource can't set headers).
+  const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    let source: EventSource | null = null;
+    let disposed = false;
+
+    function connect() {
+      const token = getToken();
+      if (!token || disposed) return;
+
+      source = new EventSource(`${API_BASE}/live-feed?token=${encodeURIComponent(token)}`);
+
+      source.onopen = () => setLiveConnected(true);
+
+      source.addEventListener("detection", (msg) => {
+        try {
+          const ev = JSON.parse((msg as MessageEvent).data) as LiveDetectionEvent;
+          setRecentEvents((prev) => {
+            if (prev.some((p) => p.id === ev.id)) return prev;
+            const next: RecentDetection[] = [
+              {
+                id: ev.id,
+                songTitle: ev.songTitle,
+                artistName: ev.artistName,
+                stationName: ev.stationName,
+                startedAt: ev.startedAt,
+                live: true,
+              },
+              ...prev,
+            ];
+            return next.slice(0, RECENT_LIMIT);
+          });
+        } catch {
+          // skip malformed payloads
+        }
+      });
+
+      source.onerror = () => {
+        // The token may have rotated since connect — rebuild the connection
+        // with a fresh one instead of letting EventSource retry a dead URL.
+        setLiveConnected(false);
+        source?.close();
+        if (disposed) return;
+        if (reconnectRef.current) clearTimeout(reconnectRef.current);
+        reconnectRef.current = setTimeout(connect, 10_000);
+      };
+    }
+
+    connect();
+    return () => {
+      disposed = true;
+      if (reconnectRef.current) clearTimeout(reconnectRef.current);
+      source?.close();
+    };
   }, []);
 
   if (loading) {
@@ -74,15 +173,11 @@ export default function OverviewPage() {
       <div className="mb-8">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-white">Overview</h1>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-500/30 bg-brand-500/10 px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-brand-400">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-500" />
-            </span>
-            Live
-          </span>
+          <LivePill connected={liveConnected} />
         </div>
-        <p className="text-sm text-zinc-400 mt-1">Live state of detection pipeline.</p>
+        <p className="text-sm text-zinc-400 mt-1">
+          Live state of detection pipeline. Stats refresh every 60s.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
@@ -131,8 +226,15 @@ export default function OverviewPage() {
                 <li key={e.id} className="py-2 text-sm">
                   <div className="flex items-baseline justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="text-white truncate">{e.songTitle}</div>
-                      <div className="text-zinc-400 text-xs truncate">{e.artistName} · {e.station.name}</div>
+                      <div className="text-white truncate flex items-center gap-2">
+                        <span className="truncate">{e.songTitle}</span>
+                        {e.live && (
+                          <span className="shrink-0 text-[9px] font-mono font-semibold uppercase tracking-wider text-brand-400 bg-brand-500/10 border border-brand-500/30 rounded-full px-1.5 py-px">
+                            new
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-zinc-400 text-xs truncate">{e.artistName} · {e.stationName}</div>
                     </div>
                     <div className="text-xs font-mono text-zinc-500 shrink-0">{timeAgo(e.startedAt)}</div>
                   </div>
@@ -143,6 +245,34 @@ export default function OverviewPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+/** Honest LIVE pill: pulsing brand when the SSE stream is up, gray when not. */
+function LivePill({ connected }: { connected: boolean }) {
+  return (
+    <span
+      title={connected ? "Live feed connected" : "Live feed disconnected — retrying"}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider",
+        connected
+          ? "border-brand-500/30 bg-brand-500/10 text-brand-400"
+          : "border-zinc-700 bg-zinc-800/50 text-zinc-500",
+      )}
+    >
+      <span className="relative flex h-1.5 w-1.5">
+        {connected && (
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-75" />
+        )}
+        <span
+          className={cn(
+            "relative inline-flex h-1.5 w-1.5 rounded-full",
+            connected ? "bg-brand-500" : "bg-zinc-600",
+          )}
+        />
+      </span>
+      {connected ? "Live" : "Offline"}
+    </span>
   );
 }
 

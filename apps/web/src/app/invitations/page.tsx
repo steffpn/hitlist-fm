@@ -9,11 +9,18 @@ interface Invitation {
   id: number;
   code: string;
   role: string;
-  status: "pending" | "redeemed" | "expired" | "revoked";
+  // API stores uppercase ("PENDING", "REVOKED", …) — normalized for display.
+  status: string;
+  scopeId: number | null;
   maxUses: number;
   usedCount: number;
   expiresAt: string | null;
   createdAt: string;
+}
+
+interface Station {
+  id: number;
+  name: string;
 }
 
 const ROLES = ["ARTIST", "LABEL", "STATION", "ADMIN"] as const;
@@ -27,16 +34,17 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function InvitationsPage() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [stations, setStations] = useState<Station[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [copiedId, setCopiedId] = useState<number | null>(null);
 
   // Form state
   const [formRole, setFormRole] = useState<string>("ARTIST");
   const [formScopeId, setFormScopeId] = useState("");
   const [formMaxUses, setFormMaxUses] = useState("1");
-  const [formExpiresAt, setFormExpiresAt] = useState("");
   const [formSubmitting, setFormSubmitting] = useState(false);
 
   const fetchInvitations = useCallback(async () => {
@@ -59,6 +67,7 @@ export default function InvitationsPage() {
 
   useEffect(() => {
     fetchInvitations();
+    apiFetch<Station[]>("/stations").then(setStations).catch(() => {});
   }, [fetchInvitations]);
 
   async function handleCreate(e: React.FormEvent) {
@@ -71,8 +80,7 @@ export default function InvitationsPage() {
         role: formRole,
         maxUses: parseInt(formMaxUses, 10) || 1,
       };
-      if (formScopeId) body.scopeId = parseInt(formScopeId, 10);
-      if (formExpiresAt) body.expiresAt = new Date(formExpiresAt).toISOString();
+      if (formRole === "STATION" && formScopeId) body.scopeId = parseInt(formScopeId, 10);
 
       await apiFetch("/admin/invitations", {
         method: "POST",
@@ -83,13 +91,27 @@ export default function InvitationsPage() {
       setFormRole("ARTIST");
       setFormScopeId("");
       setFormMaxUses("1");
-      setFormExpiresAt("");
       fetchInvitations();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to create invitation");
     } finally {
       setFormSubmitting(false);
     }
+  }
+
+  async function copyCode(inv: Invitation) {
+    try {
+      await navigator.clipboard.writeText(inv.code);
+      setCopiedId(inv.id);
+      setTimeout(() => setCopiedId((prev) => (prev === inv.id ? null : prev)), 1500);
+    } catch {
+      // Clipboard unavailable (http/permissions) — ignore.
+    }
+  }
+
+  function stationName(scopeId: number | null): string | null {
+    if (scopeId == null) return null;
+    return stations.find((s) => s.id === scopeId)?.name ?? `#${scopeId}`;
   }
 
   async function handleRevoke(id: number) {
@@ -103,7 +125,7 @@ export default function InvitationsPage() {
       });
       setInvitations((prev) =>
         prev.map((inv) =>
-          inv.id === id ? { ...inv, status: "revoked" as const } : inv
+          inv.id === id ? { ...inv, status: "REVOKED" } : inv
         )
       );
     } catch (err) {
@@ -170,7 +192,10 @@ export default function InvitationsPage() {
               <label className="block text-sm font-medium text-zinc-400 mb-1">Role</label>
               <select
                 value={formRole}
-                onChange={(e) => setFormRole(e.target.value)}
+                onChange={(e) => {
+                  setFormRole(e.target.value);
+                  if (e.target.value !== "STATION") setFormScopeId("");
+                }}
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500/60"
               >
                 {ROLES.map((r) => (
@@ -178,16 +203,21 @@ export default function InvitationsPage() {
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-1">Scope ID</label>
-              <input
-                type="number"
-                value={formScopeId}
-                onChange={(e) => setFormScopeId(e.target.value)}
-                placeholder="Optional"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-brand-500/60"
-              />
-            </div>
+            {formRole === "STATION" && (
+              <div>
+                <label className="block text-sm font-medium text-zinc-400 mb-1">Station</label>
+                <select
+                  value={formScopeId}
+                  onChange={(e) => setFormScopeId(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500/60"
+                >
+                  <option value="">— no scope —</option>
+                  {stations.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-zinc-400 mb-1">Max Uses</label>
               <input
@@ -195,15 +225,6 @@ export default function InvitationsPage() {
                 value={formMaxUses}
                 onChange={(e) => setFormMaxUses(e.target.value)}
                 min="1"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500/60"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-1">Expires At</label>
-              <input
-                type="datetime-local"
-                value={formExpiresAt}
-                onChange={(e) => setFormExpiresAt(e.target.value)}
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500/60"
               />
             </div>
@@ -238,6 +259,7 @@ export default function InvitationsPage() {
               <tr className="border-b border-zinc-800">
                 <th className="text-left px-4 py-3 text-sm font-medium text-zinc-400">Code</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-zinc-400">Role</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-zinc-400">Scope</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-zinc-400">Status</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-zinc-400">Uses</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-zinc-400">Expires</th>
@@ -252,19 +274,40 @@ export default function InvitationsPage() {
                   className="border-b border-zinc-800/50 hover:bg-zinc-800/20 transition-colors"
                 >
                   <td className="px-4 py-3">
-                    <code className="text-sm font-mono text-white bg-zinc-800 px-2 py-1 rounded">
-                      {inv.code}
-                    </code>
+                    <div className="flex items-center gap-2">
+                      <code className="text-sm font-mono text-white bg-zinc-800 px-2 py-1 rounded">
+                        {inv.code}
+                      </code>
+                      <button
+                        onClick={() => copyCode(inv)}
+                        title="Copy invitation code"
+                        className={cn(
+                          "text-xs px-2 py-1 rounded-md border transition-colors",
+                          copiedId === inv.id
+                            ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/10"
+                            : "text-zinc-500 border-zinc-800 hover:border-zinc-600 hover:text-white"
+                        )}
+                      >
+                        {copiedId === inv.id ? "Copied!" : "Copy"}
+                      </button>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-zinc-300">{inv.role}</td>
+                  <td className="px-4 py-3 text-sm text-zinc-400">
+                    {inv.role === "STATION" && inv.scopeId != null
+                      ? stationName(inv.scopeId)
+                      : inv.scopeId != null
+                        ? `#${inv.scopeId}`
+                        : <span className="text-zinc-600">—</span>}
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className={cn(
                         "inline-block text-xs font-medium px-2 py-1 rounded-full border",
-                        STATUS_COLORS[inv.status] || "text-zinc-400 border-zinc-700"
+                        STATUS_COLORS[inv.status.toLowerCase()] || "text-zinc-400 border-zinc-700"
                       )}
                     >
-                      {inv.status}
+                      {inv.status.toLowerCase()}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm font-mono text-zinc-400">
@@ -279,7 +322,7 @@ export default function InvitationsPage() {
                     {new Date(inv.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {inv.status === "pending" && (
+                    {inv.status.toLowerCase() === "pending" && (
                       <button
                         onClick={() => handleRevoke(inv.id)}
                         disabled={actionLoading === inv.id}

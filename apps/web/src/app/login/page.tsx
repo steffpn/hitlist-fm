@@ -3,13 +3,14 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
-import { setToken } from "@/lib/auth";
+import { setSession, type StoredUser } from "@/lib/auth";
 import { cn } from "@/lib/cn";
+import { clearImpersonation } from "@/lib/impersonation";
 
 interface LoginResponse {
   accessToken: string;
   refreshToken: string;
-  user: { id: number; email: string; name: string; role: string };
+  user: StoredUser;
 }
 
 export default function LoginPage() {
@@ -29,8 +30,14 @@ export default function LoginPage() {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
-      setToken(res.accessToken);
-      router.push("/");
+      // Keep the full session: access + refresh token (rotating) + user (role).
+      setSession({
+        accessToken: res.accessToken,
+        refreshToken: res.refreshToken,
+        user: res.user,
+      });
+      clearImpersonation();
+      router.push(res.user.role === "ADMIN" ? "/" : "/portal");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
