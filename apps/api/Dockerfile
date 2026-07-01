@@ -1,4 +1,5 @@
-FROM node:20-bookworm-slim AS base
+# Node 22 required: prisma 7.5 / @prisma/dev 0.20 fails with ERR_REQUIRE_ESM on Node 20
+FROM node:22-bookworm-slim AS base
 
 # Install system dependencies
 RUN apt-get update && \
