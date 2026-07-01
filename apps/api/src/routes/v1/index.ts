@@ -83,6 +83,13 @@ const v1Routes: FastifyPluginAsync = async (fastify) => {
   fastify.register(import("./charts/index.js"), {
     prefix: "/charts",
   });
+  // Identity foundation (Phase 2): organizations + artist claims review
+  fastify.register(import("./orgs/index.js"), {
+    prefix: "/orgs",
+  });
+  fastify.register(import("./admin/artist-claims/index.js"), {
+    prefix: "/admin/artist-claims",
+  });
 };
 
 export default v1Routes;

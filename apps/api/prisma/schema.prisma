@@ -26,6 +26,7 @@ model Station {
   noMatchCallbacks NoMatchCallback[]
   watchedBy        WatchedStation[]
   monitoringGaps   MonitoringGap[]
+  orgEntities      OrgEntity[]
 
   @@map("stations")
 }
@@ -123,6 +124,7 @@ model User {
   name                  String
   role                  String
   isActive              Boolean        @default(true) @map("is_active")
+  emailVerified         Boolean        @default(false) @map("email_verified")
   lastLoginAt           DateTime?      @map("last_login_at")
   createdAt             DateTime       @default(now()) @map("created_at")
   updatedAt             DateTime       @updatedAt @map("updated_at")
@@ -141,6 +143,8 @@ model User {
   dailyReports          DailyReport[]
   settings              UserSettings?
   passwordResetTokens   PasswordResetToken[]
+  memberships           Membership[]
+  emailVerificationCodes EmailVerificationCode[]
 
   @@map("users")
 }
@@ -358,6 +362,10 @@ model PlanFeature {
 model Subscription {
   id                    Int       @id @default(autoincrement())
   userId                Int       @map("user_id")
+  // Nullable during the identity transition: backfilled to the user's 1:1
+  // organization; new self-serve signups always set it. Billing stays
+  // user-keyed until P6.
+  organizationId        Int?      @map("organization_id")
   planId                Int       @map("plan_id")
   stripeCustomerId      String?   @map("stripe_customer_id")
   stripeSubscriptionId  String?   @unique @map("stripe_subscription_id")
@@ -371,11 +379,13 @@ model Subscription {
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
 
-  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan  Plan @relation(fields: [planId], references: [id])
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan         Plan          @relation(fields: [planId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
 
   @@index([userId])
   @@index([stripeCustomerId])
+  @@index([organizationId])
   @@map("subscriptions")
 }
 
@@ -460,4 +470,112 @@ model UserSettings {
   user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_settings")
+}
+
+// ─── Identity Foundation (Phase 2) ─────────────────────────────────
+//
+// New identity model: Organization / Membership / Artist / ArtistClaim /
+// OrgEntity. Compat-preserving: users.role and existing flows (scopes,
+// monitoredSongs, labelArtists) stay operational until P6. Backfill lives
+// in prisma/migrations/20260702200000_identity_foundation (pure SQL).
+
+model Organization {
+  id        Int      @id @default(autoincrement())
+  name      String
+  type      String // ARTIST_TEAM | LABEL | STATION_GROUP | AGENCY
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  memberships   Membership[]
+  entities      OrgEntity[]
+  subscriptions Subscription[] // Subscription.organizationId is nullable in transition
+
+  @@map("organizations")
+}
+
+model Membership {
+  id             Int      @id @default(autoincrement())
+  organizationId Int      @map("organization_id")
+  userId         Int      @map("user_id")
+  role           String // OWNER | ADMIN | MEMBER | VIEWER
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+model Artist {
+  id             Int      @id @default(autoincrement())
+  name           String
+  nameNormalized String   @unique @map("name_normalized") // lower, fără diacritice (src/lib/artist-name.ts)
+  aliases        String[] @default([])
+  verified       Boolean  @default(false)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  orgEntities OrgEntity[]
+  claims      ArtistClaim[]
+
+  @@map("artists")
+}
+
+model ArtistClaim {
+  id             Int       @id @default(autoincrement())
+  artistId       Int       @map("artist_id")
+  organizationId Int       @map("organization_id")
+  requestedById  Int       @map("requested_by_id")
+  evidence       String? // link Spotify for Artists / distribuitor
+  status         String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  decidedById    Int?      @map("decided_by_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  decidedAt      DateTime? @map("decided_at")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("artist_claims")
+}
+
+model OrgEntity {
+  id             Int      @id @default(autoincrement())
+  organizationId Int      @map("organization_id")
+  entityType     String   @map("entity_type") // ARTIST | STATION
+  artistId       Int?     @map("artist_id")
+  stationId      Int?     @map("station_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  artist       Artist?      @relation(fields: [artistId], references: [id])
+  station      Station?     @relation(fields: [stationId], references: [id])
+
+  // map: Prisma's default generated name exceeds Postgres' 63-char identifier
+  // limit; keep the shortened name in sync with the manual migration SQL.
+  @@unique([organizationId, entityType, artistId, stationId], map: "org_entities_org_type_artist_station_key")
+  @@index([artistId])
+  @@index([stationId])
+  @@map("org_entities")
+}
+
+// Six-digit signup email verification codes. Deliberately a small dedicated
+// table instead of overloading PasswordResetToken with a prefix: the two
+// flows have different lookup keys (userId+hash vs global hash), different
+// TTLs and different invalidation rules, and a 6-digit code must NEVER be
+// resolvable without its owning user (global lookup would allow cross-user
+// collisions). Only the SHA-256 hash of the code is stored.
+model EmailVerificationCode {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  codeHash  String    @map("code_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("email_verification_codes")
 }

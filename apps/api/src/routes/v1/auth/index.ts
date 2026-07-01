@@ -3,6 +3,9 @@ import rateLimit from "@fastify/rate-limit";
 import { authenticate } from "../../../middleware/authenticate.js";
 import {
   RegisterSchema,
+  SignupSchema,
+  VerifyEmailSchema,
+  type VerifyEmailBody,
   LoginSchema,
   RefreshSchema,
   LogoutSchema,
@@ -11,6 +14,8 @@ import {
 } from "./schema.js";
 import {
   register,
+  signup,
+  verifyEmail,
   login,
   refresh,
   logout,
@@ -21,16 +26,52 @@ import {
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
   // Rate limiter registered locally with global:false so ONLY routes that
-  // set config.rateLimit are limited (currently just /login).
+  // set config.rateLimit are limited.
   await fastify.register(rateLimit, { global: false });
 
-  // POST /register - Public (no auth)
+  // POST /register - Public (no auth). Invitation-code flow, kept for
+  // enterprise/admin onboarding.
   fastify.post(
     "/register",
     {
       schema: { body: RegisterSchema },
     },
     register
+  );
+
+  // POST /signup - Public (no auth). Self-serve signup (no invitation code),
+  // strictly rate limited: 3 signups/hour per IP.
+  fastify.post(
+    "/signup",
+    {
+      config: {
+        rateLimit: {
+          max: 3,
+          timeWindow: "1 hour",
+        },
+      },
+      schema: { body: SignupSchema },
+    },
+    signup
+  );
+
+  // POST /verify-email - Requires authentication (signup hands out tokens
+  // immediately). Rate limited as brute-force insurance on 6-digit codes.
+  // Generic pinned at the registration site (see typing convention in
+  // middleware/authenticate.ts) because the route has schema + preHandler.
+  fastify.post<{ Body: VerifyEmailBody }>(
+    "/verify-email",
+    {
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow: "1 hour",
+        },
+      },
+      preHandler: [authenticate],
+      schema: { body: VerifyEmailSchema },
+    },
+    verifyEmail
   );
 
   // POST /login - Public (no auth), rate limited: 10 attempts/minute per IP

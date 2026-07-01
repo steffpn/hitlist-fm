@@ -9,6 +9,8 @@ import {
 import { sendEmail } from "../../../lib/email.js";
 import type {
   RegisterBody,
+  SignupBody,
+  VerifyEmailBody,
   LoginBody,
   RefreshBody,
   LogoutBody,
@@ -17,8 +19,23 @@ import type {
 } from "./schema.js";
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+const VERIFICATION_CODE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-/** SHA-256 hex digest — used so raw reset tokens are never stored. */
+/** accountType (public signup vocabulary) -> users.role / Plan.role */
+const ACCOUNT_TYPE_TO_ROLE: Record<SignupBody["accountType"], string> = {
+  artist: "ARTIST",
+  label: "LABEL",
+  station: "STATION",
+};
+
+/** users.role -> Organization.type */
+const ROLE_TO_ORG_TYPE: Record<string, string> = {
+  ARTIST: "ARTIST_TEAM",
+  LABEL: "LABEL",
+  STATION: "STATION_GROUP",
+};
+
+/** SHA-256 hex digest — used so raw reset tokens / verify codes are never stored. */
 function sha256(value: string): string {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
@@ -26,13 +43,22 @@ function sha256(value: string): string {
 /**
  * Format a user record for API responses.
  * Only returns public fields -- never passwordHash.
+ * emailVerified is informational only (login is never blocked by it);
+ * clients may show a "verify your email" banner while it is false.
  */
-function formatUser(user: { id: number; email: string; name: string; role: string }) {
+function formatUser(user: {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+  emailVerified?: boolean;
+}) {
   return {
     id: user.id,
     email: user.email,
     name: user.name,
     role: user.role,
+    emailVerified: user.emailVerified ?? false,
   };
 }
 
@@ -131,6 +157,203 @@ export async function register(
     accessToken: tokens.accessToken,
     refreshToken: tokens.refreshToken,
   });
+}
+
+/**
+ * POST /auth/signup
+ *
+ * Self-serve signup — no invitation code (invitations remain the
+ * enterprise/admin path). In one transaction creates:
+ *   - User (role from accountType; "admin" is unrepresentable in the schema),
+ *     emailVerified=false but active immediately (login is NOT blocked),
+ *   - Organization (type from role) + OWNER Membership,
+ *   - trial Subscription on the role's PREMIUM plan (status "trialing",
+ *     trialEndsAt = now + plan.trialDays, no Stripe objects). If the premium
+ *     plan is not seeded, signup still succeeds without a subscription
+ *     (logged) — feature gating then treats the user as free tier.
+ *
+ * A 6-digit verification code (SHA-256 hash stored in
+ * email_verification_codes, 24h TTL) is emailed via lib/email.ts, which is
+ * env-gated: without RESEND_API_KEY it logs the email instead of sending.
+ *
+ * Rate limited at the route level: 3 signups/hour/IP.
+ */
+export async function signup(
+  request: FastifyRequest<{ Body: SignupBody }>,
+  reply: FastifyReply
+): Promise<void> {
+  const { email, password, name, accountType } = request.body;
+  const role = ACCOUNT_TYPE_TO_ROLE[accountType];
+
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  if (existingUser) {
+    return reply.code(409).send({ error: "Email already registered" });
+  }
+
+  const passwordHash = await hashPassword(password);
+
+  // The role's premium plan drives the trial. Missing plan (unseeded env)
+  // must not block account creation.
+  const premiumPlan = await prisma.plan.findFirst({
+    where: { role, tier: "PREMIUM", isActive: true },
+  });
+  if (!premiumPlan) {
+    request.log.warn(
+      { role },
+      "signup: no active PREMIUM plan for role — user created without trial subscription"
+    );
+  }
+
+  // 6-digit verification code; only its hash is persisted.
+  const verificationCode = crypto.randomInt(0, 1_000_000).toString().padStart(6, "0");
+
+  const { user, organization } = await prisma.$transaction(async (tx) => {
+    const createdUser = await tx.user.create({
+      data: {
+        email,
+        passwordHash,
+        name,
+        role,
+        isActive: true,
+        emailVerified: false,
+      },
+    });
+
+    const createdOrg = await tx.organization.create({
+      data: {
+        name,
+        type: ROLE_TO_ORG_TYPE[role],
+      },
+    });
+
+    await tx.membership.create({
+      data: {
+        organizationId: createdOrg.id,
+        userId: createdUser.id,
+        role: "OWNER",
+      },
+    });
+
+    if (premiumPlan) {
+      await tx.subscription.create({
+        data: {
+          userId: createdUser.id,
+          organizationId: createdOrg.id,
+          planId: premiumPlan.id,
+          status: "trialing",
+          billingInterval: "monthly",
+          trialEndsAt: new Date(
+            Date.now() + premiumPlan.trialDays * 24 * 60 * 60 * 1000
+          ),
+        },
+      });
+    }
+
+    await tx.emailVerificationCode.create({
+      data: {
+        userId: createdUser.id,
+        codeHash: sha256(verificationCode),
+        expiresAt: new Date(Date.now() + VERIFICATION_CODE_TTL_MS),
+      },
+    });
+
+    return { user: createdUser, organization: createdOrg };
+  });
+
+  // sendEmail never throws (env-gated: logs the email without RESEND_API_KEY).
+  await sendEmail({
+    to: user.email,
+    subject: "Verify your onair.music email",
+    text: [
+      `Hi ${user.name},`,
+      "",
+      "Welcome to onair.music! Your email verification code is:",
+      "",
+      verificationCode,
+      "",
+      "The code is valid for 24 hours.",
+      "If you didn't create this account, you can safely ignore this email.",
+    ].join("\n"),
+    html: [
+      `<p>Hi ${user.name},</p>`,
+      "<p>Welcome to onair.music! Your email verification code is:</p>",
+      `<p style="font-size:24px;font-weight:bold;letter-spacing:4px">${verificationCode}</p>`,
+      "<p>The code is valid for 24 hours.</p>",
+      "<p>If you didn't create this account, you can safely ignore this email.</p>",
+    ].join("\n"),
+  });
+
+  const tokens = await generateTokenPair(request.server, user.id);
+
+  return reply.code(201).send({
+    user: formatUser(user),
+    organization: {
+      id: organization.id,
+      name: organization.name,
+      type: organization.type,
+    },
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken,
+  });
+}
+
+/**
+ * POST /auth/verify-email
+ *
+ * Authenticated (signup returns tokens immediately, so the client already
+ * has a session): consumes the 6-digit code and sets emailVerified=true.
+ * Requiring auth scopes the lookup to the caller's own codes, so a 6-digit
+ * code can never verify (or be brute-forced against) another account.
+ * Operates on realUser — admin persona impersonation must never flip a
+ * persona's verification state.
+ *
+ * Idempotent: an already-verified user gets 200 without needing a code row.
+ * Rate limited at the route level (10/hour/IP) as brute-force insurance on
+ * the 1e6 code space.
+ */
+export async function verifyEmail(
+  request: FastifyRequest<{ Body: VerifyEmailBody }>,
+  reply: FastifyReply
+): Promise<void> {
+  const { code } = request.body;
+  const user = request.realUser ?? request.currentUser;
+
+  const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+  if (!dbUser) {
+    return reply.code(401).send({ error: "Invalid or expired token" });
+  }
+
+  if (dbUser.emailVerified) {
+    return reply
+      .code(200)
+      .send({ message: "Email already verified", emailVerified: true });
+  }
+
+  const storedCode = await prisma.emailVerificationCode.findFirst({
+    where: { userId: user.id, codeHash: sha256(code), usedAt: null },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!storedCode || storedCode.expiresAt < new Date()) {
+    return reply
+      .code(400)
+      .send({ error: "Invalid or expired verification code" });
+  }
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerified: true },
+    }),
+    prisma.emailVerificationCode.update({
+      where: { id: storedCode.id },
+      data: { usedAt: new Date() },
+    }),
+  ]);
+
+  return reply
+    .code(200)
+    .send({ message: "Email verified", emailVerified: true });
 }
 
 /**
