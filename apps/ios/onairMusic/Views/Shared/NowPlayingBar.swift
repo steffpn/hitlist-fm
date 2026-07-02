@@ -6,8 +6,6 @@ struct NowPlayingBar: View {
     @State private var isSeeking = false
     @State private var seekProgress: Double = 0
 
-    private let detectionPoint: Double = 25.0 / 30.0
-
     var body: some View {
         if player.currentlyPlayingId != nil && !player.isLoadingSnippet {
             VStack(spacing: 0) {
@@ -32,8 +30,6 @@ struct NowPlayingBar: View {
                     }
 
                     Spacer()
-
-                    detectionLabel
 
                     Button {
                         if player.isPlaying { player.pause() } else { player.resume() }
@@ -77,11 +73,6 @@ struct NowPlayingBar: View {
                 // Progress fill - no animation while seeking
                 Color.rbAccent
                     .frame(width: geo.size.width * CGFloat(displayProgress))
-
-                // Detection marker
-                Color.rbWarm
-                    .frame(width: 2, height: isSeeking ? 20 : 14)
-                    .offset(x: geo.size.width * CGFloat(detectionPoint) - 1)
             }
             // Large touch target, thin visual bar centered vertically
             .frame(height: isSeeking ? 20 : 4)
@@ -106,30 +97,6 @@ struct NowPlayingBar: View {
         .frame(height: 30) // Tall touch target area
     }
 
-    // MARK: - Detection Label
-
-    private var detectionLabel: some View {
-        Group {
-            if player.duration > 0 && displayProgress < detectionPoint {
-                HStack(spacing: 4) {
-                    Circle().fill(Color.rbWarm).frame(width: 5, height: 5)
-                    Text("in \(secondsUntilDetection)s")
-                        .font(.caption2)
-                        .foregroundStyle(Color.rbWarm)
-                }
-            } else if player.duration > 0 {
-                HStack(spacing: 4) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.rbSuccess)
-                    Text("Detected")
-                        .font(.caption2)
-                        .foregroundStyle(Color.rbSuccess)
-                }
-            }
-        }
-    }
-
     // MARK: - Helpers
 
     private var timeLabel: String {
@@ -144,10 +111,5 @@ struct NowPlayingBar: View {
             return "\(station) · \(timeLabel)"
         }
         return timeLabel
-    }
-
-    private var secondsUntilDetection: Int {
-        let detectionTime = player.duration * detectionPoint
-        return max(0, Int(ceil(detectionTime - player.currentTime)))
     }
 }
