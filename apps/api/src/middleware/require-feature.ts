@@ -19,9 +19,10 @@ export function requireFeature(featureKey: string): preHandlerHookHandler {
     }
 
     // Platform admins have no subscription; gating applies to customer roles.
-    // Impersonated personas carry their own role, so "view as role" still
-    // exercises the real paywall.
-    if (user.role === "ADMIN") return;
+    // "View as role" impersonation is also exempt (product decision): the
+    // admin behind the persona must be able to explore every screen without
+    // paywalls, on all clients.
+    if (user.role === "ADMIN" || request.realUser?.role === "ADMIN") return;
 
     const hasFeature = await userHasFeature(user.id, user.role, featureKey);
     if (!hasFeature) {

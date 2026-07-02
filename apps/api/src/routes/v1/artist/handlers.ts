@@ -207,7 +207,8 @@ export async function addArtistSong(
   const activeCount = await prisma.monitoredSong.count({
     where: { userId, status: "active" },
   });
-  if (activeCount >= FREE_MONITORED_SONG_LIMIT) {
+  // Admin impersonation ("view as role") is exempt from plan limits.
+  if (activeCount >= FREE_MONITORED_SONG_LIMIT && request.realUser?.role !== "ADMIN") {
     const hasUnlimited = await userHasFeature(
       userId,
       request.currentUser.role,

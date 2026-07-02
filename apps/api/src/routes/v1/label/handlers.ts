@@ -124,7 +124,8 @@ export async function addLabelArtist(
   const artistCount = await prisma.labelArtist.count({
     where: { labelUserId },
   });
-  if (artistCount >= FREE_LABEL_ARTIST_LIMIT) {
+  // Admin impersonation ("view as role") is exempt from plan limits.
+  if (artistCount >= FREE_LABEL_ARTIST_LIMIT && request.realUser?.role !== "ADMIN") {
     const hasUnlimited = await userHasFeature(
       labelUserId,
       request.currentUser.role,

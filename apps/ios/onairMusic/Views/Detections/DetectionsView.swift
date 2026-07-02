@@ -20,6 +20,17 @@ struct DetectionsView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                // Live indicator + export, inline with the content (kept out of the
+                // toolbar so they don't get wrapped in the system glass capsule)
+                // and horizontally aligned with the filter chips / detection rows.
+                HStack(spacing: 12) {
+                    Spacer()
+                    connectionIndicator
+                    exportMenu
+                }
+                .padding(.horizontal)
+                .padding(.top, 2)
+
                 // Filter chips below search bar
                 FilterChipsView(
                     startDate: $viewModel.startDate,
@@ -53,45 +64,6 @@ struct DetectionsView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbarBackground(Color.rbBackground, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 12) {
-                        connectionIndicator
-
-                        Menu {
-                            Button {
-                                Task {
-                                    await exportViewModel.exportCSV(
-                                        query: viewModel.searchQuery.isEmpty ? nil : viewModel.searchQuery,
-                                        startDate: viewModel.startDate,
-                                        endDate: viewModel.endDate,
-                                        stationId: viewModel.selectedStationId
-                                    )
-                                }
-                            } label: {
-                                Label("Export CSV", systemImage: "tablecells")
-                            }
-
-                            Button {
-                                Task {
-                                    await exportViewModel.exportPDF(
-                                        query: viewModel.searchQuery.isEmpty ? nil : viewModel.searchQuery,
-                                        startDate: viewModel.startDate,
-                                        endDate: viewModel.endDate,
-                                        stationId: viewModel.selectedStationId
-                                    )
-                                }
-                            } label: {
-                                Label("Export PDF", systemImage: "doc.richtext")
-                            }
-                        } label: {
-                            Image(systemName: "square.and.arrow.up")
-                                .foregroundStyle(Color.rbAccent)
-                        }
-                        .disabled(exportViewModel.isExporting)
-                    }
-                }
-            }
             .overlay {
                 if exportViewModel.isExporting {
                     ZStack {
@@ -164,9 +136,46 @@ struct DetectionsView: View {
         .preferredColorScheme(.dark)
     }
 
+    // MARK: - Header Controls
+
+    /// CSV/PDF export menu shown inline in the content header.
+    private var exportMenu: some View {
+        Menu {
+            Button {
+                Task {
+                    await exportViewModel.exportCSV(
+                        query: viewModel.searchQuery.isEmpty ? nil : viewModel.searchQuery,
+                        startDate: viewModel.startDate,
+                        endDate: viewModel.endDate,
+                        stationId: viewModel.selectedStationId
+                    )
+                }
+            } label: {
+                Label("Export CSV", systemImage: "tablecells")
+            }
+
+            Button {
+                Task {
+                    await exportViewModel.exportPDF(
+                        query: viewModel.searchQuery.isEmpty ? nil : viewModel.searchQuery,
+                        startDate: viewModel.startDate,
+                        endDate: viewModel.endDate,
+                        stationId: viewModel.selectedStationId
+                    )
+                }
+            } label: {
+                Label("Export PDF", systemImage: "doc.richtext")
+            }
+        } label: {
+            Image(systemName: "square.and.arrow.up")
+                .foregroundStyle(Color.rbAccent)
+        }
+        .disabled(exportViewModel.isExporting)
+    }
+
     // MARK: - SSE Connection Indicator
 
-    /// Colored pill in the toolbar indicating SSE connection state.
+    /// Colored pill indicating SSE connection state.
     private var connectionIndicator: some View {
         HStack(spacing: 5) {
             Circle()
