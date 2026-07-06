@@ -199,12 +199,12 @@ fun SongDetailScreen(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 val isrc = event.isrc
-                if (!isrc.isNullOrBlank()) {
-                    StreamingButton("Spotify", Icons.Filled.Headphones, Color(0xFF1DB954)) {
-                        openUrl(context, "https://open.spotify.com/search/$isrc")
-                    }
-                    Spacer(Modifier.width(20.dp))
+                StreamingButton("Spotify", Icons.Filled.Headphones, Color(0xFF1DB954)) {
+                    // ISRC field-filter resolves to the exact track; else artist + title.
+                    val query = if (!isrc.isNullOrBlank()) "isrc:$isrc" else "${event.artistName} ${event.songTitle}"
+                    openUrl(context, "https://open.spotify.com/search/${Uri.encode(query)}")
                 }
+                Spacer(Modifier.width(20.dp))
                 deezerTrackId?.let { id ->
                     StreamingButton("Deezer", Icons.Filled.GraphicEq, Color(0xFFA238FF)) {
                         openUrl(context, "https://www.deezer.com/track/$id")

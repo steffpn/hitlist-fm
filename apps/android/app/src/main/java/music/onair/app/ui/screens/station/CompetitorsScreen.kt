@@ -106,7 +106,7 @@ fun CompetitorsScreen() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 4.dp),
+                .padding(start = 20.dp, end = 12.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -348,7 +348,7 @@ private fun CompetitorDetailScreen(vm: CompetitorsViewModel) {
             text = vm.selectedStationName ?: "Competitor",
             style = MaterialTheme.typography.headlineLarge,
             color = RbTextPrimary,
-            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 4.dp),
+            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 4.dp),
         )
 
         Spacer(Modifier.height(12.dp))

@@ -47,7 +47,7 @@ fun StationAnalyticsMenuScreen() {
             text = "Analytics",
             style = MaterialTheme.typography.headlineLarge,
             color = RbTextPrimary,
-            modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+            modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
         )
         MenuRow("Discovery Score", "How much new music you play", onClick = { route = "discovery" })
         MenuRow("Rotation Analysis", "Song rotation patterns & alerts", onClick = { route = "rotation" })

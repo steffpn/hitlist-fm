@@ -30,7 +30,9 @@ object DateFormat {
         return try {
             val start = OffsetDateTime.parse(startIso).toInstant()
             val end = OffsetDateTime.parse(endIso).toInstant()
-            val seconds = (end.epochSecond - start.epochSecond).coerceAtLeast(0)
+            val seconds = end.epochSecond - start.epochSecond
+            // Empty (not "0:00") for zero/open durations so callers can hide the row.
+            if (seconds <= 0) return ""
             "%d:%02d".format(seconds / 60, seconds % 60)
         } catch (_: Exception) {
             ""

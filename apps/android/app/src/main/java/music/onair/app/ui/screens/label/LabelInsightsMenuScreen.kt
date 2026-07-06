@@ -45,7 +45,7 @@ fun LabelInsightsMenuScreen() {
             text = "Insights",
             style = MaterialTheme.typography.headlineLarge,
             color = RbTextPrimary,
-            modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+            modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
         )
         MenuRow("Station Affinity", "Which stations play your music most", onClick = { route = "affinity" })
         MenuRow("Compare Artists", "Side-by-side artist performance", onClick = { route = "comparison" })

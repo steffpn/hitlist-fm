@@ -79,7 +79,7 @@ fun LabelComparisonScreen() {
             text = "Artist Comparison",
             style = MaterialTheme.typography.headlineLarge,
             color = RbTextPrimary,
-            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 4.dp),
+            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 4.dp),
         )
         Text(
             text = "Compare daily plays across up to 3 of your artists",

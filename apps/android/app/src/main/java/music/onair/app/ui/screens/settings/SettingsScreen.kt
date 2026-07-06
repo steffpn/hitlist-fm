@@ -85,7 +85,6 @@ fun SettingsScreen(
             .statusBarsPadding()
             .padding(20.dp),
     ) {
-        Spacer(Modifier.height(12.dp))
         Text(
             text = "Settings",
             style = MaterialTheme.typography.headlineLarge,

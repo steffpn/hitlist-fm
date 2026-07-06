@@ -137,7 +137,7 @@ fun DetectionsScreen() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 4.dp),
+                .padding(start = 20.dp, end = 12.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(

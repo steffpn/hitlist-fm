@@ -436,7 +436,7 @@ private struct ImpersonationBanner: View {
         HStack(spacing: 8) {
             Image(systemName: "eye.fill")
                 .font(.caption)
-            Text("Vezi ca \(target.role.capitalized): \(target.name)")
+            Text("Viewing as \(target.role.capitalized): \(target.name)")
                 .font(.caption.weight(.semibold))
                 .lineLimit(1)
                 .truncationMode(.tail)

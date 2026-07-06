@@ -155,16 +155,23 @@ struct SongDetailView: View {
 
     // MARK: - Streaming Links Section
 
+    /// Spotify opens a proper search — the ISRC field-filter when known (so it
+    /// resolves to the exact track), else an artist + title query. NOT a raw ISRC
+    /// (that just drops a code into the search box and matches nothing).
+    private var spotifySearchURL: String {
+        let raw = (event.isrc?.isEmpty == false) ? "isrc:\(event.isrc!)" : "\(event.artistName) \(event.songTitle)"
+        let q = raw.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? raw
+        return "https://open.spotify.com/search/\(q)"
+    }
+
     private var streamingLinksSection: some View {
         HStack(spacing: 16) {
-            if let isrc = event.isrc, !isrc.isEmpty {
-                streamingButton(
-                    title: "Spotify",
-                    icon: "headphones",
-                    color: Color(hex: "1DB954"),
-                    url: "https://open.spotify.com/search/\(isrc)"
-                )
-            }
+            streamingButton(
+                title: "Spotify",
+                icon: "headphones",
+                color: Color(hex: "1DB954"),
+                url: spotifySearchURL
+            )
 
             if let deezerTrack = viewModel.deezerTrack {
                 streamingButton(

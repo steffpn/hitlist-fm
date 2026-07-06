@@ -263,7 +263,7 @@ export default function DetectionsPage() {
                   <tr key={e.id} className="border-t border-zinc-800/60 hover:bg-zinc-800/20 transition-colors">
                     <td className="px-4 py-3 text-xs font-mono text-zinc-400 whitespace-nowrap">
                       <div>{formatDate(e.startedAt)}</div>
-                      <div className="text-zinc-500">{formatTime(e.startedAt)} · {durationSec(e.startedAt, e.endedAt)}s</div>
+                      <div className="text-zinc-500">{formatTime(e.startedAt)}{durationSec(e.startedAt, e.endedAt) > 0 && ` · ${durationSec(e.startedAt, e.endedAt)}s`}</div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">

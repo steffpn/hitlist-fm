@@ -59,11 +59,15 @@ private struct SummaryCard: View {
             Text(value)
                 .font(.sora(28, .heavy))
                 .foregroundStyle(Color.rbAccent)
+                .lineLimit(1)
+                .minimumScaleFactor(0.55)
 
             Text(title.uppercased())
                 .font(.sora(10, .semibold))
                 .tracking(1.4)
                 .foregroundStyle(Color.rbTextTertiary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
         }
         .frame(maxWidth: .infinity)
         .rbCard(radius: 18)

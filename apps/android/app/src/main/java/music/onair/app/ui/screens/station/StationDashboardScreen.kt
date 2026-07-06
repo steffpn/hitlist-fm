@@ -72,7 +72,7 @@ fun StationDashboardScreen() {
             text = "My Station",
             style = MaterialTheme.typography.headlineLarge,
             color = RbTextPrimary,
-            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 4.dp),
+            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 4.dp),
         )
         vm.overview?.stationNames?.firstOrNull()?.let {
             Text(
