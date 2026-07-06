@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../../../../lib/prisma.js";
 import { generateInviteCode } from "../../../../lib/auth.js";
-import { INVITE_CODE_EXPIRY_DAYS } from "@myfuckingmusic/shared";
+import { INVITE_CODE_EXPIRY_DAYS } from "@hitlist/shared";
 import type { CreateInvitationBody, InvitationParams } from "./schema.js";
 
 /**

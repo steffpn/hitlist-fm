@@ -1,5 +1,5 @@
 /**
- * Public "onair.music Airplay Top" chart.
+ * Public "hitlist.fm Airplay Top" chart.
  *
  * Aggregated from airplay_events (partial_play = false, ISRC present — the
  * chart is keyed by ISRC, so events without one are excluded; monitored

@@ -84,11 +84,11 @@ struct onairMusicApp: App {
         }
     }
 
-    /// Handle custom-scheme URLs (onairmusic://). Currently used by the Stripe
+    /// Handle custom-scheme URLs (hitlist://). Currently used by the Stripe
     /// Checkout/Portal return flow to bounce back into the app and refresh
     /// the subscription state.
     private func handleURL(_ url: URL) {
-        guard url.scheme?.lowercased() == "onairmusic" else { return }
+        guard url.scheme?.lowercased() == "hitlist" else { return }
 
         if url.host?.lowercased() == "subscription" {
             // success / cancel / portal return all warrant a refresh
@@ -100,7 +100,7 @@ struct onairMusicApp: App {
 // MARK: - Notification Names
 
 extension Notification.Name {
-    /// Posted when returning from Stripe Checkout/Portal via onairmusic:// URL.
+    /// Posted when returning from Stripe Checkout/Portal via hitlist:// URL.
     /// Observers should re-fetch the current subscription.
     static let subscriptionStatusMayHaveChanged = Notification.Name("subscriptionStatusMayHaveChanged")
 }

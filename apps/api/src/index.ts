@@ -25,6 +25,8 @@ server.register(fastifyCors, {
     ];
     if (
       allowed.includes(origin) ||
+      origin === "https://hitlist.fm" ||
+      origin.endsWith(".hitlist.fm") ||
       origin.endsWith(".railway.app") ||
       origin.endsWith(".up.railway.app")
     ) {

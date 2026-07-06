@@ -23,7 +23,7 @@
     "@fastify/rate-limit": "^10.0.0",
     "@fastify/sse": "^0.4.0",
     "@fastify/static": "^9.0.0",
-    "@myfuckingmusic/shared": "workspace:*",
+    "@hitlist/shared": "workspace:*",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "@sinclair/typebox": "^0.34.48",
@@ -41,7 +41,7 @@
     "stripe": "^20.4.1"
   },
   "devDependencies": {
-    "@myfuckingmusic/tsconfig": "workspace:*",
+    "@hitlist/tsconfig": "workspace:*",
     "@types/pdfkit": "^0.17.5",
     "@types/pg": "^8.11.0",
     "prisma": "^7.3.0",

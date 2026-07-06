@@ -263,11 +263,11 @@ export async function signup(
   // sendEmail never throws (env-gated: logs the email without RESEND_API_KEY).
   await sendEmail({
     to: user.email,
-    subject: "Verify your onair.music email",
+    subject: "Verify your hitlist.fm email",
     text: [
       `Hi ${user.name},`,
       "",
-      "Welcome to onair.music! Your email verification code is:",
+      "Welcome to hitlist.fm! Your email verification code is:",
       "",
       verificationCode,
       "",
@@ -276,7 +276,7 @@ export async function signup(
     ].join("\n"),
     html: [
       `<p>Hi ${user.name},</p>`,
-      "<p>Welcome to onair.music! Your email verification code is:</p>",
+      "<p>Welcome to hitlist.fm! Your email verification code is:</p>",
       `<p style="font-size:24px;font-weight:bold;letter-spacing:4px">${verificationCode}</p>`,
       "<p>The code is valid for 24 hours.</p>",
       "<p>If you didn't create this account, you can safely ignore this email.</p>",
@@ -523,11 +523,11 @@ export async function forgotPassword(
   // sendEmail never throws — a delivery failure cannot alter the generic 200.
   await sendEmail({
     to: user.email,
-    subject: "Reset your onair.music password",
+    subject: "Reset your hitlist.fm password",
     text: [
       `Hi ${user.name},`,
       "",
-      "We received a request to reset your onair.music password.",
+      "We received a request to reset your hitlist.fm password.",
       "Open the link below to choose a new one (valid for 1 hour):",
       "",
       resetUrl,
@@ -536,7 +536,7 @@ export async function forgotPassword(
     ].join("\n"),
     html: [
       `<p>Hi ${user.name},</p>`,
-      "<p>We received a request to reset your onair.music password.</p>",
+      "<p>We received a request to reset your hitlist.fm password.</p>",
       `<p><a href="${resetUrl}">Reset your password</a> (link valid for 1 hour)</p>`,
       "<p>If you didn't request this, you can safely ignore this email.</p>",
     ].join("\n"),

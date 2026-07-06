@@ -14,7 +14,7 @@ const chartRoutes: FastifyPluginAsync = async (fastify) => {
     timeWindow: 60 * 1000,
   });
 
-  // GET /charts/airplay - public "onair.music Airplay Top"
+  // GET /charts/airplay - public "hitlist.fm Airplay Top"
   fastify.get<{ Querystring: AirplayChartQuery }>(
     "/airplay",
     {

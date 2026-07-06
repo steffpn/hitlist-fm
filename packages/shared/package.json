@@ -1,5 +1,5 @@
 {
-  "name": "@myfuckingmusic/shared",
+  "name": "@hitlist/shared",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "@myfuckingmusic/tsconfig": "workspace:*",
+    "@hitlist/tsconfig": "workspace:*",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
   }

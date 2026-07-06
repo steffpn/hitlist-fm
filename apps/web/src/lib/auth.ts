@@ -1,8 +1,8 @@
-const TOKEN_KEY = "onair_admin_token";
+const TOKEN_KEY = "hitlist_admin_token";
 // Pre-rebrand key — read as fallback and migrate so existing sessions survive.
 const LEGACY_TOKEN_KEY = "mfm_admin_token";
-const REFRESH_TOKEN_KEY = "onair_refresh_token";
-const USER_KEY = "onair_user";
+const REFRESH_TOKEN_KEY = "hitlist_refresh_token";
+const USER_KEY = "hitlist_user";
 
 export type UserRole = "ADMIN" | "ARTIST" | "LABEL" | "STATION";
 
@@ -13,7 +13,7 @@ export interface StoredUser {
   role: UserRole;
 }
 
-const AUTH_EVENT = "onair:auth";
+const AUTH_EVENT = "hitlist:auth";
 
 function emitAuthChange(): void {
   if (typeof window !== "undefined") {

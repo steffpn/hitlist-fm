@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "music.onair.app"
+    namespace = "fm.hitlist.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "music.onair.app"
+        applicationId = "fm.hitlist.app"
         minSdk = 26
         targetSdk = 34
         versionCode = 3

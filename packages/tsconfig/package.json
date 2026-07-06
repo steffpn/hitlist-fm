@@ -1,5 +1,5 @@
 {
-  "name": "@myfuckingmusic/tsconfig",
+  "name": "@hitlist/tsconfig",
   "private": true,
   "type": "module"
 }

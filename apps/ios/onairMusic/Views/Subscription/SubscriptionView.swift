@@ -66,7 +66,7 @@ struct SubscriptionView: View {
             await viewModel.loadSubscription()
         }
         .onReceive(NotificationCenter.default.publisher(for: .subscriptionStatusMayHaveChanged)) { _ in
-            // Back from Stripe Checkout/Portal via onairmusic:// — refresh state.
+            // Back from Stripe Checkout/Portal via hitlist:// — refresh state.
             Task { await viewModel.loadSubscription() }
         }
         .onChange(of: viewModel.checkoutURL) { _, url in

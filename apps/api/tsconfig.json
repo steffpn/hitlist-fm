@@ -1,5 +1,5 @@
 {
-  "extends": "@myfuckingmusic/tsconfig/api.json",
+  "extends": "@hitlist/tsconfig/api.json",
   "compilerOptions": {
     // No "rootDir": the generated Prisma client (./generated/prisma) is imported
     // from src/ but lives outside it. tsc is used for typechecking only

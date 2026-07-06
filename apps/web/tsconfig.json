@@ -1,5 +1,5 @@
 {
-  "extends": "@myfuckingmusic/tsconfig/base.json",
+  "extends": "@hitlist/tsconfig/base.json",
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],

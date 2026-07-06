@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "onair"
+rootProject.name = "hitlist"
 include(":app")

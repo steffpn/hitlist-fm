@@ -8,8 +8,8 @@
  * /admin/* routes, so it is safe to send it unconditionally.
  */
 
-const IMPERSONATION_KEY = "onair_impersonation";
-const IMPERSONATION_EVENT = "onair:impersonation";
+const IMPERSONATION_KEY = "hitlist_impersonation";
+const IMPERSONATION_EVENT = "hitlist:impersonation";
 
 export interface ImpersonationState {
   userId: number;

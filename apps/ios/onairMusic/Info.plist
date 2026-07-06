@@ -3,18 +3,18 @@
 <plist version="1.0">
 <dict>
 	<!-- Merged with the generated Info.plist (GENERATE_INFOPLIST_FILE = YES).
-	     Registers the onairmusic:// custom scheme used by the Stripe
-	     Checkout/Portal return flow (onairmusic://subscription/...). -->
+	     Registers the hitlist:// custom scheme used by the Stripe
+	     Checkout/Portal return flow (hitlist://subscription/...). -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.onairmusic.app</string>
+			<string>fm.hitlist.app</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>onairmusic</string>
+				<string>hitlist</string>
 			</array>
 		</dict>
 	</array>

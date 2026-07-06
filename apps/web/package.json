@@ -10,7 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@myfuckingmusic/shared": "workspace:*",
+    "@hitlist/shared": "workspace:*",
     "next": "^15.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -19,7 +19,7 @@
     "tailwind-merge": "^3.2.0"
   },
   "devDependencies": {
-    "@myfuckingmusic/tsconfig": "workspace:*",
+    "@hitlist/tsconfig": "workspace:*",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "autoprefixer": "^10.4.0",

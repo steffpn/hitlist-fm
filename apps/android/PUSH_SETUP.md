@@ -7,8 +7,8 @@ whole app) builds and runs without them.
 ## 1. Firebase project (client — `google-services.json`)
 1. Create a Firebase project at https://console.firebase.google.com (or reuse one).
 2. Add an **Android app** for each applicationId:
-   - `music.onair.app` (release)
-   - `music.onair.app.debug` (debug builds — add as a second Android app)
+   - `fm.hitlist.app` (release)
+   - `fm.hitlist.app.debug` (debug builds — add as a second Android app)
 3. Download `google-services.json` and place it at `apps/android/app/google-services.json`.
    - The Gradle build auto-detects the file and applies the `google-services`
      plugin (see the `if (project.file("google-services.json").exists())` block

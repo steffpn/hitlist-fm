@@ -38,7 +38,7 @@ importers:
       '@fastify/static':
         specifier: ^9.0.0
         version: 9.0.0
-      '@myfuckingmusic/shared':
+      '@hitlist/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       '@prisma/adapter-pg':
@@ -87,7 +87,7 @@ importers:
         specifier: ^20.4.1
         version: 20.4.1(@types/node@25.5.0)
     devDependencies:
-      '@myfuckingmusic/tsconfig':
+      '@hitlist/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
       '@types/pdfkit':
@@ -157,7 +157,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@myfuckingmusic/shared':
+      '@hitlist/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       clsx:
@@ -179,7 +179,7 @@ importers:
         specifier: ^3.2.0
         version: 3.5.0
     devDependencies:
-      '@myfuckingmusic/tsconfig':
+      '@hitlist/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
       '@tailwindcss/forms':
@@ -206,7 +206,7 @@ importers:
 
   packages/shared:
     devDependencies:
-      '@myfuckingmusic/tsconfig':
+      '@hitlist/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       typescript:

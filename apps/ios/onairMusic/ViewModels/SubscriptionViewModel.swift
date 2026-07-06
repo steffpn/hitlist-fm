@@ -27,7 +27,7 @@ final class SubscriptionViewModel {
     }
 
     /// Create a checkout session for upgrading.
-    /// Return URLs use the registered onairmusic:// scheme (CFBundleURLTypes in
+    /// Return URLs use the registered hitlist:// scheme (CFBundleURLTypes in
     /// Info.plist) so Stripe can bounce back into the app.
     func createCheckout(planId: Int, billingInterval: String = "monthly") async {
         do {
@@ -35,8 +35,8 @@ final class SubscriptionViewModel {
                 .createCheckout(
                     planId: planId,
                     billingInterval: billingInterval,
-                    successUrl: "onairmusic://subscription/success",
-                    cancelUrl: "onairmusic://subscription/cancel"
+                    successUrl: "hitlist://subscription/success",
+                    cancelUrl: "hitlist://subscription/cancel"
                 )
             )
             checkoutURL = URL(string: response.checkoutUrl)
@@ -49,7 +49,7 @@ final class SubscriptionViewModel {
     func createPortal() async {
         do {
             let response: PortalResponse = try await APIClient.shared.request(
-                .createPortal(returnUrl: "onairmusic://subscription")
+                .createPortal(returnUrl: "hitlist://subscription")
             )
             portalURL = URL(string: response.portalUrl)
         } catch {

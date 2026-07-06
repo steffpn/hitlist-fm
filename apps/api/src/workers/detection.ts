@@ -29,7 +29,7 @@ import {
 import {
   DETECTION_GAP_TOLERANCE_MS,
   DETECTION_QUEUE,
-} from "@myfuckingmusic/shared";
+} from "@hitlist/shared";
 import pino from "pino";
 
 const logger = pino({ name: "detection-worker" });

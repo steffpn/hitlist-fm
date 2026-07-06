@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { prisma } from "../../src/lib/prisma.js";
 import { server } from "../../src/index.js";
 import { hashPassword } from "../../src/lib/auth.js";
-import { INVITE_CODE_EXPIRY_DAYS } from "@myfuckingmusic/shared";
+import { INVITE_CODE_EXPIRY_DAYS } from "@hitlist/shared";
 import { dbTestsEnabled } from "../helpers/db.js";
 
 /**

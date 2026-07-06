@@ -16,7 +16,7 @@ import pino from "pino";
 const logger = pino({ name: "email" });
 
 const RESEND_API_URL = "https://api.resend.com/emails";
-const DEFAULT_FROM = "onair.music <noreply@onair.music>";
+const DEFAULT_FROM = "hitlist.fm <noreply@hitlist.fm>";
 
 export interface SendEmailOptions {
   to: string;

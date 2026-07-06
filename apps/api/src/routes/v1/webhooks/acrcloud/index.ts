@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
 import { Queue } from "bullmq";
-import { DETECTION_QUEUE } from "@myfuckingmusic/shared";
+import { DETECTION_QUEUE } from "@hitlist/shared";
 import { createRedisConnection } from "../../../../lib/redis.js";
 import { AcrCloudCallbackSchema } from "./schema.js";
 import { handleAcrCloudCallback } from "./handlers.js";

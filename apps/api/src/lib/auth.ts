@@ -2,7 +2,7 @@ import * as argon2 from "argon2";
 import crypto from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { prisma } from "./prisma.js";
-import { JWT_ACCESS_EXPIRY, JWT_REFRESH_EXPIRY } from "@myfuckingmusic/shared";
+import { JWT_ACCESS_EXPIRY, JWT_REFRESH_EXPIRY } from "@hitlist/shared";
 
 /**
  * Hash a password using argon2id with recommended settings.

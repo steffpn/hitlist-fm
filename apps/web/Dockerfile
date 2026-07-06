@@ -22,7 +22,7 @@ ARG NEXT_PUBLIC_API_URL=https://api-production-94f67.up.railway.app/api/v1
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Build shared + web
-RUN pnpm --filter @myfuckingmusic/shared build && pnpm --filter web build
+RUN pnpm --filter @hitlist/shared build && pnpm --filter web build
 
 WORKDIR /app/apps/web
 
