@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-ink text-zinc-100 antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(245, 177, 61, 0.28);
+  color: #fff;
+}
+
+@layer utilities {
+  /* Warm gold "sunset" radial glow used behind heroes. */
+  .hero-glow {
+    background: radial-gradient(
+      60% 55% at 50% 0%,
+      rgba(245, 177, 61, 0.14) 0%,
+      rgba(255, 90, 52, 0.05) 45%,
+      transparent 100%
+    );
+  }
+  .text-gradient-sunset {
+    background: linear-gradient(135deg, #f5b13d, #ff5a34);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
