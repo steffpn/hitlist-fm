@@ -35,6 +35,12 @@ Temporary live URLs (work now, before DNS):
 
 ## Environment variables
 
+**Optional pre-launch password gate** (both `site` and `web`):
+- `SITE_PASSWORD=…` → gates every page behind an HTTP Basic prompt (any username,
+  this password). Set it on the `site` service to keep the marketing site private,
+  and/or on `web` for a private app preview. **Unset = fully public** (default).
+  Runtime var — set/unset in Railway and redeploy; no rebuild needed.
+
 **site** service:
 - `NEXT_PUBLIC_SITE_URL=https://hitlist.fm`
 - `NEXT_PUBLIC_APP_URL=https://app.hitlist.fm`  (Login / Access Pro links)
