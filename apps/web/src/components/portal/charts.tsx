@@ -46,7 +46,7 @@ export function BarSeries({
 // ─── Multi-series line chart (label artist comparison) ──────────────────
 
 export const SERIES_COLORS = [
-  "#FF4B45", // brand
+  "#F5B13D", // brand
   "#38BDF8", // sky
   "#34D399", // emerald
   "#FBBF24", // amber
@@ -195,7 +195,7 @@ export function HourlyHeatmap({
             <span
               key={o}
               className="w-3.5 h-3.5 rounded-sm"
-              style={{ backgroundColor: `rgba(255, 75, 69, ${o * 0.9})` }}
+              style={{ backgroundColor: `rgba(245, 177, 61, ${o * 0.9})` }}
             />
           ))}
           <span>multe difuzări</span>
@@ -221,7 +221,7 @@ function DayRow({ dow, row, maxValue }: { dow: number; row: number[]; maxValue: 
               className={cn("h-4 rounded-[3px]", v === 0 && "bg-zinc-800/60")}
               style={
                 v > 0
-                  ? { backgroundColor: `rgba(255, 75, 69, ${0.15 + intensity * 0.75})` }
+                  ? { backgroundColor: `rgba(245, 177, 61, ${0.15 + intensity * 0.75})` }
                   : undefined
               }
             />
@@ -258,7 +258,7 @@ export function Donut({
           cy="50"
           r={r}
           fill="none"
-          stroke="#FF4B45"
+          stroke="#F5B13D"
           strokeWidth="9"
           strokeLinecap="round"
           strokeDasharray={`${(clamped / 100) * c} ${c}`}
@@ -292,7 +292,7 @@ export function OverlapViz({
   return (
     <div className="flex flex-col items-center">
       <svg viewBox="0 0 300 160" className="w-full max-w-[340px]" role="img" aria-label="Suprapunere playlist">
-        <circle cx="110" cy="80" r="62" fill="rgba(255,75,69,0.18)" stroke="#FF4B45" strokeWidth="1.5" />
+        <circle cx="110" cy="80" r="62" fill="rgba(245,177,61,0.18)" stroke="#F5B13D" strokeWidth="1.5" />
         <circle cx="190" cy="80" r="62" fill="rgba(56,189,248,0.14)" stroke="#38BDF8" strokeWidth="1.5" />
         <text x="80" y="84" textAnchor="middle" fill="#fff" fontSize="16" fontWeight="700" fontFamily="monospace">
           {formatNumber(exclusiveToYou)}

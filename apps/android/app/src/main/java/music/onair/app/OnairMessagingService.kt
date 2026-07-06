@@ -27,7 +27,7 @@ class OnairMessagingService : FirebaseMessagingService() {
         val data = message.data
         val title = message.notification?.title
             ?: data["title"]
-            ?: "onair.music"
+            ?: "hitlist.fm"
         val body = message.notification?.body
             ?: data["body"]
             ?: return // nothing displayable

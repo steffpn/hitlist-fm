@@ -166,10 +166,8 @@ private fun SplashScreen() {
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "onair.music",
+            music.onair.app.ui.components.HitlistWordmark(
                 style = MaterialTheme.typography.headlineLarge,
-                color = RbTextPrimary,
             )
             Spacer(Modifier.height(20.dp))
             CircularProgressIndicator(color = RbAccent)

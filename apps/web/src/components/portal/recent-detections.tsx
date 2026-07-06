@@ -32,7 +32,7 @@ export function RecentDetectionsCard() {
     setExporting(true);
     setExportError(null);
     try {
-      await apiDownload("/exports/csv", "difuzari-onair.csv");
+      await apiDownload("/exports/csv", "difuzari-hitlist.csv");
     } catch (err) {
       setExportError(err instanceof Error ? err.message : "Exportul a eșuat");
     } finally {

@@ -6,6 +6,7 @@ import { apiFetch } from "@/lib/api";
 import { setSession, type StoredUser } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 import { clearImpersonation } from "@/lib/impersonation";
+import { GaugeMark, Wordmark } from "@/components/brand";
 
 interface LoginResponse {
   accessToken: string;
@@ -46,20 +47,25 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
+    <div className="min-h-screen bg-ink flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-ink" />
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(50% 55% at 50% 12%, rgba(245,177,61,0.14) 0%, rgba(255,90,52,0.04) 45%, transparent 100%)",
+        }}
+      />
 
       <div className="relative w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/5 border border-white/10 rounded-2xl mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8 text-brand-500">
-              <path d="M9 18V5l12-2v13" />
-              <circle cx="6" cy="18" r="3" />
-              <circle cx="18" cy="16" r="3" />
-            </svg>
+          <div className="inline-flex mb-4 drop-shadow-[0_8px_24px_rgba(245,177,61,0.30)]">
+            <GaugeMark size={64} />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">onair.music</h1>
-          <p className="text-zinc-400 text-sm mt-1">Ops Console</p>
+          <div className="text-[26px]">
+            <Wordmark />
+          </div>
+          <p className="text-zinc-500 text-sm mt-2">Know exactly where your music plays.</p>
         </div>
 
         <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 rounded-2xl p-8 shadow-2xl shadow-black/50">
@@ -108,7 +114,7 @@ export default function LoginPage() {
                 "w-full py-3 rounded-xl text-sm font-semibold transition-all mt-1",
                 loading
                   ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-brand-600 to-brand-500 text-white hover:from-brand-500 hover:to-brand-400 active:scale-[0.98]"
+                  : "bg-gradient-to-br from-brand-500 to-ember text-ink font-bold shadow-[0_10px_28px_rgba(245,177,61,0.30)] hover:brightness-105 active:scale-[0.98]"
               )}
             >
               {loading ? (
@@ -125,7 +131,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-zinc-500 text-xs mt-6">
-          onair.music &copy; {new Date().getFullYear()}
+          hitlist.fm &copy; {new Date().getFullYear()}
         </p>
       </div>
     </div>

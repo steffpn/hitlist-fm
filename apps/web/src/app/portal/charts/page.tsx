@@ -11,7 +11,7 @@ import { useGated } from "@/components/portal/premium-gate";
 type Period = "week" | "month";
 
 /**
- * Topuri — the public onair.music airplay chart, with the user's own songs
+ * Topuri — the public hitlist.fm airplay chart, with the user's own songs
  * highlighted (artist: monitored songs; label: roster catalog).
  */
 export default function PortalChartsPage() {
@@ -50,7 +50,7 @@ export default function PortalChartsPage() {
   return (
     <div className="max-w-5xl">
       <PageHeader
-        title="onair.music Airplay Top"
+        title="hitlist.fm Airplay Top"
         description={
           chart.data
             ? `Top actualizat ${formatDateTime(chart.data.generatedAt)} — din difuzări radio reale.`

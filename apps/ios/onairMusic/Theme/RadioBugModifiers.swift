@@ -63,14 +63,14 @@ extension View {
         return self.background(Color.rbBackground.ignoresSafeArea())
     }
 
-    /// Single allowed brand moment: a very subtle broadcast-red wash for the
+    /// Single allowed brand moment: a subtle gold→ember "sunset" wash for the
     /// Login / Welcome screens only. Do NOT use on list or content screens.
     func onairBrandGlow() -> some View {
         self.background(
             RadialGradient(
                 colors: [
-                    Color.rbAccentDark.opacity(0.16),
-                    Color.rbAccentDark.opacity(0.05),
+                    Color.rbAccent.opacity(0.14),
+                    Color.rbWarm.opacity(0.05),
                     .clear
                 ],
                 center: .init(x: 0.5, y: -0.05),
@@ -107,13 +107,14 @@ extension View {
 
 // MARK: - Buttons
 
-/// Primary CTA — dark-red→red gradient Capsule, white text.
+/// Primary CTA — gold→ember "sunset" gradient Capsule, INK text.
+/// (The gradient's gold end is too light for white — label must be ink.)
 /// This is one of only two places the brand gradient is allowed.
 struct RBAccentButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.sora(16, .bold))
-            .foregroundStyle(.white)
+            .foregroundStyle(Color.rbBackground)
             .padding(.horizontal, 32)
             .padding(.vertical, 14)
             .background(

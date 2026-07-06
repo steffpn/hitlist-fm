@@ -30,6 +30,8 @@ import music.onair.app.ui.theme.RbGradientEnd
 import music.onair.app.ui.theme.RbGradientStart
 import music.onair.app.ui.theme.RbTextPrimary
 import music.onair.app.ui.theme.RbTextSecondary
+import music.onair.app.ui.components.HitlistMark
+import music.onair.app.ui.components.HitlistWordmark
 
 /**
  * First-launch welcome screen. Mirrors the iOS Welcome screen: brand mark,
@@ -53,14 +55,12 @@ fun WelcomeScreen(
                 .padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(
-                text = "onair.music",
-                style = MaterialTheme.typography.displayLarge,
-                color = RbTextPrimary,
-            )
+            HitlistMark(size = 96.dp)
+            Spacer(Modifier.height(24.dp))
+            HitlistWordmark(style = MaterialTheme.typography.displayLarge)
             Spacer(Modifier.height(10.dp))
             Text(
-                text = "Radio airplay, tracked in real time.",
+                text = "Know exactly where your music plays.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = RbTextSecondary,
                 textAlign = TextAlign.Center,

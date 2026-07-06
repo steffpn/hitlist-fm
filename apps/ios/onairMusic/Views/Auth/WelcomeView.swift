@@ -7,24 +7,15 @@ struct WelcomeView: View {
         VStack(spacing: 32) {
             Spacer()
 
-            // Logo mark — gradient rounded-square with waveform glyph
-            ZStack {
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(LinearGradient.rbAccentGradient)
-                    .frame(width: 96, height: 96)
-                    .shadow(color: .black.opacity(0.5), radius: 12, y: 10)
+            // Logo mark — hitlist.fm rotation gauge
+            HitlistMark(size: 96)
+                .shadow(color: Color.rbAccent.opacity(0.30), radius: 20, y: 8)
 
-                Image(systemName: "waveform")
-                    .font(.system(size: 44, weight: .semibold))
-                    .foregroundStyle(.white)
-            }
-
-            // App title — onair.music
+            // App title — hitlist.fm
             VStack(spacing: 10) {
                 (
-                    Text("onair").foregroundStyle(Color.rbTextPrimary)
-                    + Text(".").foregroundStyle(Color.rbAccent)
-                    + Text("music").foregroundStyle(Color.rbTextTertiary)
+                    Text("hitlist").foregroundStyle(Color.rbTextPrimary)
+                    + Text(".fm").foregroundStyle(Color.rbAccent)
                 )
                 .font(.sora(34, .bold))
 

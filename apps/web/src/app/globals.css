@@ -3,5 +3,10 @@
 @tailwind utilities;
 
 body {
-  @apply bg-zinc-950 text-zinc-100 antialiased;
+  @apply bg-ink text-zinc-100 antialiased;
+}
+
+::selection {
+  background: rgba(245, 177, 61, 0.28);
+  color: #fff;
 }

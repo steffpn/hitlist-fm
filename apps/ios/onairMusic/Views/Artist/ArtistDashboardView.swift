@@ -70,12 +70,10 @@ struct ArtistDashboardView: View {
     private var topBar: some View {
         HStack(spacing: 10) {
             HStack(spacing: 0) {
-                Text("onair")
+                Text("hitlist")
                     .foregroundStyle(Color.rbTextPrimary)
-                Text(".")
+                Text(".fm")
                     .foregroundStyle(Color.rbAccent)
-                Text("music")
-                    .foregroundStyle(Color.rbTextTertiary)
             }
             .font(.sora(20, .bold))
             .tracking(-0.4)

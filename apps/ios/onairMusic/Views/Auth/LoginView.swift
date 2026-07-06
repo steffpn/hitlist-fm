@@ -14,23 +14,14 @@ struct LoginView: View {
 
                 // MARK: Brand
                 VStack(spacing: 18) {
-                    // Logo mark — 66x66 gradient rounded-square with waveform glyph
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .fill(LinearGradient.rbAccentGradient)
-                            .frame(width: 66, height: 66)
-                            .shadow(color: .black.opacity(0.5), radius: 12, y: 10)
+                    // Logo mark — hitlist.fm rotation gauge
+                    HitlistMark(size: 66)
+                        .shadow(color: Color.rbAccent.opacity(0.30), radius: 16, y: 6)
 
-                        Image(systemName: "waveform")
-                            .font(.system(size: 30, weight: .semibold))
-                            .foregroundStyle(.white)
-                    }
-
-                    // Wordmark: onair.music
+                    // Wordmark: hitlist.fm
                     (
-                        Text("onair").foregroundStyle(Color.rbTextPrimary)
-                        + Text(".").foregroundStyle(Color.rbAccent)
-                        + Text("music").foregroundStyle(Color.rbTextTertiary)
+                        Text("hitlist").foregroundStyle(Color.rbTextPrimary)
+                        + Text(".fm").foregroundStyle(Color.rbAccent)
                     )
                     .font(.sora(27, .bold))
 

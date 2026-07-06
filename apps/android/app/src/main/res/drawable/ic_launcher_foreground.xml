@@ -3,10 +3,31 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- onair "pulse" waveform mark in broadcast red, centered in the safe zone. -->
-    <path android:fillColor="#D92D26" android:pathData="M31,42h6v24h-6z" />
-    <path android:fillColor="#FF4B45" android:pathData="M41,34h6v40h-6z" />
-    <path android:fillColor="#FF8A80" android:pathData="M51,26h6v56h-6z" />
-    <path android:fillColor="#FF4B45" android:pathData="M61,34h6v40h-6z" />
-    <path android:fillColor="#D92D26" android:pathData="M71,42h6v24h-6z" />
+    <!-- hitlist.fm rotation gauge, ink knockout on the gold tile, in the safe zone. -->
+    <!-- Base ring -->
+    <path
+        android:strokeColor="#4712100E"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M24,54 a30,30 0 1,0 60,0 a30,30 0 1,0 -60,0" />
+    <!-- Gauge arc (270°) -->
+    <group android:rotation="135" android:pivotX="54" android:pivotY="54">
+        <path
+            android:strokeColor="#12100E"
+            android:strokeWidth="4.7"
+            android:strokeLineCap="round"
+            android:trimPathStart="0"
+            android:trimPathEnd="0.75"
+            android:pathData="M24,54 a30,30 0 1,0 60,0 a30,30 0 1,0 -60,0" />
+    </group>
+    <!-- Needle -->
+    <path
+        android:strokeColor="#12100E"
+        android:strokeWidth="3.8"
+        android:strokeLineCap="round"
+        android:pathData="M54,54 L73.1,43" />
+    <!-- Hub -->
+    <path
+        android:fillColor="#12100E"
+        android:pathData="M54,54 m-4.7,0 a4.7,4.7 0 1,0 9.4,0 a4.7,4.7 0 1,0 -9.4,0" />
 </vector>

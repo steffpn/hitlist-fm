@@ -72,13 +72,13 @@ function PositionHistory({ weeks }: { weeks: HistoryWeek[] }) {
         <polyline
           points={weeks.map((w, i) => `${x(i)},${y(w.position)}`).join(" ")}
           fill="none"
-          stroke="#FF4B45"
+          stroke="#F5B13D"
           strokeWidth="2"
           strokeLinejoin="round"
           strokeLinecap="round"
         />
         {weeks.map((w, i) => (
-          <circle key={w.weekStart} cx={x(i)} cy={y(w.position)} r="2.5" fill="#FF4B45">
+          <circle key={w.weekStart} cx={x(i)} cy={y(w.position)} r="2.5" fill="#F5B13D">
             <title>{`Săpt. ${w.weekStart}: locul ${w.position} (${formatNumber(w.plays)} difuzări)`}</title>
           </circle>
         ))}

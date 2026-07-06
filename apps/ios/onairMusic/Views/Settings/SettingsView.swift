@@ -125,8 +125,8 @@ struct SettingsView: View {
                     .buttonStyle(.plain)
                 }
 
-                // onair.music (app info)
-                SettingsSection(header: "onair.music") {
+                // hitlist.fm (app info)
+                SettingsSection(header: "hitlist.fm") {
                     HStack {
                         SettingsIconTile(icon: "info.circle.fill",
                                          colors: [Color.rbTextTertiary, Color.rbTextSecondary])
@@ -200,7 +200,7 @@ struct SettingsView: View {
                 .disabled(isLoggingOut)
 
                 // Footer
-                Text("onair.music · version \(appVersion)")
+                Text("hitlist.fm · version \(appVersion)")
                     .font(.sora(11, .regular))
                     .foregroundStyle(Color.rbTextTertiary)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -226,7 +226,7 @@ struct SettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will permanently delete your onair.music account.")
+            Text("This will permanently delete your hitlist.fm account.")
         }
         // Delete account: step 2 — explicit, final confirmation
         .alert("This cannot be undone", isPresented: $showDeleteConfirmStep2) {

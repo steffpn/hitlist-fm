@@ -74,7 +74,7 @@ export function Stat({
   const toneClasses: Record<StatTone, string> = {
     green: "text-emerald-400",
     amber: "text-amber-400",
-    red: "text-brand-400",
+    red: "text-down",
     brand: "text-brand-400",
     neutral: "text-white",
   };
@@ -100,7 +100,7 @@ export function Pill({
   const cls = {
     green: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
     amber: "bg-amber-400/10 text-amber-400 border-amber-400/20",
-    red: "bg-brand-400/10 text-brand-400 border-brand-400/20",
+    red: "bg-down/10 text-down border-down/20",
     brand: "bg-brand-500/10 text-brand-400 border-brand-500/30",
     neutral: "bg-zinc-800/60 text-zinc-400 border-zinc-700",
   }[tone];
@@ -168,12 +168,12 @@ export function ErrorNotice({
   onRetry?: () => void;
 }) {
   return (
-    <div className="px-4 py-3 bg-brand-400/10 border border-brand-400/20 rounded-xl text-brand-400 text-sm flex items-center justify-between gap-3 flex-wrap">
+    <div className="px-4 py-3 bg-down/10 border border-down/20 rounded-xl text-down text-sm flex items-center justify-between gap-3 flex-wrap">
       <span>{message}</span>
       {onRetry && (
         <button
           onClick={onRetry}
-          className="text-xs font-semibold text-brand-300 hover:text-white border border-brand-400/30 rounded-lg px-3 py-1 transition-colors"
+          className="text-xs font-semibold text-down hover:text-white border border-down/30 rounded-lg px-3 py-1 transition-colors"
         >
           Reîncearcă
         </button>

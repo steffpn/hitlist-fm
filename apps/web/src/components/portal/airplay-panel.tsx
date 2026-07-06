@@ -158,7 +158,7 @@ export function AirplayEventsPanel({
     try {
       await apiDownload(
         `/exports/${kind}${exportQuery()}`,
-        kind === "csv" ? "difuzari-onair.csv" : "raport-difuzari.pdf",
+        kind === "csv" ? "difuzari-hitlist.csv" : "raport-difuzari.pdf",
       );
     } catch (err) {
       setExportError(err instanceof Error ? err.message : "Exportul a eșuat");
@@ -249,7 +249,7 @@ export function AirplayEventsPanel({
           <button
             onClick={() => handleExport("pdf")}
             disabled={exporting !== null || !pdfReady}
-            title={pdfReady ? "Raport PDF cu brand onair.music" : "Alege mai întâi un interval de date"}
+            title={pdfReady ? "Raport PDF cu brand hitlist.fm" : "Alege mai întâi un interval de date"}
             className="px-3 py-2 text-xs font-semibold text-zinc-300 border border-zinc-800 hover:border-zinc-600 rounded-lg transition-colors disabled:opacity-50"
           >
             {exporting === "pdf" ? "Se exportă…" : "Export PDF"}

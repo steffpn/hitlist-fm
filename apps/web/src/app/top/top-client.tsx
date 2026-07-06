@@ -44,7 +44,7 @@ export function TopChartClient() {
   async function sharePage() {
     const url = typeof window !== "undefined" ? window.location.href : "";
     const payload = {
-      title: "onair.music Airplay Top",
+      title: "hitlist.fm Airplay Top",
       text: "Topul difuzărilor radio — din airplay real, monitorizat non-stop.",
       url,
     };
@@ -67,10 +67,10 @@ export function TopChartClient() {
 
   async function shareEntry(entry: ChartEntry) {
     const url = typeof window !== "undefined" ? window.location.href : "";
-    const text = `„${entry.songTitle}” — ${entry.artistName} e pe locul #${entry.rank} în onair.music Airplay Top`;
+    const text = `„${entry.songTitle}” — ${entry.artistName} e pe locul #${entry.rank} în hitlist.fm Airplay Top`;
     if (navigator.share) {
       try {
-        await navigator.share({ title: "onair.music Airplay Top", text, url });
+        await navigator.share({ title: "hitlist.fm Airplay Top", text, url });
         return;
       } catch {
         // dismissed
@@ -91,7 +91,7 @@ export function TopChartClient() {
       <header className="border-b border-zinc-800/60">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <span className="text-base font-bold text-white">
-            onair<span className="text-brand-500">.music</span>
+            hitlist<span className="text-brand-500">.fm</span>
           </span>
           <Link
             href="/login"
@@ -108,7 +108,7 @@ export function TopChartClient() {
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(60% 80% at 50% 0%, rgba(255,75,69,0.14) 0%, rgba(217,45,38,0.05) 45%, transparent 100%)",
+              "radial-gradient(60% 80% at 50% 0%, rgba(245,177,61,0.14) 0%, rgba(255,90,52,0.05) 45%, transparent 100%)",
           }}
         />
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-10 text-center">
@@ -124,7 +124,7 @@ export function TopChartClient() {
           </h1>
           <p className="mt-4 text-sm sm:text-base text-zinc-400 max-w-xl mx-auto leading-relaxed">
             Topul pieselor difuzate la radio — nu voturi, nu playlist-uri editoriale, ci
-            difuzări reale detectate de onair.music, actualizat din 15 în 15 minute.
+            difuzări reale detectate de hitlist.fm, actualizat din 15 în 15 minute.
           </p>
 
           <div className="mt-8 flex items-center justify-center gap-3 flex-wrap">
@@ -199,7 +199,7 @@ export function TopChartClient() {
           <span className="font-mono">
             made with{" "}
             <span className="text-zinc-300">
-              onair<span className="text-brand-500">.music</span>
+              hitlist<span className="text-brand-500">.fm</span>
             </span>
           </span>
         </div>

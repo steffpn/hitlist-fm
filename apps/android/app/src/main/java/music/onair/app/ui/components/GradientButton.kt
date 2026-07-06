@@ -19,11 +19,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
+import music.onair.app.ui.theme.RbBackground
 import music.onair.app.ui.theme.RbGradientEnd
 import music.onair.app.ui.theme.RbGradientStart
 import music.onair.app.ui.theme.RbSurfaceLight
 
-/** Brand violet→magenta capsule button (mirrors iOS RBAccentButtonStyle). */
+/** Primary CTA — gold→ember "sunset" capsule with INK label (mirrors iOS
+ *  RBAccentButtonStyle; the gradient's gold end is too light for white text). */
 @Composable
 fun GradientButton(
     text: String,
@@ -55,14 +57,14 @@ fun GradientButton(
         if (loading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(22.dp),
-                color = Color.White,
+                color = RbBackground,
                 strokeWidth = 2.dp,
             )
         } else {
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge,
-                color = Color.White,
+                color = RbBackground,
             )
         }
     }

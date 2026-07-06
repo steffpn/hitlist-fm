@@ -7,6 +7,7 @@ import { clearSession, getStoredUser, getToken } from "@/lib/auth";
 import { useCurrentUser, useImpersonation } from "@/lib/use-current-user";
 import { getImpersonation } from "@/lib/impersonation";
 import { ViewAsRoleMenu, ImpersonationBanner } from "@/components/view-as-role";
+import { GaugeMark, Wordmark } from "@/components/brand";
 import { cn } from "@/lib/cn";
 
 // Pages rendered without shell/auth: login + the public marketing chart.
@@ -149,9 +150,12 @@ function AdminSidebar({ pathname }: { pathname: string }) {
 
   return (
     <aside className="w-60 shrink-0 bg-zinc-900 border-r border-zinc-800 p-6 flex flex-col">
-      <Link href="/" className="block mb-8">
-        <h1 className="text-lg font-bold text-white">onair.music</h1>
-        <p className="text-[11px] text-zinc-400 uppercase tracking-wider">Ops Console</p>
+      <Link href="/" className="mb-8 flex items-center gap-2.5">
+        <GaugeMark size={30} />
+        <div>
+          <Wordmark className="text-lg" />
+          <p className="text-[11px] text-zinc-400 uppercase tracking-wider font-mono">Pro Console</p>
+        </div>
       </Link>
 
       <nav className="flex flex-col gap-1 flex-1">
@@ -288,8 +292,9 @@ function PortalHeader({
 }) {
   return (
     <header className="h-14 shrink-0 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between px-6">
-      <Link href="/portal" className="flex items-baseline gap-3">
-        <span className="text-base font-bold text-white">onair.music</span>
+      <Link href="/portal" className="flex items-center gap-2.5">
+        <GaugeMark size={22} />
+        <Wordmark className="text-base" />
         <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-brand-400 border border-brand-500/30 bg-brand-500/10 rounded-full px-2 py-0.5">
           {PORTAL_ROLE_LABELS[role]}
         </span>

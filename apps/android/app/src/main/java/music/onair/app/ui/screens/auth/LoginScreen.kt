@@ -99,7 +99,7 @@ fun LoginScreen(
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                text = "Log in to your onair.music account.",
+                text = "Log in to your hitlist.fm account.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = RbTextSecondary,
             )

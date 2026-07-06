@@ -15,8 +15,9 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "onair.music Ops",
-  description: "Stations, detections, users, billing.",
+  title: "hitlist.fm",
+  description: "Radio & TV airplay monitoring — stations, detections, artists, billing.",
+  icons: { icon: "/icon.svg" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
