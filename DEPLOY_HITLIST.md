@@ -12,19 +12,26 @@ Railway project: **hitlist.fm** (renamed from MFM), workspace *norseabelito-rgb'
 
 ## DNS records to add at the domain registrar (hitlist.fm)
 
-Railway serves custom domains via CNAME to a per-domain target it generates. After adding
-each domain in Railway (Settings → Networking → Custom Domain), Railway shows the exact
-CNAME target — use those. Typical shape:
+All four custom domains are already registered on the Railway services (status: **waiting
+for DNS**). Add these exact records at the `hitlist.fm` registrar — Railway issues TLS
+automatically once they resolve:
 
-| Type | Name | Value |
-|---|---|---|
-| CNAME | `@` / `hitlist.fm` (or ALIAS/ANAME if the registrar supports apex) | `<site>.up.railway.app` (target Railway shows) |
-| CNAME | `www` | `<site>.up.railway.app` |
-| CNAME | `app` | `<web>.up.railway.app` |
-| CNAME | `api` (optional) | `<api>.up.railway.app` |
+| Type | Name / host | Value (CNAME target) | Service |
+|---|---|---|---|
+| CNAME (ALIAS/ANAME on apex) | `@` / `hitlist.fm` | `6i9p8pw9.up.railway.app` | site |
+| CNAME | `www` | `kw12zlc8.up.railway.app` | site |
+| CNAME | `app` | `yne9zp6e.up.railway.app` | web (Hitlist Pro) |
+| CNAME | `api` | `5aarmsoy.up.railway.app` | api |
 
 Apex (`hitlist.fm`) can't be a plain CNAME on most registrars — use the registrar's
-ALIAS/ANAME/flattened-CNAME, or host DNS on Cloudflare (proxied CNAME on apex works).
+**ALIAS/ANAME/flattened-CNAME**, or host DNS on **Cloudflare** (proxied CNAME on apex
+works). If your registrar truly can't do apex CNAME, point the site's primary domain at
+`www.hitlist.fm` and 301 the apex to www.
+
+Temporary live URLs (work now, before DNS):
+- site (marketing): `https://site-production-113a.up.railway.app`
+- web (Hitlist Pro): `https://music-monitor-production-ed14.up.railway.app`
+- api: `https://api-production-94f67.up.railway.app`
 
 ## Environment variables
 
