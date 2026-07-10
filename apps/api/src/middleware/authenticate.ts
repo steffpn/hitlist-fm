@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { prisma } from "../lib/prisma.js";
-import { validSubscriptionWhere } from "../lib/entitlements.js";
+import { validSubscriptionWhere, isBillingEnforced } from "../lib/entitlements.js";
 
 export interface CurrentUser {
   id: number;
@@ -52,7 +52,9 @@ async function loadCurrentUser(userId: number): Promise<CurrentUser | null> {
   if (!user || !user.isActive) return null;
 
   const activeSub = user.subscriptions[0];
-  const isPremium = !!activeSub && activeSub.plan?.tier !== "FREE";
+  // Billing OFF → everyone is premium (app stays "la liber").
+  const isPremium =
+    !isBillingEnforced() || (!!activeSub && activeSub.plan?.tier !== "FREE");
 
   return {
     id: user.id,

@@ -21,6 +21,21 @@ export type PlanWithFeatures = Plan & {
 };
 
 /**
+ * Master kill-switch for billing enforcement.
+ *
+ * OFF (the production default until a real payment path exists) keeps the app
+ * "la liber": everyone is treated as premium, trials never expire, and quotas
+ * are not enforced — so shipping this code to production charges/blocks nobody.
+ * Flip ON by setting `BILLING_ENFORCEMENT=on` once StoreKit / Play Billing /
+ * Stripe purchase flows are live. Always ON under the test runner so the
+ * enforcement test suite stays meaningful.
+ */
+export function isBillingEnforced(): boolean {
+  if (process.env.NODE_ENV === "test" || process.env.VITEST) return true;
+  return process.env.BILLING_ENFORCEMENT === "on";
+}
+
+/**
  * Prisma `where` fragment selecting only subscriptions that currently grant
  * entitlements. Use it everywhere entitlement/features are computed so the
  * "never status alone" rule is enforced in exactly one place.
@@ -48,6 +63,11 @@ export async function getEffectivePlan(
   userId: number,
   role: string,
 ): Promise<PlanWithFeatures> {
+  // Kill-switch OFF → everyone runs on an open, all-features, unlimited plan.
+  if (!isBillingEnforced()) {
+    return syntheticUnlimited(role, await allRoleFeatures(role));
+  }
+
   const sub = await prisma.subscription.findFirst({
     where: { userId, ...validSubscriptionWhere() },
     include: { plan: { include: PLAN_FEATURE_INCLUDE } },
@@ -70,6 +90,51 @@ export async function getLockedFreePlan(role: string): Promise<PlanWithFeatures>
   });
   if (plan) return plan as PlanWithFeatures;
   return syntheticLockedFree(role);
+}
+
+/** Every feature applicable to a role, as PlanFeature rows (billing OFF). */
+async function allRoleFeatures(role: string): Promise<PlanWithFeatures["features"]> {
+  const feats = await prisma.feature.findMany({ where: { roles: { has: role } } });
+  return feats.map((feature) => ({
+    id: -1,
+    planId: -2,
+    featureId: feature.id,
+    feature,
+  })) as unknown as PlanWithFeatures["features"];
+}
+
+/**
+ * Synthetic OPEN plan used when billing enforcement is OFF: PREMIUM tier,
+ * unlimited quotas (so no quota check ever trips) and all role features.
+ */
+function syntheticUnlimited(
+  role: string,
+  features: PlanWithFeatures["features"],
+): PlanWithFeatures {
+  const now = new Date();
+  return {
+    id: -2,
+    name: `${role} (open)`,
+    slug: `${role.toLowerCase()}-open`,
+    role,
+    tier: "PREMIUM",
+    monthlyPriceCents: 0,
+    annualPriceCents: 0,
+    trialDays: 0,
+    perSeatPriceCents: 0,
+    perSeatLabel: null,
+    maxMonitoredSongs: Number.MAX_SAFE_INTEGER,
+    maxRosterArtists: Number.MAX_SAFE_INTEGER,
+    maxCompetitorStations: Number.MAX_SAFE_INTEGER,
+    maxHistoryDays: 36500,
+    stripeMonthlyPriceId: null,
+    stripeAnnualPriceId: null,
+    stripeProductId: null,
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+    features,
+  };
 }
 
 function syntheticLockedFree(role: string): PlanWithFeatures {
