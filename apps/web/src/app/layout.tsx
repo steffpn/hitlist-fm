@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`dark ${sora.variable} ${plexMono.variable}`}>
+    <html lang="ro" className={`dark ${sora.variable} ${plexMono.variable}`}>
       <body className="font-sans">
         <LayoutShell>{children}</LayoutShell>
       </body>

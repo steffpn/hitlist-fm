@@ -56,6 +56,29 @@ struct SubscriptionView: View {
                         .listRowBackground(Color.rbGlassTint)
                 }
             }
+
+            // Subscription compliance: required auto-renew disclosure + Terms / Privacy
+            // links. App Review requires these on any screen that offers a subscription.
+            Section {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Payment is charged to your account at confirmation of purchase. Auto-renewing subscriptions renew automatically unless canceled at least 24 hours before the end of the current period; your account is charged for renewal within 24 hours prior to the end of the period. Manage or cancel anytime in your account settings.")
+                        .font(.sora(11))
+                        .foregroundStyle(Color.rbTextTertiary)
+
+                    HStack(spacing: 18) {
+                        Button("Terms of Use") {
+                            openURL(URL(string: "https://hitlist.fm/terms")!)
+                        }
+                        Button("Privacy Policy") {
+                            openURL(URL(string: "https://hitlist.fm/privacy")!)
+                        }
+                    }
+                    .font(.sora(12, .semibold))
+                    .foregroundStyle(Color.rbAccentLight)
+                }
+                .padding(.vertical, 2)
+                .listRowBackground(Color.rbGlassTint)
+            }
         }
         .scrollContentBackground(.hidden)
         .onairGlow(subtle: true)
@@ -105,6 +128,19 @@ struct SubscriptionView: View {
                     .foregroundStyle(Color.rbTextSecondary)
                     .font(.sora(14))
                     .multilineTextAlignment(.center)
+
+                // Price + billing period. Placeholder until StoreKit products are
+                // configured (Wave 4 / IAP) — the real localized price is read from
+                // the App Store product at that point.
+                VStack(spacing: 4) {
+                    Text("—  /  month")
+                        .foregroundStyle(Color.rbTextPrimary)
+                        .font(.sora(24, .bold))
+                    Text("Auto-renewing subscription · billed monthly")
+                        .foregroundStyle(Color.rbTextTertiary)
+                        .font(.sora(12))
+                        .multilineTextAlignment(.center)
+                }
 
                 Button {
                     Task {

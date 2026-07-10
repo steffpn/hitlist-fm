@@ -24,6 +24,7 @@
 		6C24DFADA5660FDA7AF52574 /* ArtistDashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F1D79AE953C4B6E34F5D32 /* ArtistDashboardViewModel.swift */; };
 		7639C284009586FA901DDFD7 /* BarChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A56F3C1F2EFBD413683BEE2 /* BarChartView.swift */; };
 		7C61CBD77258AAD68289FFE8 /* Sora.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 053D1FDEFF4F44F0376E78D6 /* Sora.ttf */; };
+		881618AE40BC4A499AC09666 /* HitlistMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 594B373AA0BA4A8BE5971AF8 /* HitlistMark.swift */; };
 		8BD6884F01BD39F5CB2EE619 /* ArtistComparisonViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7905C3A4738552DD215FE27 /* ArtistComparisonViewModel.swift */; };
 		9095B98FB4DD7FC798EDDC13 /* LabelRoleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B93B1E8372A13016BB6EB9A0 /* LabelRoleModels.swift */; };
 		9134FE1D7CC1166D1622A190 /* AddSongSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F356257DB85EDD3C859482E /* AddSongSheet.swift */; };
@@ -121,6 +122,7 @@
 		F7D4E5061728394A5B6C7D8E /* BrowseArtistsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C3D4F5061728394A5B6C7D /* BrowseArtistsViewModel.swift */; };
 		F98FCE85780B4629FC937409 /* LabelArtistListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 471EA2E32F0E78ED89A6FAD4 /* LabelArtistListViewModel.swift */; };
 		F9DD3217DBF634B0D119544F /* StationBreakdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE50EC0DCFDAA39325546538 /* StationBreakdownView.swift */; };
+		A10000020000000000000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000020000000000000001 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -137,6 +139,7 @@
 		3F356257DB85EDD3C859482E /* AddSongSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSongSheet.swift; sourceTree = "<group>"; };
 		471EA2E32F0E78ED89A6FAD4 /* LabelArtistListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelArtistListViewModel.swift; sourceTree = "<group>"; };
 		48091AF6DED6F45E3B17B9BC /* NewSongsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSongsView.swift; sourceTree = "<group>"; };
+		594B373AA0BA4A8BE5971AF8 /* HitlistMark.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HitlistMark.swift; sourceTree = "<group>"; };
 		59BCC52224E2E859C5ADB5E2 /* StationAffinityViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationAffinityViewModel.swift; sourceTree = "<group>"; };
 		675888B1F1ACC855A55158A0 /* StationAnalyticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationAnalyticsViewModel.swift; sourceTree = "<group>"; };
 		74CBABE653158D03D90FC758 /* StationDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationDashboardView.swift; sourceTree = "<group>"; };
@@ -239,6 +242,8 @@
 		E3D8E6BB5485B88F3F5B484C /* MonitoredSongsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoredSongsViewModel.swift; sourceTree = "<group>"; };
 		E6C3D4F5061728394A5B6C7D /* BrowseArtistsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseArtistsViewModel.swift; sourceTree = "<group>"; };
 		EBA0C005635A1D3AC9182C84 /* StationAnalyticsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationAnalyticsModels.swift; sourceTree = "<group>"; };
+		A20000020000000000000001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		A20000020000000000000002 /* onairMusic.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = onairMusic.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -300,6 +305,8 @@
 				A50000010000000000000007 /* Utilities */,
 				A50000010000000000000008 /* Resources */,
 				A50000010000000000000009 /* Products */,
+				A20000020000000000000001 /* PrivacyInfo.xcprivacy */,
+				A20000020000000000000002 /* onairMusic.entitlements */,
 				053D1FDEFF4F44F0376E78D6 /* Sora.ttf */,
 				BD8E4B3C8A0E9B364496B3E0 /* IBMPlexMono-Regular.ttf */,
 				7A529F54B2D701C4EF114D31 /* IBMPlexMono-Medium.ttf */,
@@ -529,6 +536,7 @@
 			children = (
 				DFF78BE22F69FE540048D646 /* RadioBugModifiers.swift */,
 				DFF78BE32F69FE540048D646 /* RadioBugTheme.swift */,
+				594B373AA0BA4A8BE5971AF8 /* HitlistMark.swift */,
 			);
 			path = Theme;
 			sourceTree = "<group>";
@@ -616,6 +624,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C3D4E5F60718293A4B5C6D7E /* Assets.xcassets in Resources */,
+				A10000020000000000000001 /* PrivacyInfo.xcprivacy in Resources */,
 				7C61CBD77258AAD68289FFE8 /* Sora.ttf in Resources */,
 				4CCB918503E64D8D04B6C120 /* IBMPlexMono-Regular.ttf in Resources */,
 				673DD0213AFC160EFDE5CED0 /* IBMPlexMono-Medium.ttf in Resources */,
@@ -739,6 +748,7 @@
 				DD1B2C3D4E5F607182930A07 /* ChartAlertsView.swift in Sources */,
 				DD1B2C3D4E5F607182930A08 /* DailyReportView.swift in Sources */,
 				DD1B2C3D4E5F607182930A09 /* SubscriptionView.swift in Sources */,
+				881618AE40BC4A499AC09666 /* HitlistMark.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -869,6 +879,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = onairMusic.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3H8V5R5YP3;
@@ -901,6 +912,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = onairMusic.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3H8V5R5YP3;

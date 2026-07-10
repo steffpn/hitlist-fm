@@ -14,9 +14,11 @@ import androidx.compose.foundation.layout.height
 import fm.hitlist.app.data.model.AuthUser
 import fm.hitlist.app.ui.components.ImpersonationBanner
 import fm.hitlist.app.ui.screens.admin.ViewAsRoleScreen
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,7 +44,10 @@ import fm.hitlist.app.ui.screens.auth.WelcomeScreen
 import fm.hitlist.app.ui.screens.notifications.DigestDetailScreen
 import fm.hitlist.app.ui.theme.RbAccent
 import fm.hitlist.app.ui.theme.RbBackground
+import fm.hitlist.app.ui.theme.RbSurface
 import fm.hitlist.app.ui.theme.RbTextPrimary
+import fm.hitlist.app.ui.theme.RbTextSecondary
+import fm.hitlist.app.ui.theme.RbTextTertiary
 
 @Composable
 fun AppRoot() {
@@ -71,12 +76,16 @@ private fun AuthenticatedRoot(user: AuthUser, onLogout: () -> Unit) {
     val notifPermLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { }
+    // Notification priming: rather than cold-firing the POST_NOTIFICATIONS system
+    // dialog the instant the user lands here, we first show a short in-app rationale
+    // explaining the value. The OS permission prompt only appears if they opt in.
+    var showNotifRationale by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
             PackageManager.PERMISSION_GRANTED
         ) {
-            notifPermLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            showNotifRationale = true
         }
         PushManager.registerToken()
     }
@@ -136,6 +145,37 @@ private fun AuthenticatedRoot(user: AuthUser, onLogout: () -> Unit) {
             onTabRequestConsumed = { PushNavigator.clear() },
         )
     }
+
+    if (showNotifRationale) {
+        NotificationRationaleDialog(
+            onDismiss = { showNotifRationale = false },
+            onEnable = {
+                showNotifRationale = false
+                notifPermLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            },
+        )
+    }
+}
+
+@Composable
+private fun NotificationRationaleDialog(onDismiss: () -> Unit, onEnable: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = RbSurface,
+        title = { Text("Turn on notifications?", color = RbTextPrimary) },
+        text = {
+            Text(
+                "Get daily airplay reports, weekly digests and chart alerts for the songs and stations you follow.",
+                color = RbTextSecondary,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onEnable) { Text("Enable", color = RbAccent) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Not now", color = RbTextTertiary) }
+        },
+    )
 }
 
 @Composable

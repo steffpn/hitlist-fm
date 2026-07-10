@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../../../lib/prisma.js";
+import { getEffectivePlan, clampHistoryFrom } from "../../../lib/entitlements.js";
 import type { ReportQuery } from "./schema.js";
 
 /**
@@ -12,12 +13,15 @@ export async function listReports(
   const user = request.currentUser;
   const { from, to, limit = 7 } = request.query;
 
+  // Clamp the history window to the user's effective plan: they can never read
+  // reports older than `now - plan.maxHistoryDays`, even by supplying `from`.
+  const plan = await getEffectivePlan(user.id, user.role);
+  const gte = clampHistoryFrom(from ? new Date(from) : undefined, plan.maxHistoryDays);
+
   const where: Record<string, unknown> = { userId: user.id };
-  if (from || to) {
-    where.reportDate = {};
-    if (from) (where.reportDate as Record<string, unknown>).gte = new Date(from);
-    if (to) (where.reportDate as Record<string, unknown>).lte = new Date(to);
-  }
+  const reportDate: Record<string, unknown> = { gte };
+  if (to) reportDate.lte = new Date(to);
+  where.reportDate = reportDate;
 
   const reports = await prisma.dailyReport.findMany({
     where,

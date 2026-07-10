@@ -8,6 +8,14 @@ import { handleAcrCloudCallback } from "./handlers.js";
 const acrcloudWebhookRoutes: FastifyPluginAsync = async (fastify) => {
   const detectionQueue = new Queue(DETECTION_QUEUE, {
     connection: createRedisConnection(),
+    // Retry detection jobs on transient failures. processCallback is
+    // idempotent (unique rawCallbackId + detectedAt), so replays are safe.
+    // NOTE: keep in sync with the worker queue in workers/detection.ts and the
+    // per-enqueue options in handlers.ts.
+    defaultJobOptions: {
+      attempts: 5,
+      backoff: { type: "exponential", delay: 5000 },
+    },
   });
 
   // Graceful shutdown: close the queue when Fastify closes

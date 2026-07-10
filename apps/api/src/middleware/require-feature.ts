@@ -1,5 +1,5 @@
 import type { FastifyRequest, FastifyReply, preHandlerHookHandler } from "fastify";
-import { prisma } from "../lib/prisma.js";
+import { getEffectivePlan } from "../lib/entitlements.js";
 
 /**
  * Factory that returns a preHandler checking if the user's plan includes a feature.
@@ -37,83 +37,27 @@ export function requireFeature(featureKey: string): preHandlerHookHandler {
 }
 
 /**
- * Check if a user has access to a feature based on their subscription.
- * Useful for conditional logic in handlers (show limited vs full data).
+ * Check if a user has access to a feature based on their EFFECTIVE plan
+ * (valid subscription, or the role's locked-free fallback if the trial expired /
+ * the subscription was canceled). Useful for conditional logic in handlers.
  */
 export async function userHasFeature(
   userId: number,
   userRole: string,
   featureKey: string,
 ): Promise<boolean> {
-  // Check active subscription first
-  const subscription = await prisma.subscription.findFirst({
-    where: {
-      userId,
-      status: { in: ["active", "trialing"] },
-    },
-    include: {
-      plan: {
-        include: {
-          features: {
-            include: { feature: true },
-          },
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  if (subscription) {
-    return subscription.plan.features.some((pf) => pf.feature.key === featureKey);
-  }
-
-  // Fall back to free plan for role
-  const freePlan = await prisma.plan.findFirst({
-    where: { role: userRole, tier: "FREE", isActive: true },
-    include: {
-      features: {
-        include: { feature: true },
-      },
-    },
-  });
-
-  if (!freePlan) return false;
-  return freePlan.features.some((pf) => pf.feature.key === featureKey);
+  const plan = await getEffectivePlan(userId, userRole);
+  return plan.features.some((pf) => pf.feature.key === featureKey);
 }
 
 /**
- * Get all feature keys for the user's current plan.
+ * Get all feature keys for the user's effective plan.
  * Useful for sending the feature list to the client.
  */
 export async function getUserFeatures(
   userId: number,
   userRole: string,
 ): Promise<string[]> {
-  const subscription = await prisma.subscription.findFirst({
-    where: {
-      userId,
-      status: { in: ["active", "trialing"] },
-    },
-    include: {
-      plan: {
-        include: {
-          features: { include: { feature: true } },
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  if (subscription) {
-    return subscription.plan.features.map((pf) => pf.feature.key);
-  }
-
-  const freePlan = await prisma.plan.findFirst({
-    where: { role: userRole, tier: "FREE", isActive: true },
-    include: {
-      features: { include: { feature: true } },
-    },
-  });
-
-  return freePlan?.features.map((pf) => pf.feature.key) || [];
+  const plan = await getEffectivePlan(userId, userRole);
+  return plan.features.map((pf) => pf.feature.key);
 }

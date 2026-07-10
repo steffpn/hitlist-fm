@@ -10,8 +10,15 @@ import { ViewAsRoleMenu, ImpersonationBanner } from "@/components/view-as-role";
 import { GaugeMark, Wordmark } from "@/components/brand";
 import { cn } from "@/lib/cn";
 
-// Pages rendered without shell/auth: login + the public marketing chart.
-const NO_SHELL_PATHS = ["/login", "/top"];
+// Pages rendered without shell/auth: the public auth screens (login, invite
+// register, password recovery) + the public marketing chart.
+const NO_SHELL_PATHS = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/top",
+];
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();

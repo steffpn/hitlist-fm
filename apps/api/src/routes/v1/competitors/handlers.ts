@@ -1,13 +1,17 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { Prisma } from "../../../../generated/prisma/client.js";
 import { prisma } from "../../../lib/prisma.js";
+import {
+  getEffectivePlan,
+  nextUpgradeTier,
+  quotaExceededBody,
+} from "../../../lib/entitlements.js";
+import { syncSubscriptionSeats } from "../../../services/stripe/seats.js";
 import type {
   AddWatchedStationBody,
   StationIdParams,
   PeriodQuery,
 } from "./schema.js";
-
-const MAX_WATCHED_STATIONS = 20;
 
 /**
  * Map period string to interval days.
@@ -69,7 +73,9 @@ export async function getOwnStations(
  * POST /competitors/watched
  *
  * Adds a competitor station to the user's watch list.
- * Enforces: max 20, not own station, no duplicates.
+ * Enforces: plan.maxCompetitorStations, not own station, no duplicates.
+ * Network tier (per-competitor overage price) may exceed the cap and is billed
+ * per extra competitor; other tiers are hard-capped.
  */
 export async function addWatchedStation(
   request: FastifyRequest<{ Body: AddWatchedStationBody }>,
@@ -87,15 +93,27 @@ export async function addWatchedStation(
     return reply.code(400).send({ error: "Cannot watch your own station" });
   }
 
-  // Check max limit
-  const currentCount = await prisma.watchedStation.count({
-    where: { userId },
-  });
+  // Quota from the user's effective plan. Admin impersonation is exempt.
+  if (request.realUser?.role !== "ADMIN") {
+    const plan = await getEffectivePlan(userId, request.currentUser.role);
+    const limit = plan.maxCompetitorStations;
+    // Tiers with a per-competitor overage price may exceed the included
+    // allowance (billed as overage); everyone else is hard-capped.
+    const overageAllowed = plan.perSeatPriceCents > 0;
+    const currentCount = await prisma.watchedStation.count({ where: { userId } });
 
-  if (currentCount >= MAX_WATCHED_STATIONS) {
-    return reply
-      .code(400)
-      .send({ error: "Maximum 20 competitor stations allowed" });
+    if (!overageAllowed && currentCount >= limit) {
+      return reply
+        .code(403)
+        .send(
+          quotaExceededBody(
+            "competitors.watch",
+            limit,
+            currentCount,
+            nextUpgradeTier(request.currentUser.role, plan.slug),
+          ),
+        );
+    }
   }
 
   try {
@@ -103,6 +121,9 @@ export async function addWatchedStation(
       data: { userId, stationId },
       include: { station: { select: { name: true } } },
     });
+
+    // Per-seat billing: network tier bills per-competitor overage.
+    await syncSubscriptionSeats(userId, "STATION");
 
     return reply.code(201).send({
       id: created.id,
@@ -144,6 +165,9 @@ export async function removeWatchedStation(
   if (result.count === 0) {
     return reply.code(404).send({ error: "Station not in watch list" });
   }
+
+  // Per-seat billing: competitor set shrank, sync overage seats to Stripe.
+  await syncSubscriptionSeats(userId, "STATION");
 
   return reply.code(204).send();
 }

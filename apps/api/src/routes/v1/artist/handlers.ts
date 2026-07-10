@@ -1,7 +1,11 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { Prisma } from "../../../../generated/prisma/client.js";
 import { prisma } from "../../../lib/prisma.js";
-import { userHasFeature } from "../../../middleware/require-feature.js";
+import {
+  getEffectivePlan,
+  nextUpgradeTier,
+  quotaExceededBody,
+} from "../../../lib/entitlements.js";
 import type {
   SongIdParams,
   AddMonitoredSongBody,
@@ -200,26 +204,25 @@ export async function addArtistSong(
     });
   }
 
-  // Free plan limit: max 5 active monitored songs unless the plan
-  // includes unlimited monitoring. Same payload shape as requireFeature
-  // so clients can show the upgrade paywall consistently.
-  const FREE_MONITORED_SONG_LIMIT = 5;
-  const activeCount = await prisma.monitoredSong.count({
-    where: { userId, status: "active" },
-  });
+  // Quota from the user's effective plan (capped tiers — no unlimited).
   // Admin impersonation ("view as role") is exempt from plan limits.
-  if (activeCount >= FREE_MONITORED_SONG_LIMIT && request.realUser?.role !== "ADMIN") {
-    const hasUnlimited = await userHasFeature(
-      userId,
-      request.currentUser.role,
-      "songs.monitor_unlimited",
-    );
-    if (!hasUnlimited) {
-      return reply.status(403).send({
-        error: "Premium feature",
-        message: `Free plan allows up to ${FREE_MONITORED_SONG_LIMIT} monitored songs. Upgrade your plan to monitor unlimited songs.`,
-        featureKey: "songs.monitor_unlimited",
-      });
+  if (request.realUser?.role !== "ADMIN") {
+    const plan = await getEffectivePlan(userId, request.currentUser.role);
+    const limit = plan.maxMonitoredSongs;
+    const activeCount = await prisma.monitoredSong.count({
+      where: { userId, status: "active" },
+    });
+    if (activeCount >= limit) {
+      return reply
+        .status(403)
+        .send(
+          quotaExceededBody(
+            "songs.monitor",
+            limit,
+            activeCount,
+            nextUpgradeTier(request.currentUser.role, plan.slug),
+          ),
+        );
     }
   }
 

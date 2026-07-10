@@ -5,14 +5,31 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+// ── Release signing credentials (Wave 0) ──
+// The upload keystore is created in Wave 0 (which needs the Play Console account):
+// generate the upload key, enable Play App Signing, then supply these four values
+// via ~/.gradle/gradle.properties, a local (git-ignored) gradle.properties, or CI
+// environment variables. Nothing secret is committed here — only the wiring.
+// When the values are absent (local debug builds / CI without the keystore) the
+// release build simply stays unsigned and still succeeds.
+val releaseStoreFile = (findProperty("RELEASE_STORE_FILE") as String?) ?: System.getenv("RELEASE_STORE_FILE")
+val releaseStorePassword = (findProperty("RELEASE_STORE_PASSWORD") as String?) ?: System.getenv("RELEASE_STORE_PASSWORD")
+val releaseKeyAlias = (findProperty("RELEASE_KEY_ALIAS") as String?) ?: System.getenv("RELEASE_KEY_ALIAS")
+val releaseKeyPassword = (findProperty("RELEASE_KEY_PASSWORD") as String?) ?: System.getenv("RELEASE_KEY_PASSWORD")
+val hasReleaseSigning = releaseStoreFile != null && releaseStorePassword != null &&
+    releaseKeyAlias != null && releaseKeyPassword != null
+
 android {
     namespace = "fm.hitlist.app"
-    compileSdk = 34
+    // compileSdk/targetSdk 35 = Android 15, required by Play from Aug 2025 for updates.
+    // NOTE: SDK Platform 35 must be installed locally/CI to build; the code is correct
+    // regardless of whether it is installed in this environment.
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "fm.hitlist.app"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 3
         versionName = "1.0.1"
 
@@ -23,6 +40,19 @@ android {
             "\"https://api-production-94f67.up.railway.app/api/v1\""
         )
         vectorDrawables { useSupportLibrary = true }
+    }
+
+    // Release signing scaffold. The config is only created when all four credentials
+    // are present, so debug builds and CI without the upload keystore keep building.
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
     }
 
     buildTypes {
@@ -36,6 +66,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Applied only when the upload keystore is configured (see Wave 0 note
+            // above); otherwise the release APK is left unsigned rather than failing.
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -92,6 +127,8 @@ dependencies {
 // FirebaseApp) only activates once a real google-services.json from your
 // Firebase project is placed in apps/android/app/. Until then the build stays
 // green and the FCM registration code no-ops gracefully.
+// Wave 0: create the Firebase project and drop its google-services.json here to
+// enable push. Leave this conditional apply as-is — no config change is needed.
 if (project.file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
 }

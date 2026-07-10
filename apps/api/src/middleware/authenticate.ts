@@ -1,5 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { prisma } from "../lib/prisma.js";
+import { validSubscriptionWhere } from "../lib/entitlements.js";
 
 export interface CurrentUser {
   id: number;
@@ -35,8 +36,12 @@ async function loadCurrentUser(userId: number): Promise<CurrentUser | null> {
     where: { id: userId },
     include: {
       scopes: true,
+      // Only subscriptions that currently grant entitlements: active, or
+      // trialing and still within the trial. A trialing row whose trial has
+      // already ended must NOT count — hence the shared validity predicate,
+      // never `status` alone.
       subscriptions: {
-        where: { status: { in: ["active", "trialing"] } },
+        where: validSubscriptionWhere(),
         include: { plan: true },
         orderBy: { createdAt: "desc" },
         take: 1,
@@ -47,7 +52,7 @@ async function loadCurrentUser(userId: number): Promise<CurrentUser | null> {
   if (!user || !user.isActive) return null;
 
   const activeSub = user.subscriptions[0];
-  const isPremium = activeSub?.plan?.tier === "PREMIUM";
+  const isPremium = !!activeSub && activeSub.plan?.tier !== "FREE";
 
   return {
     id: user.id,

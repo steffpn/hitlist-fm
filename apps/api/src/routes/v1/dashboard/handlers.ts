@@ -61,7 +61,18 @@ function getScopedStationIds(
 /**
  * GET /dashboard/summary
  *
- * Returns aggregated play counts from daily_station_plays continuous aggregate.
+ * Returns aggregated play counts from the `daily_station_plays` view. That view
+ * aggregates the DEDUPLICATED `airplay_events` table (full plays only,
+ * partial_play = false) — NOT the raw `detections` callback stream — so a
+ * "play" here is one distinct airing (COUNT of airplay_events), matching the
+ * definition used by the station/label/artist handlers. `unique_songs` is keyed
+ * by ISRC (falling back to a normalized title). See migration
+ * 20260710120000_dashboard_views_dedup_airplay.
+ *
+ * Caveat (pre-existing, out of scope here): totals sum each bucket's per-station
+ * distinct counts, so `uniqueSongs`/`uniqueArtists` over-count a song/artist
+ * that airs on multiple stations or across multiple days. `playCount` is exact.
+ *
  * Supports period=day|week|month (default: day).
  * ADMIN and STATION only; STATION users see only their scoped station IDs.
  * ARTIST/LABEL receive 403 (they must use /artist/dashboard or /label/dashboard).
@@ -127,8 +138,11 @@ export async function getDashboardSummary(
 /**
  * GET /dashboard/top-stations
  *
- * Returns ranked station list with play counts from daily_station_plays
- * joined with stations for station name.
+ * Returns ranked station list with play counts from the `daily_station_plays`
+ * view (deduplicated `airplay_events`, full plays only — see getDashboardSummary
+ * and migration 20260710120000_dashboard_views_dedup_airplay) joined with
+ * stations for the station name. `playCount` sums the view's per-day COUNT of
+ * airplay_events, so ranking reflects real airings, not raw callback volume.
  * Supports period=day|week|month (default: day) and limit (default: 10, max: 50).
  * ADMIN and STATION only; STATION users see only their scoped stations.
  * ARTIST/LABEL receive 403 (they must use /artist/dashboard or /label/dashboard).

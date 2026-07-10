@@ -320,10 +320,15 @@ describe("First-play 'ON AIR' push", () => {
     });
   });
 
-  it("processCallback does NOT trigger the push for a partial play (< 30s)", async () => {
+  it("processCallback triggers the push for a partial play too (decoupled from partialPlay)", async () => {
+    // ACRCloud's played_duration semantics are unverified, so a genuine first
+    // play must still fire the ON AIR push even when the reported segment is
+    // short (< 30s). The event is stored partialPlay=true (excluded from
+    // reports), but the push is no longer gated on it — only on rule (a),
+    // first play of this ISRC on this station.
     mockStationFindFirst.mockResolvedValue({ id: 1, name: "Radio ZU", acrcloudStreamId: "s-abc123" });
     mockDetectionCreate.mockResolvedValue({});
-    mockAirplayEventFindFirst.mockResolvedValue(null);
+    mockAirplayEventFindFirst.mockResolvedValue(null); // first play of this ISRC on this station
     mockAirplayEventFindMany.mockResolvedValue([]);
     mockAirplayEventCreate.mockResolvedValue({
       id: 43,
@@ -338,9 +343,11 @@ describe("First-play 'ON AIR' push", () => {
 
     await processCallback(buildCallback(10) as never);
 
-    // Give any stray fire-and-forget chain a chance to run
-    await new Promise((r) => setImmediate(r));
-    expect(mockMonitoredSongFindMany).not.toHaveBeenCalled();
-    expect(mockSendPush).not.toHaveBeenCalled();
+    await vi.waitFor(() => expect(mockSendPush).toHaveBeenCalledTimes(1));
+    expect(mockMonitoredSongFindMany).toHaveBeenCalled();
+    expect(mockSendPush.mock.calls[0][1]).toMatchObject({
+      title: "🔴 ON AIR: Doua Inimi",
+      data: { type: "first_play", airplayEventId: "43", isrc: ISRC },
+    });
   });
 });

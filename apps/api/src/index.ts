@@ -10,6 +10,7 @@ import { startDailyReportWorker } from "./workers/daily-report.js";
 import { startChartAlertsWorker } from "./workers/chart-alerts.js";
 import { startStationHealthWorker } from "./workers/station-health.js";
 import { startRotationAlertsWorker } from "./workers/rotation-alerts.js";
+import { startSubscriptionReconcileWorker } from "./workers/subscription-reconcile.js";
 
 const server = Fastify({ logger: true });
 
@@ -37,9 +38,29 @@ server.register(fastifyCors, {
   credentials: true,
 });
 
-// JWT authentication
+// JWT authentication.
+//
+// Fail-closed in production: the historic hardcoded fallback must never sign
+// real tokens. When NODE_ENV is "production" (and we're not inside the test
+// runner) abort startup if JWT_SECRET is missing or still equal to the public
+// dev default. Dev/test keep working with the explicit dev secret.
+const DEV_JWT_SECRET = "dev-secret-change-me";
+const jwtSecret = process.env.JWT_SECRET || DEV_JWT_SECRET;
+const underTest = !!process.env.VITEST || process.env.NODE_ENV === "test";
+
+if (
+  process.env.NODE_ENV === "production" &&
+  !underTest &&
+  (!process.env.JWT_SECRET || process.env.JWT_SECRET === DEV_JWT_SECRET)
+) {
+  throw new Error(
+    "JWT_SECRET must be set to a strong, non-default value in production. " +
+      "Refusing to start with a missing or default JWT secret.",
+  );
+}
+
 server.register(fastifyJwt, {
-  secret: process.env.JWT_SECRET || "dev-secret-change-me",
+  secret: jwtSecret,
   sign: { expiresIn: "1h" },
 });
 
@@ -97,6 +118,9 @@ const start = async () => {
     );
     startRotationAlertsWorker().catch((err) =>
       server.log.error(err, "Rotation alerts worker failed to start"),
+    );
+    startSubscriptionReconcileWorker().catch((err) =>
+      server.log.error(err, "Subscription reconcile worker failed to start"),
     );
   } catch (err) {
     server.log.error(err);

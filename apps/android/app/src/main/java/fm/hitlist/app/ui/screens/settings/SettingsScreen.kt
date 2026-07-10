@@ -1,5 +1,8 @@
 package fm.hitlist.app.ui.screens.settings
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,7 +20,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -35,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -72,11 +78,13 @@ fun SettingsScreen(
         }
     }
 
-    // Delete account: double confirmation, then DELETE /auth/account → logout.
+    // Delete account: double confirmation, then DELETE /auth/account. The session is
+    // only cleared (onLogout) when the server confirms the delete with a 2xx.
     var deleteStep by remember { mutableStateOf(0) } // 0 = hidden, 1 = first confirm, 2 = final confirm
     var deleteError by remember { mutableStateOf<String?>(null) }
     var isDeleting by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -122,6 +130,18 @@ fun SettingsScreen(
         SettingsNavRow(Icons.Filled.Notifications, "Preferences", onClick = { route = "preferences" })
         Spacer(Modifier.height(12.dp))
         SettingsNavRow(Icons.Filled.CreditCard, "Plan & billing", onClick = { route = "subscription" })
+        Spacer(Modifier.height(12.dp))
+        SettingsNavRow(
+            Icons.Filled.PrivacyTip,
+            "Privacy Policy",
+            onClick = { openUrl(context, "https://hitlist.fm/privacy") },
+        )
+        Spacer(Modifier.height(12.dp))
+        SettingsNavRow(
+            Icons.Filled.Description,
+            "Terms of Service",
+            onClick = { openUrl(context, "https://hitlist.fm/terms") },
+        )
         Spacer(Modifier.height(12.dp))
         SettingsNavRow(
             icon = Icons.Filled.DeleteForever,
@@ -194,9 +214,19 @@ fun SettingsScreen(
                         isDeleting = true
                         scope.launch {
                             try {
-                                ServiceLocator.api.deleteAccount()
-                                deleteStep = 0
-                                onLogout()
+                                // deleteAccount() returns Response<Unit>: Retrofit does
+                                // NOT throw on a non-2xx status, so we must inspect it.
+                                // Only sign the user out when the server actually deleted
+                                // the account; otherwise keep them in and show the error.
+                                val resp = ServiceLocator.api.deleteAccount()
+                                if (resp.isSuccessful) {
+                                    deleteStep = 0
+                                    onLogout()
+                                } else {
+                                    deleteError =
+                                        "Couldn't delete your account (error ${resp.code()}). Please try again."
+                                    deleteStep = 0
+                                }
                             } catch (e: Exception) {
                                 deleteError = e.message ?: "Failed to delete account"
                                 deleteStep = 0
@@ -241,5 +271,13 @@ private fun SettingsNavRow(
             modifier = Modifier.weight(1f),
         )
         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = RbTextTertiary)
+    }
+}
+
+/** Opens an external URL (Privacy Policy / Terms) in the browser via ACTION_VIEW. */
+private fun openUrl(context: Context, url: String) {
+    try {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    } catch (_: Exception) {
     }
 }

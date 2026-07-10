@@ -66,50 +66,80 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     session.subscription as string,
   );
 
-  await prisma.subscription.create({
-    data: {
-      userId,
-      planId,
-      stripeCustomerId: session.customer as string,
-      stripeSubscriptionId: stripeSubscription.id,
-      status: stripeSubscription.status === "trialing" ? "trialing" : "active",
-      billingInterval:
-        (stripeSubscription.metadata?.billingInterval as string) || "monthly",
-      trialEndsAt: stripeSubscription.trial_end
-        ? new Date(stripeSubscription.trial_end * 1000)
-        : null,
-      currentPeriodStart: stripeSubscription.items.data[0]
-        ? new Date(stripeSubscription.items.data[0].current_period_start * 1000)
-        : null,
-      currentPeriodEnd: stripeSubscription.items.data[0]
-        ? new Date(stripeSubscription.items.data[0].current_period_end * 1000)
-        : null,
-    },
+  const item = stripeSubscription.items.data[0];
+  const data = {
+    userId,
+    planId,
+    stripeCustomerId: session.customer as string,
+    status: stripeSubscription.status === "trialing" ? "trialing" : "active",
+    billingInterval:
+      (stripeSubscription.metadata?.billingInterval as string) || "monthly",
+    trialEndsAt: stripeSubscription.trial_end
+      ? new Date(stripeSubscription.trial_end * 1000)
+      : null,
+    currentPeriodStart: item
+      ? new Date(item.current_period_start * 1000)
+      : null,
+    currentPeriodEnd: item ? new Date(item.current_period_end * 1000) : null,
+  };
+
+  // Never leave two rows: drop the orphan self-serve trial (no Stripe
+  // subscription) the user got at signup before attaching the real one.
+  await prisma.subscription.deleteMany({
+    where: { userId, stripeSubscriptionId: null },
+  });
+
+  // Idempotent: keyed on the Stripe subscription id, so a replayed
+  // checkout.session.completed updates the same row instead of duplicating it.
+  await prisma.subscription.upsert({
+    where: { stripeSubscriptionId: stripeSubscription.id },
+    create: { ...data, stripeSubscriptionId: stripeSubscription.id },
+    update: data,
   });
 }
 
 async function handleSubscriptionUpdated(sub: Stripe.Subscription) {
+  const item = sub.items.data[0];
+  const data = {
+    status: sub.status,
+    cancelAtPeriodEnd: sub.cancel_at_period_end,
+    stripeCustomerId:
+      typeof sub.customer === "string" ? sub.customer : sub.customer.id,
+    currentPeriodStart: item
+      ? new Date(item.current_period_start * 1000)
+      : null,
+    currentPeriodEnd: item ? new Date(item.current_period_end * 1000) : null,
+    trialEndsAt: sub.trial_end ? new Date(sub.trial_end * 1000) : null,
+  };
+
   const existing = await prisma.subscription.findUnique({
     where: { stripeSubscriptionId: sub.id },
   });
 
-  if (!existing) return;
+  if (existing) {
+    await prisma.subscription.update({
+      where: { stripeSubscriptionId: sub.id },
+      data,
+    });
+    return;
+  }
 
-  const item = sub.items.data[0];
-  await prisma.subscription.update({
-    where: { stripeSubscriptionId: sub.id },
-    data: {
-      status: sub.status,
-      cancelAtPeriodEnd: sub.cancel_at_period_end,
-      currentPeriodStart: item
-        ? new Date(item.current_period_start * 1000)
-        : null,
-      currentPeriodEnd: item
-        ? new Date(item.current_period_end * 1000)
-        : null,
-      trialEndsAt: sub.trial_end ? new Date(sub.trial_end * 1000) : null,
-    },
-  });
+  // Self-heal a missed checkout webhook: recreate from the Stripe metadata we
+  // stamped at checkout. Without userId/planId we can't build a valid row, so
+  // we skip (still idempotent — a later event or the reconcile worker fixes it).
+  const userId = Number(sub.metadata?.userId);
+  const planId = Number(sub.metadata?.planId);
+  if (userId && planId) {
+    await prisma.subscription.create({
+      data: {
+        ...data,
+        userId,
+        planId,
+        stripeSubscriptionId: sub.id,
+        billingInterval: (sub.metadata?.billingInterval as string) || "monthly",
+      },
+    });
+  }
 }
 
 async function handleSubscriptionDeleted(sub: Stripe.Subscription) {

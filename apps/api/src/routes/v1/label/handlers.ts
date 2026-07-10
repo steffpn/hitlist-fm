@@ -2,7 +2,12 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import { Prisma } from "../../../../generated/prisma/client.js";
 import { prisma } from "../../../lib/prisma.js";
 import { fetchArtistPicture } from "../../../lib/deezer.js";
-import { userHasFeature } from "../../../middleware/require-feature.js";
+import {
+  getEffectivePlan,
+  nextUpgradeTier,
+  quotaExceededBody,
+} from "../../../lib/entitlements.js";
+import { syncSubscriptionSeats } from "../../../services/stripe/seats.js";
 import type {
   AddArtistBody,
   ArtistIdParams,
@@ -117,26 +122,25 @@ export async function addLabelArtist(
   const labelUserId = request.currentUser.id;
   const { artistName } = request.body;
 
-  // Free plan limit: max 3 roster artists unless the plan includes
-  // unlimited artists. Same payload shape as requireFeature so clients
-  // can show the upgrade paywall consistently.
-  const FREE_LABEL_ARTIST_LIMIT = 3;
-  const artistCount = await prisma.labelArtist.count({
-    where: { labelUserId },
-  });
+  // Quota from the user's effective plan (capped roster — no unlimited).
   // Admin impersonation ("view as role") is exempt from plan limits.
-  if (artistCount >= FREE_LABEL_ARTIST_LIMIT && request.realUser?.role !== "ADMIN") {
-    const hasUnlimited = await userHasFeature(
-      labelUserId,
-      request.currentUser.role,
-      "label.unlimited_artists",
-    );
-    if (!hasUnlimited) {
-      return reply.status(403).send({
-        error: "Premium feature",
-        message: `Free plan allows up to ${FREE_LABEL_ARTIST_LIMIT} artists. Upgrade your plan to monitor unlimited artists.`,
-        featureKey: "label.unlimited_artists",
-      });
+  if (request.realUser?.role !== "ADMIN") {
+    const plan = await getEffectivePlan(labelUserId, request.currentUser.role);
+    const limit = plan.maxRosterArtists;
+    const artistCount = await prisma.labelArtist.count({
+      where: { labelUserId },
+    });
+    if (artistCount >= limit) {
+      return reply
+        .status(403)
+        .send(
+          quotaExceededBody(
+            "label.roster",
+            limit,
+            artistCount,
+            nextUpgradeTier(request.currentUser.role, plan.slug),
+          ),
+        );
     }
   }
 
@@ -166,6 +170,9 @@ export async function addLabelArtist(
     } catch {
       /* best effort */
     }
+
+    // Per-seat billing: roster grew, sync the seat quantity to Stripe.
+    await syncSubscriptionSeats(labelUserId, "LABEL");
 
     return reply.status(201).send(labelArtist);
   } catch (error) {
@@ -201,6 +208,9 @@ export async function removeLabelArtist(
   }
 
   await prisma.labelArtist.delete({ where: { id } });
+
+  // Per-seat billing: roster shrank, sync the seat quantity to Stripe.
+  await syncSubscriptionSeats(labelUserId, "LABEL");
 
   return reply.status(204).send();
 }

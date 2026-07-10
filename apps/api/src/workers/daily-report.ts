@@ -24,6 +24,7 @@ import { Worker, Queue } from "bullmq";
 import { createRedisConnection } from "../lib/redis.js";
 import { prisma } from "../lib/prisma.js";
 import { sendPush } from "../lib/push.js";
+import { validSubscriptionWhere } from "../lib/entitlements.js";
 import pino from "pino";
 
 const logger = pino({ name: "daily-report-worker" });
@@ -760,8 +761,10 @@ async function processDailyReports(): Promise<void> {
       settings: true,
       scopes: true,
       deviceTokens: true,
+      // Entitlement expiry: only subscriptions still granting access (active, or
+      // trialing within the trial). An expired trial must fall back to free.
       subscriptions: {
-        where: { status: { in: ["active", "trialing"] } },
+        where: validSubscriptionWhere(),
         include: { plan: true },
         orderBy: { createdAt: "desc" as const },
         take: 1,
@@ -792,7 +795,8 @@ async function processDailyReports(): Promise<void> {
 
       if (!dailyEnabled && !(isMonday && weeklyEnabled)) continue;
 
-      const isPremium = user.subscriptions[0]?.plan?.tier === "PREMIUM";
+      const activeSub = user.subscriptions[0];
+      const isPremium = !!activeSub && activeSub.plan?.tier !== "FREE";
       const stationIds = user.scopes
         .filter((s) => s.entityType === "STATION")
         .map((s) => s.entityId);

@@ -50,19 +50,19 @@ model MonitoringGap {
 }
 
 model Detection {
-  id             Int       @default(autoincrement())
-  stationId      Int       @map("station_id")
-  detectedAt     DateTime  @map("detected_at")
-  songTitle      String    @map("song_title")
-  artistName     String    @map("artist_name")
-  albumTitle     String?   @map("album_title")
-  isrc           String?
-  confidence     Float
-  durationMs     Int       @map("duration_ms")
-  rawCallbackId  String?   @map("raw_callback_id")
-  createdAt      DateTime  @default(now()) @map("created_at")
+  id            Int      @default(autoincrement())
+  stationId     Int      @map("station_id")
+  detectedAt    DateTime @map("detected_at")
+  songTitle     String   @map("song_title")
+  artistName    String   @map("artist_name")
+  albumTitle    String?  @map("album_title")
+  isrc          String?
+  confidence    Float
+  durationMs    Int      @map("duration_ms")
+  rawCallbackId String?  @map("raw_callback_id")
+  createdAt     DateTime @default(now()) @map("created_at")
 
-  station        Station   @relation(fields: [stationId], references: [id])
+  station Station @relation(fields: [stationId], references: [id])
 
   @@id([id, detectedAt])
   @@unique([rawCallbackId, detectedAt])
@@ -73,15 +73,15 @@ model Detection {
 }
 
 model AirplayEvent {
-  id          Int      @id @default(autoincrement())
-  stationId   Int      @map("station_id")
-  startedAt   DateTime @map("started_at")
-  endedAt     DateTime @map("ended_at")
-  songTitle   String   @map("song_title")
-  artistName  String   @map("artist_name")
-  isrc        String?
-  confidence  Float    @default(0) @map("confidence")
-  playCount   Int      @default(1) @map("play_count")
+  id             Int      @id @default(autoincrement())
+  stationId      Int      @map("station_id")
+  startedAt      DateTime @map("started_at")
+  endedAt        DateTime @map("ended_at")
+  songTitle      String   @map("song_title")
+  artistName     String   @map("artist_name")
+  isrc           String?
+  confidence     Float    @default(0) @map("confidence")
+  playCount      Int      @default(1) @map("play_count")
   snippetUrl     String?  @map("snippet_url")
   albumTitle     String?  @map("album_title")
   label          String?
@@ -93,7 +93,7 @@ model AirplayEvent {
   youtubeId      String?  @map("youtube_id")
   createdAt      DateTime @default(now()) @map("created_at")
 
-  station     Station  @relation(fields: [stationId], references: [id])
+  station Station @relation(fields: [stationId], references: [id])
 
   @@index([stationId, startedAt])
   @@index([stationId, isrc, endedAt])
@@ -110,7 +110,7 @@ model NoMatchCallback {
   statusCode Int      @map("status_code")
   createdAt  DateTime @default(now()) @map("created_at")
 
-  station    Station  @relation(fields: [stationId], references: [id])
+  station Station @relation(fields: [stationId], references: [id])
 
   @@index([stationId, callbackAt])
   @@index([createdAt])
@@ -118,32 +118,32 @@ model NoMatchCallback {
 }
 
 model User {
-  id                    Int            @id @default(autoincrement())
-  email                 String         @unique
-  passwordHash          String         @map("password_hash")
-  name                  String
-  role                  String
-  isActive              Boolean        @default(true) @map("is_active")
-  emailVerified         Boolean        @default(false) @map("email_verified")
-  lastLoginAt           DateTime?      @map("last_login_at")
-  createdAt             DateTime       @default(now()) @map("created_at")
-  updatedAt             DateTime       @updatedAt @map("updated_at")
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  name          String
+  role          String
+  isActive      Boolean   @default(true) @map("is_active")
+  emailVerified Boolean   @default(false) @map("email_verified")
+  lastLoginAt   DateTime? @map("last_login_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  invitationsCreated    Invitation[]   @relation("InvitationsCreated")
-  scopes                UserScope[]
-  refreshTokens         RefreshToken[]
-  deviceTokens          DeviceToken[]
-  watchedStations       WatchedStation[]
-  missingSongReports    MissingSongReport[]
-  monitoredSongs        MonitoredSong[]  @relation("UserMonitoredSongs")
-  labelArtists          LabelArtist[]    @relation("LabelArtists")
-  artistLabelLinks      LabelArtist[]    @relation("ArtistLabels")
-  subscriptions         Subscription[]
-  chartAlerts           ChartAlert[]
-  dailyReports          DailyReport[]
-  settings              UserSettings?
-  passwordResetTokens   PasswordResetToken[]
-  memberships           Membership[]
+  invitationsCreated     Invitation[]            @relation("InvitationsCreated")
+  scopes                 UserScope[]
+  refreshTokens          RefreshToken[]
+  deviceTokens           DeviceToken[]
+  watchedStations        WatchedStation[]
+  missingSongReports     MissingSongReport[]
+  monitoredSongs         MonitoredSong[]         @relation("UserMonitoredSongs")
+  labelArtists           LabelArtist[]           @relation("LabelArtists")
+  artistLabelLinks       LabelArtist[]           @relation("ArtistLabels")
+  subscriptions          Subscription[]
+  chartAlerts            ChartAlert[]
+  dailyReports           DailyReport[]
+  settings               UserSettings?
+  passwordResetTokens    PasswordResetToken[]
+  memberships            Membership[]
   emailVerificationCodes EmailVerificationCode[]
 
   @@map("users")
@@ -158,7 +158,7 @@ model DeviceToken {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("device_tokens")
@@ -176,7 +176,7 @@ model Invitation {
   expiresAt   DateTime @map("expires_at")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  createdBy   User     @relation("InvitationsCreated", fields: [createdById], references: [id])
+  createdBy User @relation("InvitationsCreated", fields: [createdById], references: [id])
 
   @@map("invitations")
 }
@@ -189,7 +189,7 @@ model PasswordResetToken {
   usedAt    DateTime? @map("used_at")
   createdAt DateTime  @default(now()) @map("created_at")
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("password_reset_tokens")
@@ -203,7 +203,7 @@ model RefreshToken {
   revokedAt DateTime? @map("revoked_at")
   createdAt DateTime  @default(now()) @map("created_at")
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("refresh_tokens")
@@ -215,7 +215,7 @@ model UserScope {
   entityType String @map("entity_type")
   entityId   Int    @map("entity_id")
 
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, entityType, entityId])
   @@index([userId])
@@ -249,7 +249,7 @@ model MissingSongReport {
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
-  reporter   User     @relation(fields: [reportedBy], references: [id])
+  reporter User @relation(fields: [reportedBy], references: [id])
 
   @@index([status])
   @@index([reportedBy])
@@ -257,17 +257,17 @@ model MissingSongReport {
 }
 
 model MonitoredSong {
-  id          Int       @id @default(autoincrement())
-  userId      Int       @map("user_id")
-  songTitle   String    @map("song_title")
-  artistName  String    @map("artist_name")
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  songTitle   String   @map("song_title")
+  artistName  String   @map("artist_name")
   isrc        String
-  activatedAt DateTime  @map("activated_at")
-  status      String    @default("active")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  activatedAt DateTime @map("activated_at")
+  status      String   @default("active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  user        User      @relation("UserMonitoredSongs", fields: [userId], references: [id], onDelete: Cascade)
+  user                User                 @relation("UserMonitoredSongs", fields: [userId], references: [id], onDelete: Cascade)
   labelMonitoredSongs LabelMonitoredSong[]
 
   @@unique([userId, isrc])
@@ -277,15 +277,15 @@ model MonitoredSong {
 }
 
 model LabelArtist {
-  id            Int       @id @default(autoincrement())
-  labelUserId   Int       @map("label_user_id")
-  artistUserId  Int?      @map("artist_user_id")
-  artistName    String    @map("artist_name")
-  pictureUrl    String?   @map("picture_url")
-  addedAt       DateTime  @default(now()) @map("added_at")
+  id           Int      @id @default(autoincrement())
+  labelUserId  Int      @map("label_user_id")
+  artistUserId Int?     @map("artist_user_id")
+  artistName   String   @map("artist_name")
+  pictureUrl   String?  @map("picture_url")
+  addedAt      DateTime @default(now()) @map("added_at")
 
-  labelUser     User      @relation("LabelArtists", fields: [labelUserId], references: [id], onDelete: Cascade)
-  artistUser    User?     @relation("ArtistLabels", fields: [artistUserId], references: [id])
+  labelUser      User                 @relation("LabelArtists", fields: [labelUserId], references: [id], onDelete: Cascade)
+  artistUser     User?                @relation("ArtistLabels", fields: [artistUserId], references: [id])
   monitoredSongs LabelMonitoredSong[]
 
   @@unique([labelUserId, artistName])
@@ -294,13 +294,13 @@ model LabelArtist {
 }
 
 model LabelMonitoredSong {
-  id              Int       @id @default(autoincrement())
-  labelArtistId   Int       @map("label_artist_id")
-  monitoredSongId Int       @map("monitored_song_id")
-  addedAt         DateTime  @default(now()) @map("added_at")
+  id              Int      @id @default(autoincrement())
+  labelArtistId   Int      @map("label_artist_id")
+  monitoredSongId Int      @map("monitored_song_id")
+  addedAt         DateTime @default(now()) @map("added_at")
 
-  labelArtist     LabelArtist   @relation(fields: [labelArtistId], references: [id], onDelete: Cascade)
-  monitoredSong   MonitoredSong @relation(fields: [monitoredSongId], references: [id], onDelete: Cascade)
+  labelArtist   LabelArtist   @relation(fields: [labelArtistId], references: [id], onDelete: Cascade)
+  monitoredSong MonitoredSong @relation(fields: [monitoredSongId], references: [id], onDelete: Cascade)
 
   @@unique([labelArtistId, monitoredSongId])
   @@map("label_monitored_songs")
@@ -309,75 +309,80 @@ model LabelMonitoredSong {
 // ─── Subscription & Feature Gating ─────────────────────────────────
 
 model Plan {
-  id              Int       @id @default(autoincrement())
-  name            String    // e.g. "Artist Free", "Artist Premium"
-  slug            String    @unique // e.g. "artist-free", "artist-premium"
-  role            String    // ARTIST, LABEL, STATION
-  tier            String    // FREE, PREMIUM
-  monthlyPriceCents Int     @default(0) @map("monthly_price_cents")
-  annualPriceCents  Int     @default(0) @map("annual_price_cents")
-  trialDays       Int       @default(7) @map("trial_days")
-  perSeatPriceCents Int     @default(0) @map("per_seat_price_cents") // per artist/station addon
-  perSeatLabel    String?   @map("per_seat_label") // e.g. "per artist", "per station"
-  stripeMonthlyPriceId String? @map("stripe_monthly_price_id")
-  stripeAnnualPriceId  String? @map("stripe_annual_price_id")
-  stripeProductId      String? @map("stripe_product_id")
-  isActive        Boolean   @default(true) @map("is_active")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  id                    Int      @id @default(autoincrement())
+  name                  String // e.g. "Artist Free", "Artist Premium"
+  slug                  String   @unique // e.g. "artist-free", "artist-premium"
+  role                  String // ARTIST, LABEL, STATION
+  tier                  String // FREE, PREMIUM
+  monthlyPriceCents     Int      @default(0) @map("monthly_price_cents")
+  annualPriceCents      Int      @default(0) @map("annual_price_cents")
+  trialDays             Int      @default(7) @map("trial_days")
+  perSeatPriceCents     Int      @default(0) @map("per_seat_price_cents") // per artist/station addon
+  perSeatLabel          String?  @map("per_seat_label") // e.g. "per artist", "per station"
+  // Capped-tier quotas — single source of truth for entitlement limits.
+  maxMonitoredSongs     Int      @default(0) @map("max_monitored_songs") // ARTIST: songs a user may monitor
+  maxRosterArtists      Int      @default(0) @map("max_roster_artists") // LABEL: artists on the roster
+  maxCompetitorStations Int      @default(0) @map("max_competitor_stations") // STATION: competitor stations watched
+  maxHistoryDays        Int      @default(30) @map("max_history_days") // analytics look-back window
+  stripeMonthlyPriceId  String?  @map("stripe_monthly_price_id")
+  stripeAnnualPriceId   String?  @map("stripe_annual_price_id")
+  stripeProductId       String?  @map("stripe_product_id")
+  isActive              Boolean  @default(true) @map("is_active")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
 
-  features        PlanFeature[]
-  subscriptions   Subscription[]
+  features      PlanFeature[]
+  subscriptions Subscription[]
 
   @@map("plans")
 }
 
 model Feature {
-  id          Int       @id @default(autoincrement())
-  key         String    @unique // e.g. "artist.detailed_analytics", "station.competitor_intel"
-  name        String    // Human readable name
-  description String    @default("")
-  category    String    // e.g. "analytics", "exports", "curation", "alerts"
-  roles       String[]  // Which roles this feature applies to: ["ARTIST"], ["STATION","LABEL"]
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  id          Int      @id @default(autoincrement())
+  key         String   @unique // e.g. "artist.detailed_analytics", "station.competitor_intel"
+  name        String // Human readable name
+  description String   @default("")
+  category    String // e.g. "analytics", "exports", "curation", "alerts"
+  roles       String[] // Which roles this feature applies to: ["ARTIST"], ["STATION","LABEL"]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  plans       PlanFeature[]
+  plans PlanFeature[]
 
   @@map("features")
 }
 
 model PlanFeature {
-  id        Int     @id @default(autoincrement())
-  planId    Int     @map("plan_id")
-  featureId Int     @map("feature_id")
+  id        Int @id @default(autoincrement())
+  planId    Int @map("plan_id")
+  featureId Int @map("feature_id")
 
-  plan      Plan    @relation(fields: [planId], references: [id], onDelete: Cascade)
-  feature   Feature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  plan    Plan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  feature Feature @relation(fields: [featureId], references: [id], onDelete: Cascade)
 
   @@unique([planId, featureId])
   @@map("plan_features")
 }
 
 model Subscription {
-  id                    Int       @id @default(autoincrement())
-  userId                Int       @map("user_id")
+  id                   Int       @id @default(autoincrement())
+  userId               Int       @map("user_id")
   // Nullable during the identity transition: backfilled to the user's 1:1
   // organization; new self-serve signups always set it. Billing stays
   // user-keyed until P6.
-  organizationId        Int?      @map("organization_id")
-  planId                Int       @map("plan_id")
-  stripeCustomerId      String?   @map("stripe_customer_id")
-  stripeSubscriptionId  String?   @unique @map("stripe_subscription_id")
-  status                String    @default("active") // active, trialing, past_due, canceled, unpaid
-  billingInterval       String    @default("monthly") @map("billing_interval") // monthly, annual
-  trialEndsAt           DateTime? @map("trial_ends_at")
-  currentPeriodStart    DateTime? @map("current_period_start")
-  currentPeriodEnd      DateTime? @map("current_period_end")
-  cancelAtPeriodEnd     Boolean   @default(false) @map("cancel_at_period_end")
-  seatCount             Int       @default(0) @map("seat_count")
-  createdAt             DateTime  @default(now()) @map("created_at")
-  updatedAt             DateTime  @updatedAt @map("updated_at")
+  organizationId       Int?      @map("organization_id")
+  planId               Int       @map("plan_id")
+  stripeCustomerId     String?   @map("stripe_customer_id")
+  stripeSubscriptionId String?   @unique @map("stripe_subscription_id")
+  status               String    @default("active") // active, trialing, past_due, canceled, unpaid
+  billingInterval      String    @default("monthly") @map("billing_interval") // monthly, annual
+  trialEndsAt          DateTime? @map("trial_ends_at")
+  currentPeriodStart   DateTime? @map("current_period_start")
+  currentPeriodEnd     DateTime? @map("current_period_end")
+  cancelAtPeriodEnd    Boolean   @default(false) @map("cancel_at_period_end")
+  seatCount            Int       @default(0) @map("seat_count")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan         Plan          @relation(fields: [planId], references: [id])
@@ -392,16 +397,16 @@ model Subscription {
 // ─── Chart Monitoring & Alerts ─────────────────────────────────────
 
 model ChartEntry {
-  id          Int       @id @default(autoincrement())
-  platform    String    // shazam, spotify, apple_music
-  country     String    // ISO country code
-  chartName   String    @map("chart_name") // e.g. "Top 50", "Top 200"
-  position    Int
-  songTitle   String    @map("song_title")
-  artistName  String    @map("artist_name")
-  isrc        String?
+  id           Int      @id @default(autoincrement())
+  platform     String // shazam, spotify, apple_music
+  country      String // ISO country code
+  chartName    String   @map("chart_name") // e.g. "Top 50", "Top 200"
+  position     Int
+  songTitle    String   @map("song_title")
+  artistName   String   @map("artist_name")
+  isrc         String?
   snapshotDate DateTime @map("snapshot_date") // date of the chart check
-  createdAt   DateTime  @default(now()) @map("created_at")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   @@unique([platform, country, chartName, position, snapshotDate])
   @@index([isrc, snapshotDate])
@@ -410,21 +415,21 @@ model ChartEntry {
 }
 
 model ChartAlert {
-  id          Int       @id @default(autoincrement())
-  userId      Int       @map("user_id")
-  songTitle   String    @map("song_title")
-  artistName  String    @map("artist_name")
-  isrc        String?
-  platform    String    // shazam, spotify, apple_music
-  country     String
-  chartName   String    @map("chart_name")
-  position    Int
-  alertType   String    @map("alert_type") // entered, moved_up, peaked
-  message     String
-  isRead      Boolean   @default(false) @map("is_read")
-  sentAt      DateTime  @default(now()) @map("sent_at")
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  songTitle  String   @map("song_title")
+  artistName String   @map("artist_name")
+  isrc       String?
+  platform   String // shazam, spotify, apple_music
+  country    String
+  chartName  String   @map("chart_name")
+  position   Int
+  alertType  String   @map("alert_type") // entered, moved_up, peaked
+  message    String
+  isRead     Boolean  @default(false) @map("is_read")
+  sentAt     DateTime @default(now()) @map("sent_at")
 
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, sentAt])
   @@index([userId, isRead])
@@ -434,17 +439,17 @@ model ChartAlert {
 // ─── Daily Stats Report ────────────────────────────────────────────
 
 model DailyReport {
-  id          Int       @id @default(autoincrement())
-  userId      Int       @map("user_id")
-  reportDate  DateTime  @map("report_date")
-  reportType  String    @default("daily") @map("report_type") // daily, weekly
-  content     Json      // full report payload
-  tips        String[]  // array of tip strings
-  isPremium   Boolean   @default(false) @map("is_premium")
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  reportDate   DateTime @map("report_date")
+  reportType   String   @default("daily") @map("report_type") // daily, weekly
+  content      Json // full report payload
+  tips         String[] // array of tip strings
+  isPremium    Boolean  @default(false) @map("is_premium")
   deliveredVia String[] @default(["push"]) @map("delivered_via") // push, email
-  sentAt      DateTime  @default(now()) @map("sent_at")
+  sentAt       DateTime @default(now()) @map("sent_at")
 
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, reportDate, reportType])
   @@index([userId])
@@ -454,20 +459,20 @@ model DailyReport {
 // ─── User Settings ─────────────────────────────────────────────────
 
 model UserSettings {
-  id                    Int       @id @default(autoincrement())
-  userId                Int       @unique @map("user_id")
-  dailyReportTime       String    @default("08:00") @map("daily_report_time") // HH:mm format
-  dailyReportTimezone   String    @default("Europe/Bucharest") @map("daily_report_timezone")
-  dailyReportEnabled    Boolean   @default(true) @map("daily_report_enabled")
-  weeklyReportEnabled   Boolean   @default(true) @map("weekly_report_enabled")
-  chartAlertsEnabled    Boolean   @default(true) @map("chart_alerts_enabled")
-  chartAlertCountries   String[]  @default(["RO"]) @map("chart_alert_countries") // ISO country codes
+  id                     Int      @id @default(autoincrement())
+  userId                 Int      @unique @map("user_id")
+  dailyReportTime        String   @default("08:00") @map("daily_report_time") // HH:mm format
+  dailyReportTimezone    String   @default("Europe/Bucharest") @map("daily_report_timezone")
+  dailyReportEnabled     Boolean  @default(true) @map("daily_report_enabled")
+  weeklyReportEnabled    Boolean  @default(true) @map("weekly_report_enabled")
+  chartAlertsEnabled     Boolean  @default(true) @map("chart_alerts_enabled")
+  chartAlertCountries    String[] @default(["RO"]) @map("chart_alert_countries") // ISO country codes
   firstPlayAlertsEnabled Boolean  @default(true) @map("first_play_alerts_enabled") // "your song is ON AIR" push
   rotationAlertsEnabled  Boolean  @default(true) @map("rotation_alerts_enabled") // "new song in rotation at competitor" push (STATION)
-  createdAt             DateTime  @default(now()) @map("created_at")
-  updatedAt             DateTime  @updatedAt @map("updated_at")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
 
-  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_settings")
 }

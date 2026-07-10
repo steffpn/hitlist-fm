@@ -120,13 +120,20 @@ describe("Competitor Routes", () => {
     // Give the STATION user an active subscription whose plan includes the
     // "analytics.competitor_intel" feature so requireFeature on the
     // /:stationId/detail route passes and the handler logic can be asserted.
+    // maxCompetitorStations drives the watch-list quota; perSeatPriceCents 0
+    // makes it a hard cap (no overage) — a Station Pro-shaped plan.
     mockSubscriptionFindFirst.mockResolvedValue({
       id: 1,
       userId: mockStationUser.id,
       status: "active",
+      seatCount: 0,
+      stripeSubscriptionId: null,
       plan: {
         id: 1,
+        slug: "station-pro",
         tier: "PREMIUM",
+        maxCompetitorStations: 20,
+        perSeatPriceCents: 0,
         features: [{ feature: { key: "analytics.competitor_intel" } }],
       },
     });
@@ -231,7 +238,8 @@ describe("Competitor Routes", () => {
       expect(response.statusCode).toBe(409);
     });
 
-    it("returns 400 when user has 20 watched stations", async () => {
+    it("returns 403 quota_exceeded when at the plan's competitor cap", async () => {
+      // Plan cap is maxCompetitorStations = 20 (hard cap, no overage).
       mockWatchedStationCount.mockResolvedValueOnce(20);
 
       const response = await server.inject({
@@ -241,9 +249,12 @@ describe("Competitor Routes", () => {
         headers: { authorization: `Bearer ${stationToken}` },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.payload);
-      expect(body.error).toContain("Maximum 20");
+      expect(body.code).toBe("quota_exceeded");
+      expect(body.featureKey).toBe("competitors.watch");
+      expect(body.limit).toBe(20);
+      expect(body.current).toBe(20);
     });
 
     it("returns 400 when trying to watch own station", async () => {

@@ -3,10 +3,15 @@
  *
  * Transforms ACRCloud broadcast monitoring callbacks into Detection records
  * and deduplicates them into AirplayEvent aggregates using multi-layer matching:
- *   1. Exact ISRC match
- *   2. ISRC prefix match (first 9 chars — same recording, different version)
- *   3. Exact normalized title+artist match
- *   4. Fuzzy title+artist match (Jaro-Winkler)
+ *   1. Exact (full 12-char) ISRC match
+ *   2. Exact normalized title+artist match
+ *   3. Fuzzy title+artist match (Jaro-Winkler)
+ *
+ * Dedup NEVER keys on an ISRC substring/prefix: a prefix (e.g. first 9 chars)
+ * shares country + registrant + year across a label's whole catalogue, so it
+ * collapses DISTINCT recordings into one event. Same-song/different-version
+ * merging is handled by the normalized title+artist layers instead, which is
+ * what actually varies between an ISRC-less callback and its ISRC'd twin.
  *
  * Uses per-station Redis locks to prevent race conditions during dedup.
  */
@@ -38,11 +43,20 @@ const logger = pino({ name: "detection-worker" });
  * Industry-standard minimum play duration (MediaForest uses ~30s).
  *
  * ACRCloud reports `played_duration` (seconds) per callback. Plays shorter
- * than this threshold are teasers/jingles/transitions, not real airplay:
- * they are stored with `partialPlay: true` and excluded from all user-facing
- * aggregations (they stay visible, flagged, in the raw detections list).
+ * than this threshold are treated as teasers/jingles/transitions, not real
+ * airplay: they are stored with `partialPlay: true` and excluded from
+ * user-facing aggregations. They are NEVER dropped — the Detection row and the
+ * AirplayEvent are always written, only flagged, so no play is silently lost.
  *
  * When a callback has no `played_duration`, we assume a full play.
+ *
+ * ⚠️ UNVERIFIED SEMANTIC: the exact meaning of ACRCloud's `played_duration`
+ * (matched-segment length? cumulative airtime? per-callback vs per-detection?)
+ * has NOT been confirmed against real production payloads. Until it is, treat
+ * `partialPlay` as a best-effort aggregation flag only. It MUST NOT gate
+ * anything user-visible beyond report exclusion — e.g. the first-play push is
+ * deliberately decoupled from it (see processCallback). Confirm the semantic
+ * against captured callbacks before tightening any behaviour that depends on it.
  */
 export const MIN_FULL_PLAY_SECONDS = 30;
 
@@ -232,7 +246,13 @@ function firstPlayCapKey(userId: number): string {
 
 /**
  * "Your song is ON AIR" push — sent when a NEW AirplayEvent (not an extension)
- * with a full play (partialPlay=false) is created for a monitored ISRC.
+ * is created for a monitored ISRC.
+ *
+ * Intentionally NOT gated on partialPlay: `played_duration` semantics are
+ * unverified (see MIN_FULL_PLAY_SECONDS), so a real first play must never be
+ * suppressed just because ACRCloud reported a short segment. The push fires on
+ * the first NEW event of an isrc+station regardless of partial/full; rule (a)
+ * below still guarantees it happens at most once per song per station.
  *
  * Anti-spam rules:
  *  (a) only for the FIRST play of that ISRC on that station (no earlier
@@ -438,7 +458,12 @@ export async function processCallback(
       const cutoff = new Date(detectedAt.getTime() - DETECTION_GAP_TOLERANCE_MS);
       let recentEvent;
 
-      // Layer 1: Exact ISRC match
+      // Layer 1: Exact (full) ISRC match. We require the WHOLE ISRC to be
+      // equal — never a prefix/substring. An ISRC prefix (country+registrant+
+      // year+partial designation) is shared across a label's catalogue, so
+      // matching on it would merge DISTINCT recordings into one event. Songs
+      // whose ISRC differs but that are actually the same recording are caught
+      // by the normalized title+artist layers below.
       if (isrc) {
         recentEvent = await prisma.airplayEvent.findFirst({
           where: {
@@ -450,20 +475,7 @@ export async function processCallback(
         });
       }
 
-      // Layer 2: ISRC prefix match (first 9 chars = same recording)
-      if (!recentEvent && isrc && isrc.length >= 9) {
-        const isrcPrefix = isrc.substring(0, 9);
-        recentEvent = await prisma.airplayEvent.findFirst({
-          where: {
-            stationId: station.id,
-            isrc: { startsWith: isrcPrefix },
-            endedAt: { gte: cutoff },
-          },
-          orderBy: { endedAt: "desc" },
-        });
-      }
-
-      // Layer 3: Exact normalized title+artist match
+      // Layer 2: Exact normalized title+artist match
       if (!recentEvent) {
         const normTitle = normalizeTitle(music.title);
         const normArtist = normalizeArtist(artistName);
@@ -488,7 +500,7 @@ export async function processCallback(
           }
         }
 
-        // Layer 4: Fuzzy title+artist match (Jaro-Winkler)
+        // Layer 3: Fuzzy title+artist match (Jaro-Winkler)
         if (!recentEvent) {
           for (const candidate of candidates) {
             const candidateNormTitle = normalizeTitle(candidate.songTitle);
@@ -592,9 +604,13 @@ export async function processCallback(
         );
 
         // Fire-and-forget "your song is ON AIR" push for monitored ISRCs.
-        // Only for NEW events that are full plays at creation time (events
-        // later promoted from partial to full do not re-trigger the push).
-        if (isrc && !newEvent.partialPlay) {
+        // Fires for the FIRST new event of this isrc+station regardless of
+        // partialPlay: `played_duration` semantics are unverified (see
+        // MIN_FULL_PLAY_SECONDS), so we must not suppress a genuine first play
+        // just because ACRCloud reported a short segment. notifyFirstPlay still
+        // enforces first-per-station, the per-user daily cap and the user
+        // opt-out, so this cannot spam.
+        if (isrc) {
           notifyFirstPlay({
             airplayEventId: newEvent.id,
             isrc,
@@ -672,6 +688,15 @@ export async function startDetectionWorker(options?: {
   _snippetQueue = options?.snippetQueue ?? null;
   const queue = new Queue(DETECTION_QUEUE, {
     connection: createRedisConnection(),
+    // Retry policy for detection jobs. processCallback is idempotent
+    // (Detection has a unique rawCallbackId + detectedAt, and re-runs re-find
+    // the same AirplayEvent), so retries cannot double-count.
+    // NOTE: keep in sync with the producer queue in
+    // routes/v1/webhooks/acrcloud/index.ts.
+    defaultJobOptions: {
+      attempts: 5,
+      backoff: { type: "exponential", delay: 5000 },
+    },
   });
 
   const worker = new Worker(
@@ -687,11 +712,25 @@ export async function startDetectionWorker(options?: {
     },
   );
 
+  // Dead-letter awareness: distinguish a transient failure that will be
+  // retried from a job that has exhausted all attempts. Exhausted jobs are
+  // retained in the failed set (removeOnFail keeps the last 5000) so they can
+  // be inspected/replayed — that failed set IS the dead-letter queue.
   worker.on("failed", (job, err) => {
-    logger.error({ jobId: job?.id, err }, "Detection job failed");
+    const attemptsMade = job?.attemptsMade ?? 0;
+    const maxAttempts = job?.opts?.attempts ?? 1;
+    const exhausted = attemptsMade >= maxAttempts;
+    logger.error(
+      { jobId: job?.id, attemptsMade, maxAttempts, exhausted, err },
+      exhausted
+        ? "Detection job failed permanently after all retries — DEAD-LETTER (retained in failed set for inspection/replay)"
+        : "Detection job failed, will retry",
+    );
   });
 
-  logger.info("Detection worker started (concurrency: 5, with per-station locks)");
+  logger.info(
+    "Detection worker started (concurrency: 5, per-station locks, retries: 5 w/ exponential backoff)",
+  );
 
   return { queue, worker };
 }

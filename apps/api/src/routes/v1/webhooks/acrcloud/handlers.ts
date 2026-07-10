@@ -45,8 +45,15 @@ export async function handleAcrCloudCallback(
     }, "[acrcloud] metadata details");
   }
 
-  // Enqueue raw callback for async processing by detection worker
+  // Enqueue raw callback for async processing by detection worker.
+  // Retries (attempts + exponential backoff) make transient DB/Redis blips
+  // during processing recoverable instead of dropping the callback. This is
+  // safe: processCallback is idempotent (Detection has a unique
+  // rawCallbackId + detectedAt, so a replay skips the duplicate and re-finds
+  // the same AirplayEvent). Mirrors the queue's defaultJobOptions.
   await detectionQueue.add("process-callback", body, {
+    attempts: 5,
+    backoff: { type: "exponential", delay: 5000 },
     removeOnComplete: 1000,
     removeOnFail: 5000,
   });

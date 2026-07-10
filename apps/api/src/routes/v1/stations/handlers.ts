@@ -5,6 +5,7 @@ import {
   publishStationEvent,
   type StationEvent,
 } from "../../../lib/pubsub.js";
+import type { CurrentUser } from "../../../middleware/authenticate.js";
 import type {
   StationCreateBody,
   StationBulkCreateBody,
@@ -12,6 +13,28 @@ import type {
   StationParams,
   CoverageQuery,
 } from "./schema.js";
+
+/**
+ * Operational secrets — the raw ingest `streamUrl` and the `acrcloudStreamId` —
+ * must not leak to arbitrary authenticated users. They are visible only to
+ * ADMINs and to the owner of that specific station (a STATION-scoped user).
+ * Every other caller gets these fields stripped from the response.
+ */
+function canSeeStationSecrets(user: CurrentUser, stationId: number): boolean {
+  if (user.role === "ADMIN") return true;
+  return user.scopes.some(
+    (s) => s.entityType === "STATION" && s.entityId === stationId,
+  );
+}
+
+/** Remove operational-secret fields from a station-shaped object. */
+function stripStationSecrets<
+  T extends { streamUrl: unknown; acrcloudStreamId: unknown },
+>(station: T): Omit<T, "streamUrl" | "acrcloudStreamId"> {
+  const { streamUrl: _streamUrl, acrcloudStreamId: _acrcloudStreamId, ...safe } =
+    station;
+  return safe;
+}
 
 // --- Coverage helpers (monitoring gap math) ---
 
@@ -140,7 +163,7 @@ export async function createStationsBulk(
  * Adds coveragePercent7d: monitoring coverage over the last 7 days from
  * MonitoringGap rows — one aggregate query for all stations (no N+1).
  */
-export async function listStations(): Promise<unknown> {
+export async function listStations(request: FastifyRequest): Promise<unknown> {
   const stations = await prisma.station.findMany({
     select: {
       id: true,
@@ -205,15 +228,20 @@ export async function listStations(): Promise<unknown> {
     }
   }
 
-  return stations.map((s) => ({
-    ...s,
-    lastAcrCallbackAt: lastAcrCallbackByStation.get(s.id) ?? null,
-    coveragePercent7d: computeCoveragePercent(
-      gapsByStation.get(s.id) ?? [],
-      coverageWindowStart,
-      now,
-    ),
-  }));
+  return stations.map((s) => {
+    const enriched = {
+      ...s,
+      lastAcrCallbackAt: lastAcrCallbackByStation.get(s.id) ?? null,
+      coveragePercent7d: computeCoveragePercent(
+        gapsByStation.get(s.id) ?? [],
+        coverageWindowStart,
+        now,
+      ),
+    };
+    return canSeeStationSecrets(request.currentUser, s.id)
+      ? enriched
+      : stripStationSecrets(enriched);
+  });
 }
 
 /**
@@ -231,7 +259,10 @@ export async function getStation(
     return reply.status(404).send({ error: "Station not found" });
   }
 
-  return reply.send(station);
+  if (canSeeStationSecrets(request.currentUser, station.id)) {
+    return reply.send(station);
+  }
+  return reply.send(stripStationSecrets(station));
 }
 
 /**

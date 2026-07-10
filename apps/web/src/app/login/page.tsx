@@ -1,12 +1,19 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { setSession, type StoredUser } from "@/lib/auth";
-import { cn } from "@/lib/cn";
 import { clearImpersonation } from "@/lib/impersonation";
-import { GaugeMark, Wordmark } from "@/components/brand";
+import {
+  AuthShell,
+  AuthCard,
+  AuthButton,
+  AuthError,
+  AuthSuccess,
+  authInputClass,
+} from "@/components/auth-shell";
 
 interface LoginResponse {
   accessToken: string;
@@ -20,6 +27,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [resetOk, setResetOk] = useState(false);
+
+  // Success banner after a completed /reset-password redirect (?reset=success).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("reset") === "success") {
+      setResetOk(true);
+    }
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -47,93 +62,70 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ink flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-ink" />
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(50% 55% at 50% 12%, rgba(245,177,61,0.14) 0%, rgba(255,90,52,0.04) 45%, transparent 100%)",
-        }}
-      />
+    <AuthShell subtitle="Know exactly where your music plays.">
+      <AuthCard>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {resetOk && (
+            <AuthSuccess>Parola a fost resetată. Autentifică-te cu parola nouă.</AuthSuccess>
+          )}
 
-      <div className="relative w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex mb-4 drop-shadow-[0_8px_24px_rgba(245,177,61,0.30)]">
-            <GaugeMark size={64} />
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-zinc-300 mb-2">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={authInputClass}
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
           </div>
-          <div className="text-[26px]">
-            <Wordmark />
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-zinc-300">
+                Parolă
+              </label>
+              <Link
+                href="/forgot-password"
+                className="text-xs font-medium text-brand-400 hover:text-brand-300 transition-colors"
+              >
+                Ai uitat parola?
+              </Link>
+            </div>
+            <input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={authInputClass}
+              placeholder="••••••••"
+              autoComplete="current-password"
+            />
           </div>
-          <p className="text-zinc-500 text-sm mt-2">Know exactly where your music plays.</p>
-        </div>
 
-        <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 rounded-2xl p-8 shadow-2xl shadow-black/50">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-zinc-300 mb-2">Email</label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/60 transition-all"
-                placeholder="you@example.com"
-                autoComplete="email"
-              />
-            </div>
+          {error && <AuthError>{error}</AuthError>}
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-zinc-300 mb-2">Password</label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/60 transition-all"
-                placeholder="••••••••"
-                autoComplete="current-password"
-              />
-            </div>
+          <AuthButton loading={loading} loadingLabel="Se conectează...">
+            Autentificare
+          </AuthButton>
+        </form>
+      </AuthCard>
 
-            {error && (
-              <div className="flex items-center gap-2 text-sm text-brand-400 bg-brand-400/10 border border-brand-400/20 rounded-xl px-4 py-3">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 shrink-0">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
-                </svg>
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className={cn(
-                "w-full py-3 rounded-xl text-sm font-semibold transition-all mt-1",
-                loading
-                  ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-                  : "bg-gradient-to-br from-brand-500 to-ember text-ink font-bold shadow-[0_10px_28px_rgba(245,177,61,0.30)] hover:brightness-105 active:scale-[0.98]"
-              )}
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Signing in...
-                </span>
-              ) : "Sign in"}
-            </button>
-          </form>
-        </div>
-
-        <p className="text-center text-zinc-500 text-xs mt-6">
-          hitlist.fm &copy; {new Date().getFullYear()}
-        </p>
-      </div>
-    </div>
+      <p className="text-center text-sm text-zinc-400 mt-6">
+        Ai un cod de invitație?{" "}
+        <Link
+          href="/register"
+          className="font-medium text-brand-400 hover:text-brand-300 transition-colors"
+        >
+          Creează cont
+        </Link>
+      </p>
+    </AuthShell>
   );
 }

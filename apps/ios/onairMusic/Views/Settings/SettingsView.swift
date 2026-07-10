@@ -3,6 +3,7 @@ import SwiftUI
 /// Settings tab showing user info and logout button.
 struct SettingsView: View {
     @Environment(AuthManager.self) private var authManager
+    @Environment(\.openURL) private var openURL
 
     @State private var isLoggingOut = false
 
@@ -140,6 +141,33 @@ struct SettingsView: View {
                     }
                     .padding(.vertical, 11)
                     .padding(.horizontal, 14)
+                }
+
+                // Legal
+                SettingsSection(header: "Legal") {
+                    Button {
+                        openURL(URL(string: "https://hitlist.fm/privacy")!)
+                    } label: {
+                        SettingsRow(
+                            icon: "lock.shield.fill",
+                            iconColors: [Color(hex: "6366F1"), Color(hex: "818CF8")],
+                            title: "Privacy Policy"
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    SettingsDivider()
+
+                    Button {
+                        openURL(URL(string: "https://hitlist.fm/terms")!)
+                    } label: {
+                        SettingsRow(
+                            icon: "doc.plaintext.fill",
+                            iconColors: [Color(hex: "64748B"), Color(hex: "94A3B8")],
+                            title: "Terms of Use"
+                        )
+                    }
+                    .buttonStyle(.plain)
                 }
 
                 // Account (danger zone)

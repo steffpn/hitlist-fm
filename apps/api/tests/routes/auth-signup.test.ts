@@ -206,6 +206,7 @@ describe("Self-serve signup & email verification", () => {
       // Trial on the role's PREMIUM plan, no Stripe fields
       expect(mockPlanFindFirst).toHaveBeenCalledWith({
         where: { role: "ARTIST", tier: "PREMIUM", isActive: true },
+        orderBy: { monthlyPriceCents: "asc" },
       });
       expect(mockSubscriptionCreate).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -287,6 +288,7 @@ describe("Self-serve signup & email verification", () => {
       });
       expect(mockPlanFindFirst).toHaveBeenCalledWith({
         where: { role: "STATION", tier: "PREMIUM", isActive: true },
+        orderBy: { monthlyPriceCents: "asc" },
       });
     });
 

@@ -1,7 +1,56 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../../../lib/prisma.js";
 import { getPresignedUrl } from "../../../lib/r2.js";
+import type { CurrentUser } from "../../../middleware/authenticate.js";
 import type { AirplayEventParams, ListEventsQuery } from "./schema.js";
+
+/**
+ * Whether an airplay event falls within a non-admin user's tenant scope,
+ * mirroring how GET /airplay-events scopes each role:
+ * - STATION: events on a station the user owns (scope) or watches (competitor)
+ * - ARTIST: events whose ISRC matches one of the user's active monitored songs
+ * - LABEL: events whose ISRC matches a monitored song on the label's roster
+ * Unknown roles are denied.
+ */
+async function eventInUserScope(
+  user: CurrentUser,
+  event: { stationId: number; isrc: string | null },
+): Promise<boolean> {
+  if (user.role === "STATION") {
+    const ownStationIds = user.scopes
+      .filter((s) => s.entityType === "STATION")
+      .map((s) => s.entityId);
+    if (ownStationIds.includes(event.stationId)) return true;
+    const watched = await prisma.watchedStation.findFirst({
+      where: { userId: user.id, stationId: event.stationId },
+      select: { id: true },
+    });
+    return watched !== null;
+  }
+
+  if (user.role === "ARTIST") {
+    if (!event.isrc) return false;
+    const monitored = await prisma.monitoredSong.findFirst({
+      where: { userId: user.id, status: "active", isrc: event.isrc },
+      select: { id: true },
+    });
+    return monitored !== null;
+  }
+
+  if (user.role === "LABEL") {
+    if (!event.isrc) return false;
+    const labelSong = await prisma.labelMonitoredSong.findFirst({
+      where: {
+        labelArtist: { labelUserId: user.id },
+        monitoredSong: { isrc: event.isrc },
+      },
+      select: { id: true },
+    });
+    return labelSong !== null;
+  }
+
+  return false;
+}
 
 /**
  * GET /airplay-events/:id/snippet - Get a presigned URL for the event's audio snippet.
@@ -29,7 +78,14 @@ export async function getSnippetUrl(
     return reply.status(404).send({ error: "Airplay event not found" });
   }
 
-  // All authenticated users can access snippets
+  // Tenant scoping: a non-admin may only fetch snippets for events within their
+  // own scope. Admins — and admins in "view as role" impersonation (realUser is
+  // ADMIN) — are exempt. Out-of-scope events are reported as 404 so we never
+  // disclose the existence of another tenant's event.
+  const isAdmin = request.realUser?.role === "ADMIN";
+  if (!isAdmin && !(await eventInUserScope(currentUser, event))) {
+    return reply.status(404).send({ error: "Airplay event not found" });
+  }
 
   if (!event.snippetUrl) {
     request.log.info({ eventId: id, snippetUrl: event.snippetUrl }, "Snippet 404 - no snippetUrl on event");

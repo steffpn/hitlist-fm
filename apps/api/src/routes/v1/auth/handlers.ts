@@ -196,6 +196,9 @@ export async function signup(
   // must not block account creation.
   const premiumPlan = await prisma.plan.findFirst({
     where: { role, tier: "PREMIUM", isActive: true },
+    // Deterministic trial tier: the role's entry paid plan. With multiple
+    // PREMIUM plans per role, an unordered findFirst would pick arbitrarily.
+    orderBy: { monthlyPriceCents: "asc" },
   });
   if (!premiumPlan) {
     request.log.warn(

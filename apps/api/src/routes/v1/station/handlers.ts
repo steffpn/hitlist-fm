@@ -1,12 +1,65 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { Prisma } from "../../../../generated/prisma/client.js";
 import { prisma } from "../../../lib/prisma.js";
+import { userHasFeature } from "../../../middleware/require-feature.js";
 import type {
   PeriodQuery,
   TopSongsQuery,
   StationIdQuery,
   CompetitorIdParams,
 } from "./schema.js";
+
+/**
+ * Premium feature gating the per-station "competitor intelligence" analytics
+ * (new-songs / exclusive-songs — same family as the overlap endpoint, which is
+ * already gated on this key). Under the current plan seed every premium STATION
+ * tier grants all station analytics features, so this key is equivalent to the
+ * other station-analytics keys for gating purposes.
+ */
+const COMPETITOR_INTEL_FEATURE = "analytics.competitor_intel";
+
+/**
+ * Enforce the competitor-intelligence premium gate, mirroring
+ * requireFeature("analytics.competitor_intel"): ADMINs and "view as role"
+ * impersonation (realUser is ADMIN) are exempt. Returns true if the request may
+ * proceed; otherwise sends a 403 and returns false.
+ */
+async function ensureCompetitorIntel(
+  request: FastifyRequest,
+  reply: FastifyReply,
+): Promise<boolean> {
+  if (request.realUser?.role === "ADMIN") return true;
+  const { id, role } = request.currentUser;
+  if (await userHasFeature(id, role, COMPETITOR_INTEL_FEATURE)) return true;
+  reply.code(403).send({
+    error: "Premium feature",
+    message: "Upgrade your plan to access this feature",
+    featureKey: COMPETITOR_INTEL_FEATURE,
+  });
+  return false;
+}
+
+/**
+ * Ownership/scope check for a targeted station: the user may only query a
+ * station they OWN (STATION scope) or WATCH (competitor). ADMINs and "view as
+ * role" impersonation are exempt. Returns true if allowed; otherwise sends a
+ * 403 and returns false.
+ */
+async function ensureStationInScope(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  stationId: number,
+): Promise<boolean> {
+  if (request.realUser?.role === "ADMIN") return true;
+  if (getOwnStationIds(request).includes(stationId)) return true;
+  const watched = await prisma.watchedStation.findFirst({
+    where: { userId: request.currentUser.id, stationId },
+    select: { id: true },
+  });
+  if (watched) return true;
+  reply.code(403).send({ error: "Station is not in your scope" });
+  return false;
+}
 
 /**
  * Derive a date range from the period string, or from explicit start/end dates.
@@ -165,12 +218,19 @@ export async function getNewSongs(
   request: FastifyRequest<{ Querystring: StationIdQuery }>,
   reply: FastifyReply,
 ): Promise<void> {
+  // Premium feature gate (skipped historically — this was a paywall bypass).
+  if (!(await ensureCompetitorIntel(request, reply))) return;
+
   const ownStationIds = getOwnStationIds(request);
   const stationId = request.query.stationId ?? ownStationIds[0];
 
   if (!stationId) {
     return reply.code(400).send({ error: "No stationId provided and no own station found" });
   }
+
+  // Ownership/scope: only the user's own or watched stations (prevents reading
+  // an arbitrary station's data by passing its id).
+  if (!(await ensureStationInScope(request, reply, stationId))) return;
 
   const { start, end } = getDateRange(request.query);
 
@@ -218,12 +278,19 @@ export async function getExclusiveSongs(
   request: FastifyRequest<{ Querystring: StationIdQuery }>,
   reply: FastifyReply,
 ): Promise<void> {
+  // Premium feature gate (skipped historically — this was a paywall bypass).
+  if (!(await ensureCompetitorIntel(request, reply))) return;
+
   const ownStationIds = getOwnStationIds(request);
   const stationId = request.query.stationId ?? ownStationIds[0];
 
   if (!stationId) {
     return reply.code(400).send({ error: "No stationId provided and no own station found" });
   }
+
+  // Ownership/scope: only the user's own or watched stations (prevents reading
+  // an arbitrary station's data by passing its id).
+  if (!(await ensureStationInScope(request, reply, stationId))) return;
 
   const { start, end } = getDateRange(request.query);
 
@@ -282,8 +349,13 @@ export async function getPlaylistOverlap(
   }>,
   reply: FastifyReply,
 ): Promise<void> {
-  const ownStationIds = getOwnStationIds(request);
+  // Premium gate (same family as new-songs/exclusive-songs) + IDOR guard:
+  // the competitor must be a station the user actually watches.
+  if (!(await ensureCompetitorIntel(request, reply))) return;
   const competitorId = Number(request.params.competitorId);
+  if (!(await ensureStationInScope(request, reply, competitorId))) return;
+
+  const ownStationIds = getOwnStationIds(request);
 
   if (ownStationIds.length === 0) {
     return reply.send({
@@ -394,6 +466,22 @@ export async function getGenreDistribution(
   request: FastifyRequest<{ Querystring: PeriodQuery }>,
   reply: FastifyReply,
 ): Promise<void> {
+  // Premium gate: genre/label distribution is a paid station-analytics feature.
+  if (
+    request.realUser?.role !== "ADMIN" &&
+    !(await userHasFeature(
+      request.currentUser.id,
+      request.currentUser.role,
+      "analytics.genre_distribution",
+    ))
+  ) {
+    return reply.code(403).send({
+      error: "Premium feature",
+      message: "Upgrade your plan to access this feature",
+      featureKey: "analytics.genre_distribution",
+    });
+  }
+
   const ownStationIds = getOwnStationIds(request);
   if (ownStationIds.length === 0) {
     return reply.send([]);

@@ -18,5 +18,12 @@
 			</array>
 		</dict>
 	</array>
+	<!-- Background audio: keeps snippet playback alive and lock-screen / Control Center
+	     transport controls working when the app is backgrounded or the screen is locked
+	     (AudioPlayerManager sets AVAudioSession .playback + MPNowPlayingInfoCenter). -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 </dict>
 </plist>
