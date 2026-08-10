@@ -1,10 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { queryFilteredEvents } from "./query.js";
+import { queryEventSummary, queryFilteredEvents } from "./query.js";
 import { buildCSVStream } from "./csv-builder.js";
 import type { ExportCSVQuery, ExportPDFQuery } from "./schema.js";
 
 const CSV_MAX_ROWS = 10_000;
-const PDF_MAX_ROWS = 1_000;
 
 /**
  * GET /exports/csv - Export filtered airplay events as CSV.
@@ -44,9 +43,12 @@ export async function exportCSV(
 }
 
 /**
- * GET /exports/pdf - Export filtered airplay events as branded PDF report.
+ * GET /exports/pdf - Export a branded PDF airplay report.
  *
- * Requires startDate and endDate. Caps at 1,000 rows.
+ * Requires startDate and endDate. No row cap: the report is aggregated per song
+ * (with a per-station breakdown) rather than listing every detection, so the
+ * page count scales with the size of the catalogue, not with airtime. Users who
+ * need the raw detections export CSV instead.
  */
 export async function exportPDF(
   request: FastifyRequest<{ Querystring: ExportPDFQuery }>,
@@ -55,25 +57,17 @@ export async function exportPDF(
   const { q, startDate, endDate, stationId } = request.query;
   const { currentUser } = request;
 
-  const { events, exceeded } = await queryFilteredEvents(
+  const summary = await queryEventSummary(
     { q, startDate, endDate, stationId },
     currentUser,
-    { maxRows: PDF_MAX_ROWS },
   );
-
-  if (exceeded) {
-    return reply.status(400).send({
-      error:
-        "Too many results (>1,000). Please narrow your date range.",
-    });
-  }
 
   // Lazy import: pdfkit module is heavy (~68s load in dev).
   // Deferring to request time avoids blocking server startup.
   const { buildPDFBuffer } = await import("./pdf-builder.js");
 
   const pdfBuffer = await buildPDFBuffer(
-    events,
+    summary,
     { startDate, endDate },
     currentUser.email,
   );

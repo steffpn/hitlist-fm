@@ -1,26 +1,34 @@
 import PDFDocument from "pdfkit";
+import type { EventSummary } from "./query.js";
 
 interface DateRange {
   startDate: string;
   endDate: string;
 }
 
+const PAGE_WIDTH = 495; // A4 width minus margins
+const PAGE_BOTTOM = 750;
+
 /**
- * Build a branded PDF airplay report buffer from event data.
+ * Build a branded PDF airplay report from an aggregated summary.
  *
- * Uses PDFKit directly for server-side PDF generation with built-in
- * Helvetica fonts (no external font files needed).
+ * The report is deliberately *not* a dump of every detection. A month of two
+ * monitored stations is tens of thousands of rows — which is what used to trip
+ * the 1,000-row cap and fail the export outright — but only a few hundred
+ * distinct songs. Aggregating by song keeps the report readable and removes the
+ * cap entirely; the full row-level data stays available as CSV.
+ *
+ * Uses PDFKit with the built-in Helvetica fonts (no external font files).
  *
  * Layout:
- * - Header: "myFuckingMusic" brand + "Airplay Report" title
- * - Subtitle: date range
- * - Meta: generated for user, generated timestamp
- * - Summary: total detections, unique songs, unique stations
- * - Table: Song, Artist, Station, ISRC, Date, Plays
+ * - Header: hitlist.fm brand + "Airplay Report", date range, meta
+ * - Summary: total plays, unique songs, stations
+ * - Table: plays per station
+ * - Table: every song by plays, with its per-station breakdown
  * - Footer: brand text centered on each page
  */
 export async function buildPDFBuffer(
-  events: Array<Record<string, unknown>>,
+  summary: EventSummary,
   dateRange: DateRange,
   userName: string,
 ): Promise<Buffer> {
@@ -30,7 +38,7 @@ export async function buildPDFBuffer(
     bufferPages: true,
     info: {
       Title: `Airplay Report ${dateRange.startDate} to ${dateRange.endDate}`,
-      Author: "myFuckingMusic",
+      Author: "hitlist.fm",
     },
   });
 
@@ -38,117 +46,82 @@ export async function buildPDFBuffer(
   doc.on("data", (chunk: Buffer) => chunks.push(chunk));
 
   // --- Header ---
-  doc
-    .fontSize(22)
-    .font("Helvetica-Bold")
-    .text("myFuckingMusic", { align: "left" });
-
-  doc
-    .fontSize(16)
-    .font("Helvetica")
-    .text("Airplay Report", { align: "left" });
-
+  doc.fontSize(22).font("Helvetica-Bold").text("hitlist.fm", { align: "left" });
+  doc.fontSize(16).font("Helvetica").text("Airplay Report", { align: "left" });
   doc.moveDown(0.5);
 
-  // --- Subtitle: date range ---
   doc
     .fontSize(12)
     .font("Helvetica")
-    .text(`${dateRange.startDate}  -  ${dateRange.endDate}`, {
-      align: "left",
-    });
-
+    .text(`${dateRange.startDate}  -  ${dateRange.endDate}`, { align: "left" });
   doc.moveDown(0.3);
 
-  // --- Meta ---
   doc
     .fontSize(10)
     .font("Helvetica")
     .fillColor("#666666")
     .text(`Generated for: ${userName}`)
     .text(`Generated: ${new Date().toISOString().split("T")[0]}`);
-
   doc.moveDown(0.5);
 
   // --- Summary ---
-  const uniqueSongs = new Set(
-    events.map((e) => `${e.songTitle}|${e.artistName}`),
-  ).size;
-  const uniqueStations = new Set(
-    events.map((e) => {
-      const station = e.station as { name: string } | null;
-      return station?.name ?? "Unknown";
-    }),
-  ).size;
-
   doc
     .fontSize(11)
     .font("Helvetica-Bold")
     .fillColor("#000000")
     .text(
-      `${events.length} detections  |  ${uniqueSongs} unique songs  |  ${uniqueStations} unique stations`,
+      `${summary.totalPlays} plays  |  ${summary.uniqueSongs} unique songs  |  ${summary.stations.length} stations`,
     );
-
   doc.moveDown(1);
 
-  // --- Table ---
-  const tableTop = doc.y;
-  const colWidths = [130, 100, 80, 80, 70, 40];
-  const headers = ["Song", "Artist", "Station", "ISRC", "Date", "Plays"];
-  const pageWidth = 495; // A4 width minus margins
+  // --- Plays per station ---
+  if (summary.stations.length > 0) {
+    doc.fontSize(12).font("Helvetica-Bold").text("Plays per station");
+    doc.moveDown(0.4);
 
-  // Table header
-  drawTableRow(doc, tableTop, colWidths, headers, true);
-
-  // Horizontal line under header
-  doc
-    .moveTo(50, tableTop + 18)
-    .lineTo(50 + pageWidth, tableTop + 18)
-    .strokeColor("#999999")
-    .lineWidth(0.5)
-    .stroke();
-
-  let yPos = tableTop + 22;
-
-  // Table rows
-  for (const event of events) {
-    // Check if we need a new page
-    if (yPos > 750) {
-      doc.addPage();
-      yPos = 50;
-      drawTableRow(doc, yPos, colWidths, headers, true);
-      doc
-        .moveTo(50, yPos + 18)
-        .lineTo(50 + pageWidth, yPos + 18)
-        .strokeColor("#999999")
-        .lineWidth(0.5)
-        .stroke();
-      yPos += 22;
+    let y = drawHeader(doc, doc.y, [340, 155], ["Station", "Plays"]);
+    for (const station of summary.stations) {
+      y = ensureRoom(doc, y, [340, 155], ["Station", "Plays"]);
+      drawTableRow(doc, y, [340, 155], [truncate(station.name, 55), String(station.plays)], false);
+      y = advance(doc, y);
     }
+    doc.y = y;
+    doc.moveDown(1);
+  }
 
-    const station = event.station as { name: string } | null;
-    const startedAt = event.startedAt as Date;
+  // --- Songs, with per-station breakdown ---
+  const songCols = [150, 115, 95, 40, 95];
+  const songHeaders = ["Song", "Artist", "ISRC", "Plays", "By station"];
 
-    const row = [
-      truncate(String(event.songTitle ?? ""), 25),
-      truncate(String(event.artistName ?? ""), 20),
-      truncate(String(station?.name ?? ""), 15),
-      String(event.isrc ?? ""),
-      startedAt.toISOString().split("T")[0],
-      String(event.playCount ?? 0),
-    ];
+  doc.fontSize(12).font("Helvetica-Bold").fillColor("#000000").text("Songs");
+  doc.moveDown(0.4);
 
-    drawTableRow(doc, yPos, colWidths, row, false);
-
-    // Light line between rows
-    yPos += 16;
+  if (summary.songs.length === 0) {
     doc
-      .moveTo(50, yPos)
-      .lineTo(50 + pageWidth, yPos)
-      .strokeColor("#eeeeee")
-      .lineWidth(0.25)
-      .stroke();
-    yPos += 4;
+      .fontSize(10)
+      .font("Helvetica")
+      .fillColor("#666666")
+      .text("No plays in this period.");
+  } else {
+    let y = drawHeader(doc, doc.y, songCols, songHeaders);
+    for (const song of summary.songs) {
+      y = ensureRoom(doc, y, songCols, songHeaders);
+      drawTableRow(
+        doc,
+        y,
+        songCols,
+        [
+          truncate(song.songTitle, 28),
+          truncate(song.artistName, 22),
+          song.isrc ?? "",
+          String(song.plays),
+          truncate(song.byStation.map((s) => `${s.name} ${s.plays}`).join(", "), 22),
+        ],
+        false,
+      );
+      y = advance(doc, y);
+    }
+    doc.y = y;
   }
 
   // --- Footer on all pages ---
@@ -159,9 +132,9 @@ export async function buildPDFBuffer(
       .fontSize(8)
       .font("Helvetica")
       .fillColor("#999999")
-      .text("myFuckingMusic - Airplay Monitoring", 50, 780, {
+      .text("hitlist.fm - Airplay Monitoring", 50, 780, {
         align: "center",
-        width: pageWidth,
+        width: PAGE_WIDTH,
       });
   }
 
@@ -170,6 +143,47 @@ export async function buildPDFBuffer(
   return new Promise<Buffer>((resolve) => {
     doc.on("end", () => resolve(Buffer.concat(chunks)));
   });
+}
+
+/** Draw a header row plus its underline; returns the y of the first data row. */
+function drawHeader(
+  doc: PDFKit.PDFDocument,
+  y: number,
+  colWidths: number[],
+  headers: string[],
+): number {
+  drawTableRow(doc, y, colWidths, headers, true);
+  doc
+    .moveTo(50, y + 18)
+    .lineTo(50 + PAGE_WIDTH, y + 18)
+    .strokeColor("#999999")
+    .lineWidth(0.5)
+    .stroke();
+  return y + 22;
+}
+
+/** Break to a new page (repeating the header) when the current row would overflow. */
+function ensureRoom(
+  doc: PDFKit.PDFDocument,
+  y: number,
+  colWidths: number[],
+  headers: string[],
+): number {
+  if (y <= PAGE_BOTTOM) return y;
+  doc.addPage();
+  return drawHeader(doc, 50, colWidths, headers);
+}
+
+/** Move past the row just drawn, leaving a hairline separator. */
+function advance(doc: PDFKit.PDFDocument, y: number): number {
+  const next = y + 16;
+  doc
+    .moveTo(50, next)
+    .lineTo(50 + PAGE_WIDTH, next)
+    .strokeColor("#eeeeee")
+    .lineWidth(0.25)
+    .stroke();
+  return next + 4;
 }
 
 /**
