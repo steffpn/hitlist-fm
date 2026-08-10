@@ -11,7 +11,27 @@ import { NextRequest, NextResponse } from "next/server";
  * Runs in the Node runtime under `next start`, so it reads the variable at
  * request time — set/unset it in Railway and redeploy, no rebuild needed.
  */
+/**
+ * Legal documents stay reachable even while the gate is on. App Review (and Beta
+ * App Review for TestFlight external testing) has to be able to open the privacy
+ * policy without a password, and these pages are public documents by nature.
+ */
+const ALWAYS_PUBLIC = [
+  "/privacy",
+  "/terms",
+  "/cookie-policy",
+  "/copyright-policy",
+  "/data-policy",
+  "/submission-terms",
+  "/subscription-terms",
+];
+
 export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  if (ALWAYS_PUBLIC.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+    return NextResponse.next();
+  }
+
   const password = process.env.SITE_PASSWORD;
   if (!password) return NextResponse.next(); // public when unset
 
