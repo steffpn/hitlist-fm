@@ -24,7 +24,7 @@ produselor/prețurilor create în Stripe.
 | Variabilă | Ce face |
 |---|---|
 | `RESEND_API_KEY` | Cheia API de la https://resend.com. Fără ea, emailurile **nu se trimit** — sunt doar logate (`email not configured (RESEND_API_KEY missing)`). Afectează: reset de parolă și codul de verificare a emailului la signup. |
-| `EMAIL_FROM` | Adresa expeditor (ex. `onair.music <no-reply@onair.music>`). Domeniul trebuie verificat în Resend (DNS: SPF + DKIM). Dacă lipsește, se folosește un default din cod. |
+| `EMAIL_FROM` | Adresa expeditor (ex. `hitlist.fm <no-reply@hitlist.fm>`). Domeniul trebuie verificat în Resend (DNS: SPF + DKIM). Dacă lipsește, se folosește un default din cod. |
 
 ## 3. Push Android (FCM)
 
@@ -56,7 +56,7 @@ Scriptul **`apps/api/prisma/seed-demo.ts`** creează cele 4 conturi demo (vezi
 label „Demo Records" (top 3 artiști + top 3 piese fiecare) și stație (prima stație din
 DB + competitorul). Rolurile non-admin primesc abonament **premium activ pe 10 ani**
 fără câmpuri Stripe, plus Organization/Membership/OrgEntity ca la backfill-ul de
-identitate. Parola tuturor: `OnAir!Demo2026`.
+identitate. Parola tuturor: `Hitlist!Demo2026`.
 
 Rulare / re-rulare (e idempotent — upsert pe email și pe cheile naturale, zero
 duplicate; re-rularea resetează parola demo și re-alege dinamic artiștii/stațiile de

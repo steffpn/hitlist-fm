@@ -1,6 +1,6 @@
-# Conturi demo — onair.music
+# Conturi demo — hitlist.fm
 
-Toate conturile au aceeași parolă: **`OnAir!Demo2026`**
+Toate conturile au aceeași parolă: **`Hitlist!Demo2026`**
 
 Conturile sunt create de scriptul `apps/api/prisma/seed-demo.ts` (idempotent — poate fi
 re-rulat oricând fără să creeze duplicate; re-rularea resetează și parola demo).
@@ -11,10 +11,10 @@ niciun paywall.
 
 | Email | Parolă | Rol | Ce vezi |
 |---|---|---|---|
-| `demo-admin@onair.music` | `OnAir!Demo2026` | **ADMIN** | Consola de administrare: detecții live, stații, utilizatori, invitații, planuri/abonamente, feature-uri, rapoarte piese lipsă + meniul **View as role**. |
-| `demo-artist@onair.music` | `OnAir!Demo2026` | **ARTIST** | Portalul de artist pentru artistul cu cele mai multe difuzări reale din DB (numele contului = numele exact al artistului). Are top 5 piese (ISRC-uri) monitorizate, cu tot istoricul de airplay — dashboard, analytics, heatmap, rapoarte, export. |
-| `demo-label@onair.music` | `OnAir!Demo2026` | **LABEL** | Portalul de casă de discuri „Demo Records": roster cu top 3 artiști după difuzări, câte 3 piese de top monitorizate per artist — dashboard agregat, comparație artiști, station affinity, release tracker. |
-| `demo-station@onair.music` | `OnAir!Demo2026` | **STATION** | Portalul de stație pentru prima stație din DB (ex. „Virgin Radio"), cu cealaltă stație (ex. „Kiss FM Romania") setată drept competitor urmărit — playlist, rotation analysis, discovery, competitor intelligence. |
+| `demo-admin@hitlist.fm` | `Hitlist!Demo2026` | **ADMIN** | Consola de administrare: detecții live, stații, utilizatori, invitații, planuri/abonamente, feature-uri, rapoarte piese lipsă + meniul **View as role**. |
+| `demo-artist@hitlist.fm` | `Hitlist!Demo2026` | **ARTIST** | Portalul de artist pentru artistul cu cele mai multe difuzări reale din DB (numele contului = numele exact al artistului). Are top 5 piese (ISRC-uri) monitorizate, cu tot istoricul de airplay — dashboard, analytics, heatmap, rapoarte, export. |
+| `demo-label@hitlist.fm` | `Hitlist!Demo2026` | **LABEL** | Portalul de casă de discuri „Demo Records": roster cu top 3 artiști după difuzări, câte 3 piese de top monitorizate per artist — dashboard agregat, comparație artiști, station affinity, release tracker. |
+| `demo-station@hitlist.fm` | `Hitlist!Demo2026` | **STATION** | Portalul de stație pentru prima stație din DB (ex. „Virgin Radio"), cu cealaltă stație (ex. „Kiss FM Romania") setată drept competitor urmărit — playlist, rotation analysis, discovery, competitor intelligence. |
 
 > Numele exacte (artist / stație / roster) sunt alese **dinamic la rularea seed-ului**, din
 > datele reale de airplay de la momentul respectiv. Pe clona bazei de producție din

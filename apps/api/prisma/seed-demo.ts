@@ -11,16 +11,16 @@
  * existence check. Re-running also resets the demo password.
  *
  * What it creates:
- *   1. demo-admin@onair.music   — ADMIN "Demo Admin" (no org/subscription,
+ *   1. demo-admin@hitlist.fm   — ADMIN "Demo Admin" (no org/subscription,
  *      mirroring the identity backfill which skips ADMIN users).
- *   2. demo-artist@onair.music  — ARTIST named EXACTLY like the artist with
+ *   2. demo-artist@hitlist.fm  — ARTIST named EXACTLY like the artist with
  *      the most airplay_events (partial_play=false) so the addArtistSong
  *      name check passes; monitors that artist's top 5 ISRCs.
- *   3. demo-label@onair.music   — LABEL "Demo Records" with the top 3 artists
+ *   3. demo-label@hitlist.fm   — LABEL "Demo Records" with the top 3 artists
  *      by plays as roster (LabelArtist) and each artist's top 3 ISRCs as
  *      label-owned MonitoredSongs linked through LabelMonitoredSong
  *      (same row structure the label handlers create).
- *   4. demo-station@onair.music — STATION named after the first active
+ *   4. demo-station@hitlist.fm — STATION named after the first active
  *      station, UserScope on it, WatchedStation on the other station.
  *   5. Per non-admin user: Organization + OWNER Membership +
  *      Subscription.organizationId + canonical Artist / OrgEntity rows,
@@ -45,13 +45,13 @@ const connectionString = process.env.DATABASE_URL!;
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
-const DEMO_PASSWORD = "OnAir!Demo2026";
+const DEMO_PASSWORD = "Hitlist!Demo2026";
 
 const EMAILS = {
-  admin: "demo-admin@onair.music",
-  artist: "demo-artist@onair.music",
-  label: "demo-label@onair.music",
-  station: "demo-station@onair.music",
+  admin: "demo-admin@hitlist.fm",
+  artist: "demo-artist@hitlist.fm",
+  label: "demo-label@hitlist.fm",
+  station: "demo-station@hitlist.fm",
 } as const;
 
 const TEN_YEARS_MS = 10 * 365 * 24 * 60 * 60 * 1000;
