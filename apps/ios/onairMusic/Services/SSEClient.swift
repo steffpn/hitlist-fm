@@ -140,6 +140,12 @@ actor SSEClient {
                                         snippetUrl: liveEvent.snippetUrl,
                                         partialPlay: nil,
                                         artworkUrl: nil,
+                                        // The live-feed frame carries no platform ids; the
+                                        // detail view falls back to search until the row is
+                                        // re-fetched from the airplay-events endpoint.
+                                        spotifyId: nil,
+                                        youtubeId: nil,
+                                        playedDuration: nil,
                                         createdAt: publishedAt,
                                         station: AirplayEvent.StationInfo(name: liveEvent.stationName)
                                     )

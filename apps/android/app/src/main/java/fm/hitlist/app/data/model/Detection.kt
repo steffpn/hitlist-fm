@@ -20,6 +20,14 @@ data class AirplayEvent(
     val partialPlay: Boolean = false,
     // Cached Deezer album artwork resolved server-side.
     val artworkUrl: String? = null,
+    // Platform ids captured from ACRCloud at detection time, used for deep links.
+    // Null on SSE live events and on rows detected before they were stored.
+    val spotifyId: String? = null,
+    val youtubeId: String? = null,
+    // Seconds the song actually aired, measured by ACRCloud. Null for detections
+    // captured while the callback ran in RealTime mode (fires on recognition,
+    // before the play has finished, so it carries no duration).
+    val playedDuration: Int? = null,
     val createdAt: String? = null,
     val station: StationInfo? = null,
 ) {

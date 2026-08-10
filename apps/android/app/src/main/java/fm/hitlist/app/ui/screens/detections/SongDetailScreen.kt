@@ -198,11 +198,19 @@ fun SongDetailScreen(
                     .padding(horizontal = 24.dp),
                 horizontalArrangement = Arrangement.Center,
             ) {
-                val isrc = event.isrc
                 StreamingButton("Spotify", Icons.Filled.Headphones, Color(0xFF1DB954)) {
-                    // ISRC field-filter resolves to the exact track; else artist + title.
-                    val query = if (!isrc.isNullOrBlank()) "isrc:$isrc" else "${event.artistName} ${event.songTitle}"
-                    openUrl(context, "https://open.spotify.com/search/${Uri.encode(query)}")
+                    // ACRCloud gives us the exact track id with the detection. The old
+                    // `isrc:` search filter got stripped on the web-to-app handoff and
+                    // left a raw ISRC sitting in Spotify's search box. Search is only a
+                    // fallback for rows detected before the id was stored.
+                    val spotifyId = event.spotifyId
+                    val url = if (!spotifyId.isNullOrBlank()) {
+                        "https://open.spotify.com/track/$spotifyId"
+                    } else {
+                        val q = Uri.encode("${event.artistName} ${event.songTitle}")
+                        "https://open.spotify.com/search/$q"
+                    }
+                    openUrl(context, url)
                 }
                 Spacer(Modifier.width(20.dp))
                 deezerTrackId?.let { id ->
@@ -212,8 +220,14 @@ fun SongDetailScreen(
                     Spacer(Modifier.width(20.dp))
                 }
                 StreamingButton("YouTube", Icons.Filled.PlayArrow, Color(0xFFFF0000)) {
-                    val q = Uri.encode("${event.artistName} ${event.songTitle}")
-                    openUrl(context, "https://music.youtube.com/search?q=$q")
+                    val youtubeId = event.youtubeId
+                    val url = if (!youtubeId.isNullOrBlank()) {
+                        "https://music.youtube.com/watch?v=$youtubeId"
+                    } else {
+                        val q = Uri.encode("${event.artistName} ${event.songTitle}")
+                        "https://music.youtube.com/search?q=$q"
+                    }
+                    openUrl(context, url)
                 }
             }
 
@@ -234,9 +248,22 @@ fun SongDetailScreen(
                         subtitle = DateFormat.shortDateTime(event.startedAt),
                     )
                 }
-                val duration = DateFormat.durationLabel(event.startedAt, event.endedAt)
-                if (duration.isNotEmpty()) {
-                    MetadataCard(icon = Icons.Filled.PlayArrow, title = "Duration", value = duration)
+                // Airtime — how long the song actually ran on the station, which is
+                // not how long the song is. ACRCloud only reports it once the play
+                // has finished; detections captured before the callback moved to
+                // Delay mode have neither a value nor a usable start/end span, so
+                // the card is hidden instead of showing a misleading 0:00.
+                val airtime = event.playedDuration
+                    ?.takeIf { it > 0 }
+                    ?.let { "%d:%02d".format(it / 60, it % 60) }
+                    ?: DateFormat.durationLabel(event.startedAt, event.endedAt)
+                if (airtime.isNotEmpty()) {
+                    MetadataCard(
+                        icon = Icons.Filled.PlayArrow,
+                        title = "Airtime",
+                        value = airtime,
+                        subtitle = "How long this song actually aired on the station",
+                    )
                 }
                 if (!event.isrc.isNullOrBlank()) {
                     MetadataCard(icon = Icons.Filled.MusicNote, title = "ISRC", value = event.isrc, mono = true)

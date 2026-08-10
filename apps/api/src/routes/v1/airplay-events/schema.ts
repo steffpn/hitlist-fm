@@ -48,6 +48,14 @@ export const AirplayEventSchema = Type.Object({
   partialPlay: Type.Boolean(),
   // Cached Deezer album artwork, resolved asynchronously after detection.
   artworkUrl: Type.Union([Type.String(), Type.Null()]),
+  // Platform ids from ACRCloud's external_metadata, stored at detection time.
+  // Clients deep-link with these instead of guessing a search query.
+  spotifyId: Type.Union([Type.String(), Type.Null()]),
+  youtubeId: Type.Union([Type.String(), Type.Null()]),
+  // Seconds the song actually aired, as measured by ACRCloud. Only populated
+  // once the broadcast-monitoring callback runs in Delay mode — RealTime fires
+  // on recognition, before the play has finished, and carries no duration.
+  playedDuration: Type.Union([Type.Number(), Type.Null()]),
   createdAt: Type.String(),
   station: Type.Object({ name: Type.String() }),
 });

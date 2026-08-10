@@ -34,6 +34,12 @@ export interface AirplayEvent {
   isrc: string | null;
   playCount: number;
   snippetUrl: string | null;
+  /** Platform ids from ACRCloud's external_metadata — used for deep links. */
+  spotifyId: string | null;
+  youtubeId: string | null;
+  /** Seconds the song actually aired. Null while the ACRCloud callback ran in
+   * RealTime mode, which fires on recognition and carries no duration. */
+  playedDuration: number | null;
   createdAt: Date;
 }
 

@@ -31,6 +31,13 @@ struct AirplayEvent: Codable, Identifiable, Sendable {
     let partialPlay: Bool?
     /// Server-side cached Deezer album artwork. Optional: SSE live events don't carry it.
     let artworkUrl: String?
+    /// Platform ids captured from ACRCloud at detection time, used for deep links.
+    /// Optional: SSE live events don't carry them, and older rows may be null.
+    let spotifyId: String?
+    let youtubeId: String?
+    /// Seconds the song actually aired on the station, measured by ACRCloud.
+    /// Null for detections captured while the callback ran in RealTime mode.
+    let playedDuration: Int?
     let createdAt: Date
 
     /// Nested station info included by the airplay-events API.

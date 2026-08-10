@@ -155,13 +155,28 @@ struct SongDetailView: View {
 
     // MARK: - Streaming Links Section
 
-    /// Spotify opens a proper search — the ISRC field-filter when known (so it
-    /// resolves to the exact track), else an artist + title query. NOT a raw ISRC
-    /// (that just drops a code into the search box and matches nothing).
-    private var spotifySearchURL: String {
-        let raw = (event.isrc?.isEmpty == false) ? "isrc:\(event.isrc!)" : "\(event.artistName) \(event.songTitle)"
+    /// ACRCloud hands us the exact Spotify track id with the detection, so link
+    /// straight to the track. The `isrc:` search filter used to be the fallback
+    /// here, but Spotify strips it on the web-to-app handoff and the user ends up
+    /// staring at a raw ISRC in the search box. Search stays as a last resort for
+    /// old rows detected before the id was stored.
+    private var spotifyURL: String {
+        if let id = event.spotifyId, !id.isEmpty {
+            return "https://open.spotify.com/track/\(id)"
+        }
+        let raw = "\(event.artistName) \(event.songTitle)"
         let q = raw.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? raw
         return "https://open.spotify.com/search/\(q)"
+    }
+
+    /// Same idea for YouTube: a real video id when we have one, else a search.
+    private var youtubeURL: String {
+        if let id = event.youtubeId, !id.isEmpty {
+            return "https://music.youtube.com/watch?v=\(id)"
+        }
+        let raw = "\(event.artistName) \(event.songTitle)"
+        let q = raw.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? raw
+        return "https://music.youtube.com/search?q=\(q)"
     }
 
     private var streamingLinksSection: some View {
@@ -170,7 +185,7 @@ struct SongDetailView: View {
                 title: "Spotify",
                 icon: "headphones",
                 color: Color(hex: "1DB954"),
-                url: spotifySearchURL
+                url: spotifyURL
             )
 
             if let deezerTrack = viewModel.deezerTrack {
@@ -182,15 +197,15 @@ struct SongDetailView: View {
                 )
             }
 
-            if let isrc = event.isrc, !isrc.isEmpty {
-                streamingButton(
-                    title: "YouTube",
-                    icon: "play.rectangle.fill",
-                    color: Color(hex: "FF0000"),
-                    url: "https://music.youtube.com/search?q=\(event.artistName) \(event.songTitle)"
-                        .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-                )
-            }
+            // Always available: with a video id it opens the track, without one it
+            // falls back to a search. The old ISRC gate hid the button for no
+            // reason — the link never used the ISRC.
+            streamingButton(
+                title: "YouTube",
+                icon: "play.rectangle.fill",
+                color: Color(hex: "FF0000"),
+                url: youtubeURL
+            )
         }
         .opacity(appearAnimation ? 1.0 : 0.0)
     }
@@ -226,14 +241,18 @@ struct SongDetailView: View {
                 )
             }
 
-            // Duration
-            let durationSeconds = durationInSeconds
-            if durationSeconds > 0 {
+            // Airtime — how long the song actually ran on this station, which is
+            // not the same thing as how long the song is. ACRCloud only reports it
+            // once the play has finished; detections captured before the callback
+            // was switched to Delay mode have no value and no usable start/end
+            // span either, so the card is hidden rather than showing a bogus 0:00.
+            let airtimeSeconds = event.playedDuration ?? durationInSeconds
+            if airtimeSeconds > 0 {
                 metadataCard(
                     icon: "clock",
-                    title: "Duration",
-                    value: formatDuration(durationSeconds),
-                    subtitle: nil
+                    title: "Airtime",
+                    value: formatDuration(airtimeSeconds),
+                    subtitle: "How long this song actually aired on the station"
                 )
             }
 
@@ -243,7 +262,7 @@ struct SongDetailView: View {
                     icon: "music.note.list",
                     title: "Track Length",
                     value: formatDuration(deezerDuration),
-                    subtitle: nil
+                    subtitle: "Full length of the released track"
                 )
             }
 
@@ -396,6 +415,9 @@ private struct PulsingModifier: ViewModifier {
                 snippetUrl: nil,
                 partialPlay: nil,
                 artworkUrl: nil,
+                spotifyId: "0VjIjW4GlUZAMYd2vXMi3b",
+                youtubeId: nil,
+                playedDuration: 187,
                 createdAt: Date(),
                 station: AirplayEvent.StationInfo(name: "Radio Capital")
             )
