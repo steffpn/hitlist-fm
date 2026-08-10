@@ -26,6 +26,7 @@ import { prisma } from "../lib/prisma.js";
 import { sendPush } from "../lib/push.js";
 import { validSubscriptionWhere } from "../lib/entitlements.js";
 import pino from "pino";
+import { startOfDay } from "../lib/period.js";
 
 const logger = pino({ name: "daily-report-worker" });
 const QUEUE_NAME = "daily-report";
@@ -801,8 +802,10 @@ async function processDailyReports(): Promise<void> {
         .filter((s) => s.entityType === "STATION")
         .map((s) => s.entityId);
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      // Bucharest midnight — the digest covers a local calendar day, and this
+      // anchor is also the key `GET /reports/today` looks the row up by, so the
+      // two must agree.
+      const today = startOfDay();
 
       // ── Daily report ──
       if (dailyEnabled) {

@@ -1,5 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { prisma } from "../../../lib/prisma.js";
+import { addLocalDays, startOfDay } from "../../../lib/period.js";
 import type {
   UpdatePreferencesBody,
   RegisterDeviceTokenBody,
@@ -82,13 +83,16 @@ export async function getDigestDetail(
   const { date } = request.params;
   const reportType = request.query.type === "weekly" ? "weekly" : "daily";
 
-  // Reports are stored with reportDate at server-local midnight
-  // (worker uses new Date() + setHours(0,0,0,0)), so match the whole day.
-  const dayStart = new Date(`${date}T00:00:00`);
-  if (Number.isNaN(dayStart.getTime())) {
+  // Reports are stamped with reportDate at Bucharest midnight (daily-report.ts
+  // uses startOfDay()), so the lookup window has to be the same local day. Noon
+  // UTC is a safe reference instant: no timezone offset can push it onto a
+  // neighbouring calendar date.
+  const noon = new Date(`${date}T12:00:00Z`);
+  if (Number.isNaN(noon.getTime())) {
     return reply.code(400).send({ error: "Invalid date. Expected YYYY-MM-DD." });
   }
-  const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+  const dayStart = startOfDay(noon);
+  const dayEnd = addLocalDays(dayStart, 1);
 
   const report = await prisma.dailyReport.findFirst({
     where: {

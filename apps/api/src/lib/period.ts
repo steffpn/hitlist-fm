@@ -85,6 +85,12 @@ export function startOfWeek(ref: Date = new Date(), tz: string = CHART_TZ): Date
   return localMidnightUtc(anchor.getUTCFullYear(), anchor.getUTCMonth() + 1, anchor.getUTCDate(), tz);
 }
 
+/** Start of the local calendar day (00:00 Bucharest) containing `ref`, as a UTC instant. */
+export function startOfDay(ref: Date = new Date(), tz: string = CHART_TZ): Date {
+  const local = getLocalParts(ref, tz);
+  return localMidnightUtc(local.year, local.month, local.day, tz);
+}
+
 /** Start of the local calendar month containing `ref`, as a UTC instant. */
 export function startOfMonth(ref: Date = new Date(), tz: string = CHART_TZ): Date {
   const local = getLocalParts(ref, tz);

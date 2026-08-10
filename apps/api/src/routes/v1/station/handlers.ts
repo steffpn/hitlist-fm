@@ -2,6 +2,7 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import { Prisma } from "../../../../generated/prisma/client.js";
 import { prisma } from "../../../lib/prisma.js";
 import { userHasFeature } from "../../../middleware/require-feature.js";
+import { addLocalDays, startOfDay } from "../../../lib/period.js";
 import type {
   PeriodQuery,
   TopSongsQuery,
@@ -69,30 +70,26 @@ function getDateRange(query: {
   startDate?: string;
   endDate?: string;
 }): { start: Date; end: Date } {
+  // Day boundaries are Europe/Bucharest, not the server's clock (UTC on Railway):
+  // otherwise every window silently started at 03:00 local and dropped the plays
+  // from the first hours of the day.
   if (query.startDate) {
-    const start = new Date(query.startDate);
-    start.setHours(0, 0, 0, 0);
-    const end = query.endDate ? new Date(query.endDate) : new Date();
-    end.setHours(23, 59, 59, 999);
+    const start = startOfDay(new Date(query.startDate));
+    // Inclusive end — the last instant of the local end day, or now for an open range.
+    const end = query.endDate
+      ? new Date(addLocalDays(startOfDay(new Date(query.endDate)), 1).getTime() - 1)
+      : new Date();
     return { start, end };
   }
 
   const end = new Date();
-  const start = new Date();
-  switch (query.period) {
-    case "month":
-      start.setDate(start.getDate() - 30);
-      break;
-    case "week":
-      start.setDate(start.getDate() - 7);
-      break;
-    case "day":
-    default:
-      start.setDate(start.getDate() - 1);
-      break;
-  }
-  start.setHours(0, 0, 0, 0);
-  return { start, end };
+  const today = startOfDay(end);
+  // "day" is the current local day, not a rolling 24h window — it is labelled
+  // "Today" in every client, and it used to reach back to yesterday 00:00.
+  // "week"/"month" stay rolling windows anchored on local midnight.
+  if (query.period === "week") return { start: addLocalDays(today, -7), end };
+  if (query.period === "month") return { start: addLocalDays(today, -30), end };
+  return { start: today, end };
 }
 
 /**
@@ -631,9 +628,7 @@ export async function getDiscoveryScore(
   const { start, end } = getDateRange(request.query);
 
   // Step 1: Find ISRCs first seen across ALL stations in the last 30 days
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  thirtyDaysAgo.setHours(0, 0, 0, 0);
+  const thirtyDaysAgo = addLocalDays(startOfDay(), -30);
 
   const newIsrcRows = await prisma.$queryRaw<Array<{ isrc: string }>>`
     SELECT isrc

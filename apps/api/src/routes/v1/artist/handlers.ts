@@ -12,37 +12,35 @@ import type {
   SongAnalyticsQuery,
 } from "./schema.js";
 import type { BrowseTracksQuery, ShareOfAirplayQuery } from "./schema.js";
-import { periodWindow } from "../../../lib/period.js";
+import {
+  addLocalDays,
+  periodWindow,
+  startOfDay,
+  startOfWeek,
+} from "../../../lib/period.js";
 
 // --- Date helpers ---
+//
+// These delegate to the Europe/Bucharest helpers in lib/period.ts. They used to
+// do naive local-time arithmetic, which broke twice over: the server runs in UTC
+// (so "today" started at 03:00 Bucharest), and `getDate() - getDay() + 1` lands
+// on *tomorrow* every Sunday, because getDay() returns 0 there — which is why the
+// dashboard showed "0 plays this week" next to a non-zero "plays today".
 
 function getStartOfWeek(): Date {
-  const now = new Date();
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Monday
-  startOfWeek.setHours(0, 0, 0, 0);
-  return startOfWeek;
+  return startOfWeek();
 }
 
 function getStartOfLastWeek(): Date {
-  const startOfWeek = getStartOfWeek();
-  const startOfLastWeek = new Date(startOfWeek);
-  startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
-  return startOfLastWeek;
+  return addLocalDays(startOfWeek(), -7);
 }
 
 function getEndOfLastWeek(): Date {
-  const startOfWeek = getStartOfWeek();
-  const endOfLastWeek = new Date(startOfWeek);
-  endOfLastWeek.setMilliseconds(-1);
-  return endOfLastWeek;
+  return new Date(startOfWeek().getTime() - 1);
 }
 
 function getStartOfToday(): Date {
-  const now = new Date();
-  const startOfToday = new Date(now);
-  startOfToday.setHours(0, 0, 0, 0);
-  return startOfToday;
+  return startOfDay();
 }
 
 const DAY_NAMES = [

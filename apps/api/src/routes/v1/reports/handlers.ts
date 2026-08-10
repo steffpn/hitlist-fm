@@ -2,6 +2,7 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../../../lib/prisma.js";
 import { getEffectivePlan, clampHistoryFrom } from "../../../lib/entitlements.js";
 import type { ReportQuery } from "./schema.js";
+import { startOfDay } from "../../../lib/period.js";
 
 /**
  * GET /reports - List user's daily reports.
@@ -40,8 +41,8 @@ export async function todayReport(
   reply: FastifyReply,
 ): Promise<void> {
   const user = request.currentUser;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Must match the anchor the daily-report worker writes with (Bucharest midnight).
+  const today = startOfDay();
 
   const report = await prisma.dailyReport.findFirst({
     where: { userId: user.id, reportDate: today, reportType: "daily" },

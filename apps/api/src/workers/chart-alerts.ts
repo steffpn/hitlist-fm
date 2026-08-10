@@ -17,6 +17,7 @@ import { prisma } from "../lib/prisma.js";
 import { getApnsClient } from "../lib/apns.js";
 import { sendPush } from "../lib/push.js";
 import pino from "pino";
+import { addLocalDays, startOfDay } from "../lib/period.js";
 
 const logger = pino({ name: "chart-alerts-worker" });
 const QUEUE_NAME = "chart-alerts";
@@ -132,8 +133,10 @@ async function scrapeAppleMusicChart(country: string): Promise<ChartSong[]> {
 // ─── Main Process ──────────────────────────────────────────────────
 
 async function processChartAlerts(): Promise<void> {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Bucharest midnight, not the server's (UTC on Railway) — a chart snapshot has
+  // to be stamped with the local day it belongs to, otherwise every entry between
+  // 00:00 and 03:00 local lands on the previous day.
+  const today = startOfDay();
 
   // Get all countries that users are tracking
   const userSettings = await prisma.userSettings.findMany({
@@ -195,8 +198,7 @@ async function processChartAlerts(): Promise<void> {
 
 async function generateAlerts(snapshotDate: Date): Promise<void> {
   const apns = getApnsClient();
-  const yesterday = new Date(snapshotDate);
-  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterday = addLocalDays(snapshotDate, -1);
 
   // Get all monitored songs (artist + label)
   const monitoredSongs = await prisma.monitoredSong.findMany({
