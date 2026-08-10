@@ -11,7 +11,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>fm.hitlist.app</string>
+			<string>fm.hitlist.pro</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>hitlist</string>

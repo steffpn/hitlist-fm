@@ -13,6 +13,9 @@ apps/ios/myFuckingMusic.xcodeproj/xcuserdata
 **/xcuserdata/
 *.xcuserstate
 *.pbxproj.backup
+
+# iOS release artifacts produced by apps/ios/scripts/testflight.sh
+apps/ios/.build/
 .DS_Store
 backups/
 apps/api/prisma.config.js

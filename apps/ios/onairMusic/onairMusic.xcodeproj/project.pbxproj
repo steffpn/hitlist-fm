@@ -92,6 +92,7 @@
 		A10000010000000000000061 /* ArtistDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000061 /* ArtistDetailView.swift */; };
 		A10000010000000000000062 /* SongThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000062 /* SongThumbnail.swift */; };
 		A10000010000000000000063 /* NowPlayingBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000063 /* NowPlayingBar.swift */; };
+		A10000020000000000000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000020000000000000001 /* PrivacyInfo.xcprivacy */; };
 		A58FD004B38B5E50A5BAFB9B /* PlaylistOverlapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118D03F8BE04147BA3CD73FC /* PlaylistOverlapView.swift */; };
 		A81DE7BB36F8D43ACF88B4CD /* LabelArtistDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FBDCC1D3470088B9903E1CC /* LabelArtistDetailViewModel.swift */; };
 		AA1B2C3D4E5F607182930A01 /* SettingsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1B2C3D4E5F607182930A01 /* SettingsModels.swift */; };
@@ -122,14 +123,13 @@
 		F7D4E5061728394A5B6C7D8E /* BrowseArtistsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C3D4F5061728394A5B6C7D /* BrowseArtistsViewModel.swift */; };
 		F98FCE85780B4629FC937409 /* LabelArtistListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 471EA2E32F0E78ED89A6FAD4 /* LabelArtistListViewModel.swift */; };
 		F9DD3217DBF634B0D119544F /* StationBreakdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE50EC0DCFDAA39325546538 /* StationBreakdownView.swift */; };
-		A10000020000000000000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000020000000000000001 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		01F1D79AE953C4B6E34F5D32 /* ArtistDashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardViewModel.swift; sourceTree = "<group>"; };
 		026E5787C3BE546D73C9D48C /* StationDashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationDashboardViewModel.swift; sourceTree = "<group>"; };
 		02C5AD836186244A41A0722A /* RotationAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RotationAnalysisView.swift; sourceTree = "<group>"; };
-		053D1FDEFF4F44F0376E78D6 /* Sora.ttf */ = {isa = PBXFileReference; includeInIndex = 1; name = Sora.ttf; path = Resources/Fonts/Sora.ttf; sourceTree = "<group>"; };
+		053D1FDEFF4F44F0376E78D6 /* Sora.ttf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = Sora.ttf; path = Resources/Fonts/Sora.ttf; sourceTree = "<group>"; };
 		098E17B1C7B5E0020D09EF6F /* LabelDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelDashboardView.swift; sourceTree = "<group>"; };
 		118D03F8BE04147BA3CD73FC /* PlaylistOverlapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistOverlapView.swift; sourceTree = "<group>"; };
 		11CDE71D0F3223B6C5DACD8C /* SongAnalyticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongAnalyticsViewModel.swift; sourceTree = "<group>"; };
@@ -143,7 +143,7 @@
 		59BCC52224E2E859C5ADB5E2 /* StationAffinityViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationAffinityViewModel.swift; sourceTree = "<group>"; };
 		675888B1F1ACC855A55158A0 /* StationAnalyticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationAnalyticsViewModel.swift; sourceTree = "<group>"; };
 		74CBABE653158D03D90FC758 /* StationDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationDashboardView.swift; sourceTree = "<group>"; };
-		7A529F54B2D701C4EF114D31 /* IBMPlexMono-Medium.ttf */ = {isa = PBXFileReference; includeInIndex = 1; name = "IBMPlexMono-Medium.ttf"; path = "Resources/Fonts/IBMPlexMono-Medium.ttf"; sourceTree = "<group>"; };
+		7A529F54B2D701C4EF114D31 /* IBMPlexMono-Medium.ttf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = "IBMPlexMono-Medium.ttf"; path = "Resources/Fonts/IBMPlexMono-Medium.ttf"; sourceTree = "<group>"; };
 		7FBDCC1D3470088B9903E1CC /* LabelArtistDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelArtistDetailViewModel.swift; sourceTree = "<group>"; };
 		8A56F3C1F2EFBD413683BEE2 /* BarChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarChartView.swift; sourceTree = "<group>"; };
 		9585692FE6A80C873E715E6D /* ArtistRoleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistRoleModels.swift; sourceTree = "<group>"; };
@@ -209,6 +209,8 @@
 		A20000010000000000000061 /* ArtistDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDetailView.swift; sourceTree = "<group>"; };
 		A20000010000000000000062 /* SongThumbnail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongThumbnail.swift; sourceTree = "<group>"; };
 		A20000010000000000000063 /* NowPlayingBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingBar.swift; sourceTree = "<group>"; };
+		A20000020000000000000001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		A20000020000000000000002 /* onairMusic.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = onairMusic.entitlements; sourceTree = "<group>"; };
 		A30000010000000000000001 /* onairMusic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = onairMusic.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8E5F6172839405B6C7D8E9F /* ArtistPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistPickerView.swift; sourceTree = "<group>"; };
 		AB4976BF2266819EC4D4DB52 /* HourlyHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HourlyHeatmapView.swift; sourceTree = "<group>"; };
@@ -219,7 +221,7 @@
 		BB1B2C3D4E5F607182930A02 /* ChartAlertModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartAlertModels.swift; sourceTree = "<group>"; };
 		BB1B2C3D4E5F607182930A03 /* DailyReportModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReportModels.swift; sourceTree = "<group>"; };
 		BB1B2C3D4E5F607182930A04 /* SubscriptionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionModels.swift; sourceTree = "<group>"; };
-		BD8E4B3C8A0E9B364496B3E0 /* IBMPlexMono-Regular.ttf */ = {isa = PBXFileReference; includeInIndex = 1; name = "IBMPlexMono-Regular.ttf"; path = "Resources/Fonts/IBMPlexMono-Regular.ttf"; sourceTree = "<group>"; };
+		BD8E4B3C8A0E9B364496B3E0 /* IBMPlexMono-Regular.ttf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = "IBMPlexMono-Regular.ttf"; path = "Resources/Fonts/IBMPlexMono-Regular.ttf"; sourceTree = "<group>"; };
 		C4A1B2D3E4F5061728394A5B /* DeezerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeezerModels.swift; sourceTree = "<group>"; };
 		C6DF6CA40286165C5D65CC3E /* ArtistDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDashboardView.swift; sourceTree = "<group>"; };
 		CC1B2C3D4E5F607182930A01 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
@@ -242,8 +244,6 @@
 		E3D8E6BB5485B88F3F5B484C /* MonitoredSongsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoredSongsViewModel.swift; sourceTree = "<group>"; };
 		E6C3D4F5061728394A5B6C7D /* BrowseArtistsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseArtistsViewModel.swift; sourceTree = "<group>"; };
 		EBA0C005635A1D3AC9182C84 /* StationAnalyticsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationAnalyticsModels.swift; sourceTree = "<group>"; };
-		A20000020000000000000001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		A20000020000000000000002 /* onairMusic.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = onairMusic.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -882,7 +882,7 @@
 				CODE_SIGN_ENTITLEMENTS = onairMusic.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 3H8V5R5YP3;
+				DEVELOPMENT_TEAM = Y2AN2MU7W9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
@@ -898,7 +898,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = fm.hitlist.app;
+				PRODUCT_BUNDLE_IDENTIFIER = fm.hitlist.pro;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -915,7 +915,7 @@
 				CODE_SIGN_ENTITLEMENTS = onairMusic.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 3H8V5R5YP3;
+				DEVELOPMENT_TEAM = Y2AN2MU7W9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
@@ -931,7 +931,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = fm.hitlist.app;
+				PRODUCT_BUNDLE_IDENTIFIER = fm.hitlist.pro;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
