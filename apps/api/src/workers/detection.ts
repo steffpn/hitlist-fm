@@ -123,11 +123,26 @@ interface AcrCloudMusicResult {
   external_ids?: {
     isrc?: string | string[];
   };
+  // ACRCloud returns each platform as an *array* of candidate matches ordered by
+  // relevance, not a single object. Both shapes are accepted here because some
+  // result types (and ACRCloud's own older docs) use a bare object.
   external_metadata?: {
-    spotify?: { track?: { id?: string } };
-    deezer?: { track?: { id?: string; preview?: string } };
-    youtube?: { vid?: string };
+    spotify?: SpotifyMeta | SpotifyMeta[];
+    deezer?: DeezerMeta | DeezerMeta[];
+    youtube?: YoutubeMeta | YoutubeMeta[];
   };
+}
+
+interface SpotifyMeta {
+  track?: { id?: string };
+}
+
+interface DeezerMeta {
+  track?: { id?: string; preview?: string };
+}
+
+interface YoutubeMeta {
+  vid?: string;
 }
 
 interface AcrCloudCallbackBody {
@@ -147,6 +162,18 @@ interface AcrCloudCallbackBody {
 }
 
 // ---- Helpers ----
+
+/**
+ * Best external match for a platform.
+ *
+ * ACRCloud ships these as arrays ordered by relevance. Reading them as plain
+ * objects — which this worker did — silently produced null for every Spotify id,
+ * YouTube id and Deezer preview ever stored, which is why the apps had to fall
+ * back to guessing a search query instead of deep-linking the track.
+ */
+function firstMatch<T>(value: T | T[] | undefined): T | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
 
 function normalizeIsrc(
   isrc: string | string[] | undefined | null,
@@ -422,9 +449,10 @@ export async function processCallback(
     const albumTitle = music.album?.name ?? null;
     const label = music.label ?? null;
     const playedDuration = data.metadata?.played_duration ?? null;
-    const deezerUrl = music.external_metadata?.deezer?.track?.preview ?? null;
-    const spotifyId = music.external_metadata?.spotify?.track?.id ?? null;
-    const youtubeId = music.external_metadata?.youtube?.vid ?? null;
+    const external = music.external_metadata;
+    const deezerUrl = firstMatch(external?.deezer)?.track?.preview ?? null;
+    const spotifyId = firstMatch(external?.spotify)?.track?.id ?? null;
+    const youtubeId = firstMatch(external?.youtube)?.vid ?? null;
 
     // Insert Detection record
     try {
