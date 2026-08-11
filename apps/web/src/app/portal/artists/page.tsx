@@ -69,6 +69,15 @@ export default function LabelArtistsPage() {
   const [pendingDelete, setPendingDelete] = useState<LabelArtist | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Picking an artist used to look like nothing happened: the songs panel renders
+  // below the whole roster grid, which is off-screen as soon as there are more
+  // than a few artists. Bring it into view on selection.
+  const detailRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (selectedId === null) return;
+    detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [selectedId]);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -182,6 +191,15 @@ export default function LabelArtistsPage() {
                       {a.topSong && (
                         <div className="text-xs text-zinc-500 truncate">top: {a.topSong}</div>
                       )}
+                      {/* The card is a button but read as a static tile; say what it does. */}
+                      <div
+                        className={cn(
+                          "text-xs mt-1 truncate",
+                          selectedId === a.id ? "text-brand-400" : "text-zinc-600",
+                        )}
+                      >
+                        {selectedId === a.id ? "piese afișate mai jos" : "vezi piesele →"}
+                      </div>
                     </div>
                     <button
                       onClick={(e) => {
@@ -208,7 +226,9 @@ export default function LabelArtistsPage() {
             </div>
 
             {/* Selected artist songs */}
-            {selected && <ArtistSongsPanel key={selected.id} artist={selected} onChanged={load} />}
+            <div ref={detailRef} className="scroll-mt-6">
+              {selected && <ArtistSongsPanel key={selected.id} artist={selected} onChanged={load} />}
+            </div>
           </>
         )
       )}
