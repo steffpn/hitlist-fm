@@ -39,8 +39,13 @@ object ServiceLocator {
         private set
     val impersonation = ImpersonationManager()
 
+    /** Plain (non-secret) device-local preferences: dashboard layout and the like. */
+    lateinit var prefs: android.content.SharedPreferences
+        private set
+
     fun init(context: Context) {
         val app = context.applicationContext
+        prefs = app.getSharedPreferences("hitlist.prefs", Context.MODE_PRIVATE)
         json = buildJson()
         sessionStore = SessionStore(app, json)
 

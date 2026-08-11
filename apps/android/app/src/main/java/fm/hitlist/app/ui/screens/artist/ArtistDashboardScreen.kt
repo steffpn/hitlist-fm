@@ -37,12 +37,38 @@ import fm.hitlist.app.ui.theme.RbBackground
 import fm.hitlist.app.ui.theme.RbTextPrimary
 import fm.hitlist.app.ui.theme.RbTextSecondary
 import fm.hitlist.app.ui.theme.RbTextTertiary
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.TextOverflow
+import fm.hitlist.app.core.DateFormat
+import fm.hitlist.app.ui.components.ReorderDialog
 
 @Composable
 fun ArtistDashboardScreen() {
     val vm: ArtistDashboardViewModel = viewModel(
         factory = viewModelFactory { initializer { ArtistDashboardViewModel(ServiceLocator.api) } },
     )
+
+    var showArrange by remember { mutableStateOf(false) }
+
+    if (showArrange) {
+        ReorderDialog(
+            title = "Arrange dashboard",
+            items = vm.sectionOrder,
+            label = { it.title },
+            onDismiss = { showArrange = false },
+            onConfirm = {
+                vm.reorder(it)
+                showArrange = false
+            },
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -52,12 +78,26 @@ fun ArtistDashboardScreen() {
             .verticalScroll(rememberScrollState())
             .padding(bottom = 24.dp),
     ) {
-        Text(
-            text = "Dashboard",
-            style = MaterialTheme.typography.headlineLarge,
-            color = RbTextPrimary,
-            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 12.dp),
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 12.dp, top = 4.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Dashboard",
+                style = MaterialTheme.typography.headlineLarge,
+                color = RbTextPrimary,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = { showArrange = true }) {
+                Icon(
+                    imageVector = Icons.Filled.SwapVert,
+                    contentDescription = "Arrange dashboard",
+                    tint = RbTextSecondary,
+                )
+            }
+        }
 
         // Day / Week / Month. Totals, the top song and the station breakdown all
         // follow this selection; testers asked to be able to pick the reporting
@@ -77,77 +117,113 @@ fun ArtistDashboardScreen() {
                     CenterError(message = vm.error ?: "Error", onRetry = { vm.refresh() })
                 }
             data != null -> {
-                GlassCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp),
-                    padding = 20.dp,
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        AirplayGauge(value = data.totalPlaysWeek, caption = "this week")
-                        Spacer(Modifier.width(20.dp))
-                        Column {
-                            Text(
-                                text = "AIRPLAY",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = RbTextTertiary,
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = "${data.totalPlaysWeek}",
-                                style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
-                                color = RbTextPrimary,
-                            )
-                            Text(
-                                text = "${data.totalPlaysToday} plays today",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = RbTextSecondary,
-                            )
+                // Rendered in the user's own order (long-press a row in Arrange to drag).
+                vm.sectionOrder.forEach { section ->
+                    when (section) {
+                        DashboardSection.LATEST_PLAYS -> if (vm.latestPlays.isNotEmpty()) {
+                            SectionHeader("Latest plays", modifier = Modifier.padding(horizontal = 20.dp))
+                            Spacer(Modifier.height(10.dp))
+                            GlassCard(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                            ) {
+                                vm.latestPlays.forEachIndexed { index, event ->
+                                    if (index > 0) Spacer(Modifier.height(8.dp))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Column(Modifier.weight(1f)) {
+                                            Text(
+                                                text = event.songTitle,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = RbTextPrimary,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                            Text(
+                                                text = event.artistName,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = RbTextSecondary,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                        }
+                                        Spacer(Modifier.width(10.dp))
+                                        Text(
+                                            text = DateFormat.shortDateTime(event.startedAt),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = RbTextTertiary,
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(Modifier.height(24.dp))
                         }
-                    }
-                }
 
-                // Where this week's plays happened — the dashboard only ever showed
-                // a combined total, so an artist could not tell which station was
-                // actually carrying the track.
-                if (data.stationBreakdown.isNotEmpty()) {
-                    Spacer(Modifier.height(24.dp))
-                    SectionHeader("Plays per station", modifier = Modifier.padding(horizontal = 20.dp))
-                    Spacer(Modifier.height(10.dp))
-                    GlassCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp),
-                    ) {
-                        StationBreakdown(items = data.stationBreakdown)
-                    }
-                }
+                        DashboardSection.AIRPLAY -> {
+                            GlassCard(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                                padding = 20.dp,
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    AirplayGauge(value = data.totalPlaysWeek, caption = "this week")
+                                    Spacer(Modifier.width(20.dp))
+                                    Column {
+                                        Text(
+                                            text = "AIRPLAY",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = RbTextTertiary,
+                                        )
+                                        Spacer(Modifier.height(4.dp))
+                                        Text(
+                                            text = "${data.totalPlaysWeek}",
+                                            style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
+                                            color = RbTextPrimary,
+                                        )
+                                        Text(
+                                            text = "${data.totalPlaysToday} plays today",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = RbTextSecondary,
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(Modifier.height(24.dp))
+                        }
 
-                data.mostPlayedSong?.let { song ->
-                    Spacer(Modifier.height(24.dp))
-                    SectionHeader("Most played this week", modifier = Modifier.padding(horizontal = 20.dp))
-                    Spacer(Modifier.height(10.dp))
-                    GlassCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp),
-                    ) {
-                        Text(
-                            text = song.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = RbTextPrimary,
-                        )
-                        Text(
-                            text = song.artist,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = RbTextSecondary,
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = "${song.plays} plays",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = RbAccentLight,
-                        )
+                        DashboardSection.STATIONS -> if (data.stationBreakdown.isNotEmpty()) {
+                            SectionHeader("Plays per station", modifier = Modifier.padding(horizontal = 20.dp))
+                            Spacer(Modifier.height(10.dp))
+                            GlassCard(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                            ) {
+                                StationBreakdown(items = data.stationBreakdown)
+                            }
+                            Spacer(Modifier.height(24.dp))
+                        }
+
+                        DashboardSection.MOST_PLAYED -> data.mostPlayedSong?.let { song ->
+                            SectionHeader("Most played", modifier = Modifier.padding(horizontal = 20.dp))
+                            Spacer(Modifier.height(10.dp))
+                            GlassCard(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                            ) {
+                                Text(
+                                    text = song.title,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = RbTextPrimary,
+                                )
+                                Text(
+                                    text = song.artist,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = RbTextSecondary,
+                                )
+                                Spacer(Modifier.height(6.dp))
+                                Text(
+                                    text = "${song.plays} plays",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = RbAccentLight,
+                                )
+                            }
+                            Spacer(Modifier.height(24.dp))
+                        }
                     }
                 }
             }

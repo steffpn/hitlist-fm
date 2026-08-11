@@ -85,6 +85,13 @@ struct MainTabView: View {
                 Label("My Songs", systemImage: "music.note.list")
             }
 
+            NavigationStack {
+                SongsView()
+            }
+            .tabItem {
+                Label("Songs", systemImage: "music.note.house.fill")
+            }
+
             DetectionsView()
                 .tabItem {
                     Label("Detections", systemImage: "antenna.radiowaves.left.and.right")
@@ -115,6 +122,13 @@ struct MainTabView: View {
             }
             .tabItem {
                 Label("My Artists", systemImage: "person.2.fill")
+            }
+
+            NavigationStack {
+                SongsView()
+            }
+            .tabItem {
+                Label("Songs", systemImage: "music.note.house.fill")
             }
 
             DetectionsView()
@@ -159,6 +173,13 @@ struct MainTabView: View {
             }
             .tabItem {
                 Label("Competitors", systemImage: "person.2.wave.2.fill")
+            }
+
+            NavigationStack {
+                SongsView()
+            }
+            .tabItem {
+                Label("Songs", systemImage: "music.note.house.fill")
             }
 
             NavigationStack {

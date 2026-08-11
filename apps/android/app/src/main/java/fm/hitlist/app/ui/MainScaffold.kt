@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material.icons.filled.QueueMusic
@@ -49,6 +50,7 @@ import fm.hitlist.app.ui.screens.label.LabelArtistsScreen
 import fm.hitlist.app.ui.screens.label.LabelDashboardScreen
 import fm.hitlist.app.ui.screens.label.LabelInsightsMenuScreen
 import fm.hitlist.app.ui.screens.settings.SettingsScreen
+import fm.hitlist.app.ui.screens.songs.SongsScreen
 import fm.hitlist.app.ui.screens.station.CompetitorsScreen
 import fm.hitlist.app.ui.screens.station.StationAnalyticsMenuScreen
 import fm.hitlist.app.ui.screens.station.StationDashboardScreen
@@ -91,18 +93,21 @@ fun MainScaffold(
         "ARTIST" -> listOf(
             TabSpec("Dashboard", Icons.Filled.BarChart, { ArtistDashboardScreen() }),
             TabSpec("My Songs", Icons.Filled.QueueMusic, { MonitoredSongsScreen() }),
+            TabSpec("Songs", Icons.Filled.LibraryMusic, { SongsScreen() }),
             TabSpec("Detections", Icons.Filled.GraphicEq, detections),
             TabSpec("Settings", Icons.Filled.Settings, settings),
         )
         "LABEL" -> listOf(
             TabSpec("Dashboard", Icons.Filled.BarChart, { LabelDashboardScreen() }),
             TabSpec("Artists", Icons.Filled.Groups, { LabelArtistsScreen() }),
+            TabSpec("Songs", Icons.Filled.LibraryMusic, { SongsScreen() }),
             TabSpec("Detections", Icons.Filled.GraphicEq, detections),
             TabSpec("Insights", Icons.Filled.Lightbulb, { LabelInsightsMenuScreen() }),
             TabSpec("Settings", Icons.Filled.Settings, settings),
         )
         "STATION" -> listOf(
             TabSpec("Station", Icons.Filled.Radio, { StationDashboardScreen() }),
+            TabSpec("Songs", Icons.Filled.LibraryMusic, { SongsScreen() }),
             TabSpec("Competitors", Icons.Filled.Groups, { CompetitorsScreen() }),
             TabSpec("Analytics", Icons.Filled.ShowChart, { StationAnalyticsMenuScreen() }),
             TabSpec("Settings", Icons.Filled.Settings, settings),
@@ -110,6 +115,7 @@ fun MainScaffold(
         "ADMIN" -> listOf(
             TabSpec("Dashboard", Icons.Filled.BarChart, { AdminDashboardScreen() }),
             TabSpec("Detections", Icons.Filled.GraphicEq, detections),
+            TabSpec("Songs", Icons.Filled.LibraryMusic, { SongsScreen() }),
             TabSpec("Artists", Icons.Filled.Group, { AdminArtistsScreen() }),
             TabSpec("Settings", Icons.Filled.Settings, settings),
         )

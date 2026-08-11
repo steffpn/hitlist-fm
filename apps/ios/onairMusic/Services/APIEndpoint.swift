@@ -49,6 +49,7 @@ enum APIEndpoint: Sendable {
     case deleteArtistSong(id: Int)
     case browseTracks(query: String)
     case artistDashboard(period: String?)
+    case songs(period: String, query: String?)
     case artistWeeklyDigest
     case songAnalytics(songId: Int)
     case songStationBreakdown(songId: Int)
@@ -158,6 +159,13 @@ enum APIEndpoint: Sendable {
             return "/artist/songs/\(id)"
         case .browseTracks:
             return "/artist/browse-tracks"
+        case .songs(let period, let query):
+            var path = "/songs?period=\(period)"
+            if let query, !query.isEmpty,
+               let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+                path += "&q=\(encoded)"
+            }
+            return path
         case .artistDashboard(let period):
             guard let period, !period.isEmpty else { return "/artist/dashboard" }
             return "/artist/dashboard?period=\(period)"
@@ -271,7 +279,7 @@ enum APIEndpoint: Sendable {
         case .health, .dashboardSummary, .topStations, .airplayEvents, .snippetUrl, .stations,
              .watchedStations, .ownStations, .competitorSummary, .competitorDetail,
              .exportCSV, .exportPDF, .notificationPreferences, .digestDetail,
-             .artistSongs, .artistDashboard, .artistWeeklyDigest, .browseTracks,
+             .artistSongs, .artistDashboard, .songs, .artistWeeklyDigest, .browseTracks,
              .songAnalytics, .songStationBreakdown, .songHourlyHeatmap, .songPeakHours, .songTrend,
              .labelArtists, .labelArtistSongs, .labelDashboard, .labelComparison,
              .labelStationAffinity, .labelReleaseTracker,

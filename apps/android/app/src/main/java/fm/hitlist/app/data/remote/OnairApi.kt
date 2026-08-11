@@ -44,6 +44,7 @@ import fm.hitlist.app.data.model.PaginatedResponse
 import fm.hitlist.app.data.model.RefreshRequest
 import fm.hitlist.app.data.model.RegisterRequest
 import fm.hitlist.app.data.model.SnippetUrlResponse
+import fm.hitlist.app.data.model.SongsResponse
 import fm.hitlist.app.data.model.Station
 import fm.hitlist.app.data.model.StationOverview
 import fm.hitlist.app.data.model.StationTopSong
@@ -110,6 +111,14 @@ interface OnairApi {
 
     @GET("airplay-events/{id}/snippet")
     suspend fun getSnippetUrl(@Path("id") id: Int): SnippetUrlResponse
+
+    // ---- Songs (role-scoped) ----
+
+    @GET("songs")
+    suspend fun getSongs(
+        @Query("period") period: String? = null,
+        @Query("q") q: String? = null,
+    ): SongsResponse
 
     // ---- Artist ----
 

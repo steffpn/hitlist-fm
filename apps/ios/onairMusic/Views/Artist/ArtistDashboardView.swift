@@ -4,6 +4,8 @@ import SwiftUI
 /// Shows today/weekly play counts, most played song, and weekly digest.
 struct ArtistDashboardView: View {
     @State private var viewModel = ArtistDashboardViewModel()
+    @State private var isReordering = false
+    @State private var sectionOrder: [ArtistDashboardSection] = []
     @Environment(AuthManager.self) private var authManager
 
     var body: some View {
@@ -36,35 +38,9 @@ struct ArtistDashboardView: View {
                         .pickerStyle(.segmented)
                         .colorMultiply(.rbAccent)
 
-                        // Airplay gauge hero — merges Plays Today + Plays This Week.
-                        if let dash = viewModel.dashboard {
-                            airplayGaugeCard(dash)
-                        }
-
-                        // Most played song
-                        if let song = viewModel.dashboard?.mostPlayedSong {
-                            mostPlayedCard(song)
-                        }
-
-                        // Where this week's plays happened. The dashboard only ever
-                        // showed a combined total, so an artist could not tell which
-                        // station was actually carrying the track.
-                        if let breakdown = viewModel.dashboard?.stationBreakdown,
-                           !breakdown.isEmpty {
-                            StationBreakdownView(stations: breakdown)
-                                .padding(16)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .fill(Color.rbSurface)
-                                )
-                        }
-
-                        // Today's report shortcut
-                        todayReportCard
-
-                        // Weekly digest
-                        if let digest = viewModel.weeklyDigest, !digest.songs.isEmpty {
-                            weeklyDigestSection(digest)
+                        // Rendered in the user's own order (drag to rearrange).
+                        ForEach(sectionOrder) { section in
+                            sectionView(section)
                         }
                     }
                     .padding(.horizontal, 16)
@@ -73,6 +49,7 @@ struct ArtistDashboardView: View {
                 }
                 .refreshable {
                     await viewModel.loadDashboard()
+                    await viewModel.loadLatestPlays()
                     await viewModel.loadWeeklyDigest()
                 }
             }
@@ -80,10 +57,128 @@ struct ArtistDashboardView: View {
         .onairGlow()
         .navigationBarHidden(true)
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $isReordering) { reorderSheet }
         .task {
+            sectionOrder = viewModel.sectionOrder
             await viewModel.loadDashboard()
+            await viewModel.loadLatestPlays()
             await viewModel.loadWeeklyDigest()
         }
+    }
+
+    // MARK: - Sections
+
+    @ViewBuilder
+    private func sectionView(_ section: ArtistDashboardSection) -> some View {
+        switch section {
+        case .latestPlays:
+            if !viewModel.latestPlays.isEmpty {
+                latestPlaysCard
+            }
+        case .airplayGauge:
+            if let dash = viewModel.dashboard {
+                airplayGaugeCard(dash)
+            }
+        case .mostPlayed:
+            if let song = viewModel.dashboard?.mostPlayedSong {
+                mostPlayedCard(song)
+            }
+        case .stationBreakdown:
+            if let breakdown = viewModel.dashboard?.stationBreakdown, !breakdown.isEmpty {
+                StationBreakdownView(stations: breakdown)
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(Color.rbSurface)
+                    )
+            }
+        case .todayReport:
+            todayReportCard
+        case .weeklyDigest:
+            if let digest = viewModel.weeklyDigest, !digest.songs.isEmpty {
+                weeklyDigestSection(digest)
+            }
+        }
+    }
+
+    /// What just aired. Opening the app used to say nothing about the last hour
+    /// without a detour through the Detections tab.
+    private var latestPlaysCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Latest plays")
+                .font(.sora(16, .bold))
+                .foregroundStyle(Color.rbTextPrimary)
+
+            ForEach(viewModel.latestPlays) { event in
+                NavigationLink {
+                    SongDetailView(event: event)
+                } label: {
+                    HStack(spacing: 10) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(event.songTitle)
+                                .font(.sora(13, .semibold))
+                                .foregroundStyle(Color.rbTextPrimary)
+                                .lineLimit(1)
+                            Text(event.artistName)
+                                .font(.sora(11))
+                                .foregroundStyle(Color.rbTextSecondary)
+                                .lineLimit(1)
+                        }
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 2) {
+                            if let station = event.station?.name {
+                                Text(station)
+                                    .font(.sora(10))
+                                    .foregroundStyle(Color.rbTextQuaternary)
+                                    .lineLimit(1)
+                            }
+                            Text(DateFormatters.relativeTime(event.startedAt))
+                                .font(.mono(10))
+                                .foregroundStyle(Color.rbTextTertiary)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.rbSurface)
+        )
+    }
+
+    /// Drag-to-reorder list. A sheet rather than making the whole dashboard a drag
+    /// surface: the cards stay scrollable and tappable, and reordering is explicit.
+    private var reorderSheet: some View {
+        NavigationStack {
+            List {
+                ForEach(sectionOrder) { section in
+                    Text(section.title)
+                        .font(.sora(14))
+                        .foregroundStyle(Color.rbTextPrimary)
+                        .listRowBackground(Color.rbSurface)
+                }
+                .onMove { indices, destination in
+                    var updated = sectionOrder
+                    updated.move(fromOffsets: indices, toOffset: destination)
+                    sectionOrder = updated
+                    viewModel.sectionOrder = updated
+                }
+            }
+            .environment(\.editMode, .constant(.active))
+            .scrollContentBackground(.hidden)
+            .background(Color.rbBackground)
+            .navigationTitle("Arrange dashboard")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { isReordering = false }
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
     }
 
     // MARK: - Top Bar
@@ -118,6 +213,19 @@ struct ArtistDashboardView: View {
             .padding(.vertical, 6)
             .background(.ultraThinMaterial, in: Capsule())
             .overlay(Capsule().strokeBorder(Color.rbGlassBorder, lineWidth: 1))
+
+            Button {
+                isReordering = true
+            } label: {
+                Image(systemName: "arrow.up.arrow.down")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.rbTextSecondary)
+                    .padding(8)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .overlay(Circle().strokeBorder(Color.rbGlassBorder, lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Arrange dashboard")
 
             Circle()
                 .fill(Color.rbAccent)

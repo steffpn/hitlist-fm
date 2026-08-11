@@ -146,3 +146,37 @@ struct SongDigestItem: Codable, Identifiable, Sendable {
 
     var id: String { isrc }
 }
+
+
+// MARK: - Songs Tab (role-scoped)
+
+/// Row of GET /songs. The backend decides what "songs" means for the caller's
+/// role — an artist's monitored tracks, a label's roster, a station's airplay —
+/// so one shape serves every tab.
+struct SongsRow: Codable, Identifiable, Sendable {
+    let isrc: String?
+    let songTitle: String
+    let artistName: String
+    let plays: Int
+    let stationCount: Int
+    let byStation: [SongsStationPlays]
+
+    var id: String { isrc ?? "\(artistName)|\(songTitle)" }
+}
+
+struct SongsStationPlays: Codable, Identifiable, Sendable {
+    let name: String
+    let plays: Int
+
+    var id: String { name }
+}
+
+struct SongsResponse: Codable, Sendable {
+    let period: String
+    let totalPlays: Int
+    let uniqueSongs: Int
+    let songs: [SongsRow]
+    /// True when the list was capped — the UI says so rather than implying it is
+    /// the whole picture.
+    let truncated: Bool
+}

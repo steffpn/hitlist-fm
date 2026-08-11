@@ -258,3 +258,183 @@ private struct SongRowButtonStyle: ButtonStyle {
     }
     .preferredColorScheme(.dark)
 }
+
+// MARK: - Songs Tab (role-scoped)
+
+/// Songs tab.
+///
+/// Deliberately one screen for every role: the backend scopes the list — an
+/// artist's own tracks, a label's roster, everything a station aired — so the tab
+/// adapts instead of the app carrying three near-identical screens.
+///
+/// Lives in this file rather than its own because the Xcode project has no
+/// file-system synchronized group; a new .swift would need a hand-edited pbxproj.
+struct SongsView: View {
+    @State private var viewModel = SongsListViewModel()
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Picker("Period", selection: $viewModel.period) {
+                Text("Today").tag("day")
+                Text("This Week").tag("week")
+                Text("This Month").tag("month")
+            }
+            .pickerStyle(.segmented)
+            .colorMultiply(.rbAccent)
+            .padding(.horizontal, 16)
+
+            TextField("Search songs or artists", text: $viewModel.query)
+                .textFieldStyle(.plain)
+                .padding(10)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.rbSurface)
+                )
+                .foregroundStyle(Color.rbTextPrimary)
+                .padding(.horizontal, 16)
+                .autocorrectionDisabled()
+
+            if viewModel.isLoading && viewModel.response == nil {
+                LoadingView()
+            } else if let error = viewModel.error, viewModel.response == nil {
+                ErrorView(message: error) { Task { await viewModel.load() } }
+            } else if let response = viewModel.response {
+                if response.songs.isEmpty {
+                    Spacer()
+                    Text("No plays in this period")
+                        .font(.sora(14))
+                        .foregroundStyle(Color.rbTextTertiary)
+                    Spacer()
+                } else {
+                    Text(summaryLine(response))
+                        .font(.mono(11))
+                        .foregroundStyle(Color.rbTextTertiary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 16)
+
+                    List(response.songs) { song in
+                        SongsRowView(song: song)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparatorTint(Color.rbHairline)
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .refreshable { await viewModel.load() }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.rbBackground)
+        .navigationTitle("Songs")
+        .preferredColorScheme(.dark)
+        .task { await viewModel.load() }
+    }
+
+    private func summaryLine(_ response: SongsResponse) -> String {
+        let base = "\(response.totalPlays) plays · \(response.uniqueSongs) songs"
+        return response.truncated ? base + " · showing top \(response.songs.count)" : base
+    }
+}
+
+/// One song, expandable to its per-station split — a combined total never said
+/// which station was actually carrying the track.
+private struct SongsRowView: View {
+    let song: SongsRow
+    @State private var isExpanded = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) { isExpanded.toggle() }
+            } label: {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(song.songTitle)
+                            .font(.sora(14, .semibold))
+                            .foregroundStyle(Color.rbTextPrimary)
+                            .lineLimit(1)
+                        Text(song.artistName)
+                            .font(.sora(12))
+                            .foregroundStyle(Color.rbTextSecondary)
+                            .lineLimit(1)
+                        Text("\(song.stationCount) station\(song.stationCount == 1 ? "" : "s")")
+                            .font(.mono(10))
+                            .foregroundStyle(Color.rbTextQuaternary)
+                    }
+
+                    Spacer()
+
+                    Text("\(song.plays)")
+                        .font(.mono(13))
+                        .foregroundStyle(Color.rbAccent)
+
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(Color.rbTextQuaternary)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                ForEach(song.byStation) { station in
+                    HStack {
+                        Text(station.name)
+                            .font(.sora(12))
+                            .foregroundStyle(Color.rbTextSecondary)
+                        Spacer()
+                        Text("\(station.plays)")
+                            .font(.mono(11))
+                            .foregroundStyle(Color.rbTextSecondary)
+                    }
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+/// Backing state for `SongsView`.
+@Observable
+@MainActor
+final class SongsListViewModel {
+    var response: SongsResponse?
+    var isLoading = false
+    var error: String?
+
+    var period: String = "week" {
+        didSet {
+            guard period != oldValue else { return }
+            Task { await load() }
+        }
+    }
+
+    /// Debounced so typing does not fire a request per keystroke.
+    var query: String = "" {
+        didSet {
+            guard query != oldValue else { return }
+            searchTask?.cancel()
+            searchTask = Task {
+                try? await Task.sleep(for: .milliseconds(300))
+                guard !Task.isCancelled else { return }
+                await load()
+            }
+        }
+    }
+
+    private var searchTask: Task<Void, Never>?
+
+    func load() async {
+        isLoading = true
+        error = nil
+        do {
+            let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+            response = try await APIClient.shared.request(
+                .songs(period: period, query: trimmed.isEmpty ? nil : trimmed)
+            )
+        } catch {
+            self.error = error.localizedDescription
+        }
+        isLoading = false
+    }
+}

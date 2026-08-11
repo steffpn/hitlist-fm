@@ -70,6 +70,7 @@ const v1Routes: FastifyPluginAsync = async (fastify) => {
   fastify.register(import("./webhooks/stripe/index.js"), {
     prefix: "/webhooks/stripe",
   });
+  fastify.register(import("./songs/index.js"), { prefix: "/songs" });
   fastify.register(import("./reports/index.js"), {
     prefix: "/reports",
   });
