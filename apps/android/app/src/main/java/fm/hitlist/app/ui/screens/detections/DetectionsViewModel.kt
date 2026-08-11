@@ -8,15 +8,73 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import fm.hitlist.app.data.model.AirplayEvent
 import fm.hitlist.app.data.model.Station
 import fm.hitlist.app.data.remote.OnairApi
+
+/**
+ * One row of the feed: every play of the same song, on the same station, on the
+ * same local day. A group of one renders exactly like a plain detection.
+ */
+data class DetectionGroup(
+    val key: String,
+    /** Newest first — the feed is ordered by startedAt descending. */
+    val events: List<AirplayEvent>,
+) {
+    val latest: AirplayEvent get() = events.first()
+
+    /**
+     * playCount is summed rather than counted: the backend already merges the
+     * consecutive callbacks of a single airing into one event and records how
+     * many it merged.
+     */
+    val totalPlays: Int get() = events.sumOf { maxOf(1, it.playCount) }
+
+    val isCollapsible: Boolean get() = events.size > 1
+}
 
 /** Detections list: cursor pagination + search/station/date filters. */
 class DetectionsViewModel(private val api: OnairApi) : ViewModel() {
 
     var items by mutableStateOf<List<AirplayEvent>>(emptyList())
         private set
+
+    /**
+     * [items] collapsed by (local day, station, song). Radio rotation puts one
+     * track on air a dozen times a day, which buried everything else in the feed.
+     *
+     * Grouping stays within a station on purpose — the same song on Kiss FM and on
+     * Virgin are two different facts, and every row names its station. It is also
+     * computed over the loaded pages only, so a group grows as the user scrolls;
+     * that is the honest behaviour for a cursor-paginated feed, the alternative
+     * being a count that contradicts the rows beneath it.
+     */
+    val groups: List<DetectionGroup>
+        get() = items
+            .groupBy { event ->
+                val song = event.isrc?.takeIf { it.isNotBlank() }
+                    ?: "${event.artistName}|${event.songTitle}"
+                "${localDay(event.startedAt)}|${event.stationId}|$song"
+            }
+            .map { (key, events) -> DetectionGroup(key, events) }
+
+    /**
+     * Local calendar day of an ISO instant. Slicing the first 10 characters would
+     * give the UTC date and split a Bucharest evening across two groups.
+     */
+    private fun localDay(iso: String?): String {
+        if (iso.isNullOrBlank()) return ""
+        return try {
+            OffsetDateTime.parse(iso)
+                .atZoneSameInstant(ZoneId.systemDefault())
+                .toLocalDate()
+                .toString()
+        } catch (_: Exception) {
+            iso.take(10)
+        }
+    }
     var isLoading by mutableStateOf(false)
         private set
     var isLoadingMore by mutableStateOf(false)

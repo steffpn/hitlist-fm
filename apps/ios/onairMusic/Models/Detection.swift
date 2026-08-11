@@ -48,3 +48,26 @@ struct AirplayEvent: Codable, Identifiable, Sendable {
         let name: String
     }
 }
+
+/// One row of the detections feed: every play of the same song, on the same
+/// station, on the same local day.
+///
+/// A group holding a single event renders exactly like an ungrouped detection, so
+/// the feed only changes shape where a track was actually repeated.
+struct DetectionGroup: Identifiable, Sendable {
+    let id: String
+    /// Newest first — the feed itself is ordered by startedAt descending.
+    let events: [AirplayEvent]
+
+    /// The play the collapsed row represents, and the one its detail view opens.
+    var latest: AirplayEvent { events[0] }
+
+    /// Airings in this group. playCount is summed rather than counted: the backend
+    /// already merges the consecutive callbacks of one airing into a single event
+    /// and records how many it merged.
+    var totalPlays: Int {
+        events.reduce(0) { $0 + max(1, $1.playCount) }
+    }
+
+    var isCollapsible: Bool { events.count > 1 }
+}

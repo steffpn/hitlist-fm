@@ -257,15 +257,16 @@ struct DetectionsView: View {
                                 viewModel.isAtTop = false
                             }
 
-                        ForEach(Array(viewModel.detections.enumerated()), id: \.element.id) { index, event in
-                            DetectionRowView(event: event)
+                        let groups = viewModel.groupedDetections
+                        ForEach(Array(groups.enumerated()), id: \.element.id) { index, group in
+                            DetectionGroupRowView(group: group)
 
                             Divider()
                                 .overlay(Color.rbHairline)
                                 .padding(.leading, 68)
 
-                            // Trigger load more when approaching the last 5 items
-                            if index >= viewModel.detections.count - 5 {
+                            // Trigger load more when approaching the last 5 rows
+                            if index >= groups.count - 5 {
                                 Color.clear
                                     .frame(height: 0)
                                     .onAppear {

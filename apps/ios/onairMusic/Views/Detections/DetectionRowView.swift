@@ -158,3 +158,72 @@ struct DetectionRowButtonStyle: ButtonStyle {
             .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
     }
 }
+
+// MARK: - Grouped Row
+
+/// A day's repeated plays of one song on one station, collapsed into a single row.
+///
+/// Renders the latest play exactly like an ungrouped detection and hangs a count
+/// pill off it; tapping the pill reveals the other airings' times. A group of one
+/// falls through to the plain row, so nothing changes where nothing repeated.
+struct DetectionGroupRowView: View {
+    let group: DetectionGroup
+    @State private var isExpanded = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                DetectionRowView(event: group.latest)
+
+                if group.isCollapsible {
+                    countPill
+                        .padding(.trailing, 12)
+                }
+            }
+
+            if isExpanded {
+                VStack(spacing: 0) {
+                    // The latest play is the collapsed row itself; list the rest.
+                    ForEach(group.events.dropFirst()) { event in
+                        HStack {
+                            Text(DateFormatters.shortDateTime(event.startedAt))
+                                .font(.mono(11))
+                                .foregroundStyle(Color.rbTextTertiary)
+                            if event.partialPlay == true {
+                                Text("partial")
+                                    .font(.sora(10))
+                                    .foregroundStyle(Color.rbWarning)
+                            }
+                            Spacer()
+                        }
+                        .padding(.vertical, 6)
+                        .padding(.leading, 68)
+                        .padding(.trailing, 16)
+                    }
+                }
+                .transition(.opacity)
+            }
+        }
+    }
+
+    private var countPill: some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.18)) { isExpanded.toggle() }
+        } label: {
+            HStack(spacing: 3) {
+                Text("×\(group.totalPlays)")
+                    .font(.mono(11))
+                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                    .font(.system(size: 8, weight: .bold))
+            }
+            .foregroundStyle(Color.rbAccent)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                Capsule().fill(Color.rbAccent.opacity(0.12))
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(group.totalPlays) plays, tap to \(isExpanded ? "collapse" : "expand")")
+    }
+}

@@ -14,6 +14,39 @@ final class DetectionsViewModel {
     var detections: [AirplayEvent] = []
     var stations: [Station] = []
 
+    /// Repeated plays of the same song, on the same station, on the same local day,
+    /// collapsed into one row. Radio rotation puts a single track on air a dozen
+    /// times a day, which buried everything else in the feed.
+    ///
+    /// Grouping stays *within* the station on purpose: the same song on Kiss FM and
+    /// on Virgin are two different facts, and every row names its station.
+    /// It is also computed over the currently loaded pages only — a group therefore
+    /// grows as the user scrolls, which is the honest behaviour for a cursor-paginated
+    /// feed (the alternative would be a count that silently contradicts the list).
+    var groupedDetections: [DetectionGroup] {
+        var order: [String] = []
+        var buckets: [String: [AirplayEvent]] = [:]
+        let calendar = Calendar.current
+
+        for event in detections {
+            let day = calendar.startOfDay(for: event.startedAt)
+            let song = (event.isrc?.isEmpty == false)
+                ? event.isrc!
+                : "\(event.artistName)|\(event.songTitle)"
+            let key = "\(Int(day.timeIntervalSince1970))|\(event.stationId)|\(song)"
+            if buckets[key] == nil {
+                order.append(key)
+                buckets[key] = []
+            }
+            buckets[key]?.append(event)
+        }
+
+        return order.compactMap { key in
+            guard let events = buckets[key], !events.isEmpty else { return nil }
+            return DetectionGroup(id: key, events: events)
+        }
+    }
+
     // MARK: - Live Feed (SSE inserts)
 
     /// Whether the user is currently scrolled to the top of the list.

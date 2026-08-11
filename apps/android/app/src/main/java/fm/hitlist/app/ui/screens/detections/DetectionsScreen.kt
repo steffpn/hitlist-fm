@@ -25,6 +25,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.IosShare
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -119,8 +121,10 @@ fun DetectionsScreen() {
     val listState = rememberLazyListState()
     LaunchedEffect(listState) {
         androidx.compose.runtime.snapshotFlow {
+            // Rows are grouped, so compare against the group count — items.size is
+            // larger and the "near the end" check would fire late or never.
             val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
-            last to vm.items.size
+            last to vm.groups.size
         }
             .distinctUntilChanged()
             .collect { (last, size) ->
@@ -290,8 +294,11 @@ fun DetectionsScreen() {
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 16.dp),
                     ) {
-                        items(vm.items, key = { it.id }) { event ->
-                            DetectionRow(event = event, onOpen = { detailId = event.id })
+                        items(vm.groups, key = { it.key }) { group ->
+                            DetectionGroupRow(
+                                group = group,
+                                onOpen = { detailId = group.latest.id },
+                            )
                         }
                         if (vm.isLoadingMore) {
                             item { InlineLoadingRow(Modifier.fillMaxWidth()) }
@@ -406,6 +413,57 @@ private fun StationPickerRow(
 }
 
 private val monoSmall = TextStyle(fontFamily = IbmPlexMono, fontSize = 11.sp)
+
+/**
+ * A day's repeated plays of one song on one station, collapsed into a single row.
+ *
+ * Renders the latest play exactly like an ungrouped detection and hangs a count
+ * pill off it; tapping the pill reveals the other airings' times. A group of one
+ * falls through to the plain row, so nothing changes where nothing repeated.
+ */
+@Composable
+private fun DetectionGroupRow(group: DetectionGroup, onOpen: () -> Unit) {
+    var expanded by rememberSaveable(group.key) { mutableStateOf(false) }
+
+    Column(Modifier.fillMaxWidth()) {
+        Box(Modifier.fillMaxWidth()) {
+            DetectionRow(event = group.latest, onOpen = onOpen)
+
+            if (group.isCollapsible) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 12.dp)
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(RbAccent.copy(alpha = 0.12f))
+                        .clickable { expanded = !expanded }
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("\u00d7${group.totalPlays}", style = monoSmall, color = RbAccent)
+                    Icon(
+                        imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        tint = RbAccent,
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
+            }
+        }
+
+        if (expanded) {
+            // The latest play is the collapsed row itself; list the rest.
+            group.events.drop(1).forEach { event ->
+                Text(
+                    text = DateFormat.shortDateTime(event.startedAt),
+                    style = monoSmall,
+                    color = RbTextTertiary,
+                    modifier = Modifier.padding(start = 76.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
+                )
+            }
+        }
+    }
+}
 
 @Composable
 private fun DetectionRow(event: AirplayEvent, onOpen: () -> Unit) {
