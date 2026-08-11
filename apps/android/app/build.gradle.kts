@@ -30,8 +30,8 @@ android {
         applicationId = "fm.hitlist.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.0.2"
+        versionCode = 5
+        versionName = "1.0.3"
 
         // Same production backend the iOS app talks to.
         buildConfigField(
