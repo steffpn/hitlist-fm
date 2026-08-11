@@ -42,6 +42,7 @@ import fm.hitlist.app.ui.components.CenterError
 import fm.hitlist.app.ui.components.CenterLoading
 import fm.hitlist.app.ui.components.GlassCard
 import fm.hitlist.app.ui.components.SectionHeader
+import fm.hitlist.app.ui.components.StationBreakdown
 import fm.hitlist.app.ui.theme.IbmPlexMono
 import fm.hitlist.app.ui.theme.RbAccent
 import fm.hitlist.app.ui.theme.RbBackground
@@ -150,11 +151,7 @@ fun ArtistSongAnalyticsScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp),
                     ) {
-                        val maxCount = (breakdown.maxOfOrNull { it.playCount } ?: 0).coerceAtLeast(1)
-                        breakdown.forEachIndexed { index, item ->
-                            if (index > 0) Spacer(Modifier.height(12.dp))
-                            StationBreakdownRow(item = item, maxCount = maxCount)
-                        }
+                        StationBreakdown(items = breakdown)
                     }
                 }
 
@@ -246,51 +243,6 @@ private fun DailyBars(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun StationBreakdownRow(
-    item: SongStationBreakdownItem,
-    maxCount: Int,
-) {
-    Column(Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = item.stationName,
-                style = MaterialTheme.typography.bodyMedium,
-                color = RbTextPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-            Spacer(Modifier.width(10.dp))
-            Text(
-                text = "${item.playCount}",
-                style = mono,
-                color = RbTextSecondary,
-            )
-        }
-        Spacer(Modifier.height(6.dp))
-        val fraction = (item.playCount.toFloat() / maxCount.toFloat()).coerceIn(0.02f, 1f)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(RbSurfaceLight),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(fraction)
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(RbAccent),
-            )
         }
     }
 }

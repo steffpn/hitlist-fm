@@ -16,6 +16,7 @@ import {
   addLocalDays,
   periodWindow,
   startOfDay,
+  startOfMonth,
   startOfWeek,
 } from "../../../lib/period.js";
 
@@ -510,8 +511,11 @@ export async function getArtistDashboard(
     return reply.send({
       totalPlaysToday: 0,
       totalPlaysWeek: 0,
+      period: "week",
+      totalPlaysPeriod: 0,
+      periodStart: getStartOfWeek().toISOString(),
       mostPlayedSong: null,
-      weeklyDigest: [],
+      stationBreakdown: [],
     });
   }
 
@@ -519,57 +523,76 @@ export async function getArtistDashboard(
   const startOfWeek = getStartOfWeek();
   const now = new Date();
 
+  // Selected reporting period. "today" and "this week" stay in the response
+  // regardless, so a client built before this parameter existed keeps working.
+  const period = (request.query as { period?: string } | undefined)?.period;
+  const periodStart =
+    period === "day" ? startOfToday : period === "month" ? startOfMonth() : startOfWeek;
+
+  // One pass over the events instead of two counting queries per song. Beyond
+  // being N+1, the old shape could not produce a per-station breakdown that was
+  // guaranteed to add up to the totals shown next to it.
+  const windowStart = periodStart < startOfWeek ? periodStart : startOfWeek;
+  const events = await prisma.$queryRaw<
+    Array<{ isrc: string; station_id: number; station_name: string; started_at: Date }>
+  >`
+    SELECT ae.isrc, ae.station_id, s.name AS station_name, ae.started_at
+    FROM airplay_events ae
+    JOIN stations s ON s.id = ae.station_id
+    WHERE ae.isrc = ANY(${songs.map((s) => s.isrc)})
+      AND ae.partial_play = false
+      AND ae.started_at >= ${windowStart}
+      AND ae.started_at <= ${now}
+  `;
+
+  // A song only counts from the moment it was activated, so a track added
+  // mid-week must not pick up the airplay that happened before it was monitored.
+  const activatedAt = new Map(songs.map((s) => [s.isrc, s.activatedAt]));
+
   let totalPlaysToday = 0;
   let totalPlaysWeek = 0;
-  let mostPlayedSong: {
-    title: string;
-    artist: string;
-    plays: number;
-  } | null = null;
+  let totalPlaysPeriod = 0;
+  const periodPlaysBySong = new Map<string, number>();
+  const byStation = new Map<number, { name: string; plays: number }>();
 
+  for (const event of events) {
+    const activated = activatedAt.get(event.isrc);
+    if (!activated || event.started_at < activated) continue;
+
+    if (event.started_at >= startOfToday) totalPlaysToday += 1;
+    if (event.started_at >= startOfWeek) totalPlaysWeek += 1;
+    if (event.started_at < periodStart) continue;
+
+    totalPlaysPeriod += 1;
+    periodPlaysBySong.set(event.isrc, (periodPlaysBySong.get(event.isrc) ?? 0) + 1);
+
+    const station = byStation.get(event.station_id);
+    if (station) station.plays += 1;
+    else byStation.set(event.station_id, { name: event.station_name, plays: 1 });
+  }
+
+  let mostPlayedSong: { title: string; artist: string; plays: number } | null = null;
   for (const song of songs) {
-    const todayStart =
-      startOfToday > song.activatedAt ? startOfToday : song.activatedAt;
-    const weekStart =
-      startOfWeek > song.activatedAt ? startOfWeek : song.activatedAt;
-
-    const todayRows: Array<{ count: bigint }> = await prisma.$queryRaw`
-      SELECT COUNT(*)::bigint AS count
-      FROM airplay_events
-      WHERE isrc = ${song.isrc}
-        AND started_at >= ${todayStart}
-        AND started_at <= ${now}
-        AND partial_play = false
-    `;
-
-    const weekRows: Array<{ count: bigint }> = await prisma.$queryRaw`
-      SELECT COUNT(*)::bigint AS count
-      FROM airplay_events
-      WHERE isrc = ${song.isrc}
-        AND started_at >= ${weekStart}
-        AND started_at <= ${now}
-        AND partial_play = false
-    `;
-
-    const todayCount = Number(todayRows[0]?.count ?? 0);
-    const weekCount = Number(weekRows[0]?.count ?? 0);
-
-    totalPlaysToday += todayCount;
-    totalPlaysWeek += weekCount;
-
-    if (!mostPlayedSong || weekCount > mostPlayedSong.plays) {
-      mostPlayedSong = {
-        title: song.songTitle,
-        artist: song.artistName,
-        plays: weekCount,
-      };
+    const plays = periodPlaysBySong.get(song.isrc) ?? 0;
+    if (!mostPlayedSong || plays > mostPlayedSong.plays) {
+      mostPlayedSong = { title: song.songTitle, artist: song.artistName, plays };
     }
   }
 
   return reply.send({
     totalPlaysToday,
     totalPlaysWeek,
+    // Scoped to the requested period; defaults to the week, which is what the
+    // dashboard showed before the selector existed.
+    period: period === "day" || period === "month" ? period : "week",
+    totalPlaysPeriod,
+    periodStart: periodStart.toISOString(),
     mostPlayedSong,
+    // Where the period's plays actually happened — artists and labels could only
+    // see a combined total before.
+    stationBreakdown: [...byStation.entries()]
+      .map(([stationId, s]) => ({ stationId, stationName: s.name, playCount: s.plays }))
+      .sort((a, b) => b.playCount - a.playCount),
   });
 }
 

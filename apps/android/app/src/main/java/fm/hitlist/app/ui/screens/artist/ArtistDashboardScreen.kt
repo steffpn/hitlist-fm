@@ -29,7 +29,9 @@ import fm.hitlist.app.ui.components.AirplayGauge
 import fm.hitlist.app.ui.components.CenterError
 import fm.hitlist.app.ui.components.CenterLoading
 import fm.hitlist.app.ui.components.GlassCard
+import fm.hitlist.app.ui.components.PeriodPicker
 import fm.hitlist.app.ui.components.SectionHeader
+import fm.hitlist.app.ui.components.StationBreakdown
 import fm.hitlist.app.ui.theme.RbAccentLight
 import fm.hitlist.app.ui.theme.RbBackground
 import fm.hitlist.app.ui.theme.RbTextPrimary
@@ -55,6 +57,15 @@ fun ArtistDashboardScreen() {
             style = MaterialTheme.typography.headlineLarge,
             color = RbTextPrimary,
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 12.dp),
+        )
+
+        // Day / Week / Month. Totals, the top song and the station breakdown all
+        // follow this selection; testers asked to be able to pick the reporting
+        // window instead of being stuck on the week.
+        PeriodPicker(
+            selected = vm.period,
+            onSelect = { vm.selectPeriod(it) },
+            modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
         )
 
         val data = vm.data
@@ -93,6 +104,22 @@ fun ArtistDashboardScreen() {
                                 color = RbTextSecondary,
                             )
                         }
+                    }
+                }
+
+                // Where this week's plays happened — the dashboard only ever showed
+                // a combined total, so an artist could not tell which station was
+                // actually carrying the track.
+                if (data.stationBreakdown.isNotEmpty()) {
+                    Spacer(Modifier.height(24.dp))
+                    SectionHeader("Plays per station", modifier = Modifier.padding(horizontal = 20.dp))
+                    Spacer(Modifier.height(10.dp))
+                    GlassCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                    ) {
+                        StationBreakdown(items = data.stationBreakdown)
                     }
                 }
 

@@ -26,6 +26,16 @@ struct ArtistDashboardView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.top, 2)
 
+                        // Day / Week / Month. Totals, the top song and the station
+                        // breakdown all follow this selection.
+                        Picker("Period", selection: $viewModel.selectedPeriod) {
+                            Text("Today").tag("day")
+                            Text("This Week").tag("week")
+                            Text("This Month").tag("month")
+                        }
+                        .pickerStyle(.segmented)
+                        .colorMultiply(.rbAccent)
+
                         // Airplay gauge hero — merges Plays Today + Plays This Week.
                         if let dash = viewModel.dashboard {
                             airplayGaugeCard(dash)
@@ -34,6 +44,19 @@ struct ArtistDashboardView: View {
                         // Most played song
                         if let song = viewModel.dashboard?.mostPlayedSong {
                             mostPlayedCard(song)
+                        }
+
+                        // Where this week's plays happened. The dashboard only ever
+                        // showed a combined total, so an artist could not tell which
+                        // station was actually carrying the track.
+                        if let breakdown = viewModel.dashboard?.stationBreakdown,
+                           !breakdown.isEmpty {
+                            StationBreakdownView(stations: breakdown)
+                                .padding(16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .fill(Color.rbSurface)
+                                )
                         }
 
                         // Today's report shortcut

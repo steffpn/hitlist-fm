@@ -114,7 +114,9 @@ interface OnairApi {
     // ---- Artist ----
 
     @GET("artist/dashboard")
-    suspend fun getArtistDashboard(): ArtistDashboardResponse
+    suspend fun getArtistDashboard(
+        @Query("period") period: String? = null,
+    ): ArtistDashboardResponse
 
     @GET("artist/songs")
     suspend fun getArtistSongs(): List<MonitoredSong>

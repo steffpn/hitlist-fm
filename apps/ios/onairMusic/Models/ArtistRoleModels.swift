@@ -45,6 +45,12 @@ struct ArtistDashboardResponse: Codable, Sendable {
     let totalPlaysToday: Int
     let totalPlaysWeek: Int
     let mostPlayedSong: MostPlayedSongInfo?
+    /// Where this period's plays happened. Optional so a client can still talk to
+    /// an API deployed before the field existed.
+    let stationBreakdown: [StationBreakdownItem]?
+    /// Echo of the requested period plus its total, for the selector-driven view.
+    let period: String?
+    let totalPlaysPeriod: Int?
 }
 
 /// Summary info for the most played song on the artist dashboard.

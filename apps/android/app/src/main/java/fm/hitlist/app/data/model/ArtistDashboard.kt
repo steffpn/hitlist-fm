@@ -15,4 +15,7 @@ data class ArtistDashboardResponse(
     val totalPlaysToday: Int = 0,
     val totalPlaysWeek: Int = 0,
     val mostPlayedSong: MostPlayedSong? = null,
+    // Where this week's plays happened. Defaulted so the client still parses a
+    // response from an API deployed before the field existed.
+    val stationBreakdown: List<SongStationBreakdownItem> = emptyList(),
 )

@@ -48,7 +48,7 @@ enum APIEndpoint: Sendable {
     case addArtistSong(songTitle: String, artistName: String, isrc: String)
     case deleteArtistSong(id: Int)
     case browseTracks(query: String)
-    case artistDashboard
+    case artistDashboard(period: String?)
     case artistWeeklyDigest
     case songAnalytics(songId: Int)
     case songStationBreakdown(songId: Int)
@@ -158,8 +158,9 @@ enum APIEndpoint: Sendable {
             return "/artist/songs/\(id)"
         case .browseTracks:
             return "/artist/browse-tracks"
-        case .artistDashboard:
-            return "/artist/dashboard"
+        case .artistDashboard(let period):
+            guard let period, !period.isEmpty else { return "/artist/dashboard" }
+            return "/artist/dashboard?period=\(period)"
         case .artistWeeklyDigest:
             return "/artist/weekly-digest"
         case .songAnalytics(let id):

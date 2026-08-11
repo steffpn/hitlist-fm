@@ -10,6 +10,15 @@ final class ArtistDashboardViewModel {
     /// Artist dashboard response containing overview metrics.
     var dashboard: ArtistDashboardResponse?
 
+    /// Reporting period the totals, top song and station breakdown are scoped to.
+    /// Testers asked to pick the window instead of being stuck on the week.
+    var selectedPeriod: String = "week" {
+        didSet {
+            guard selectedPeriod != oldValue else { return }
+            Task { await loadDashboard() }
+        }
+    }
+
     /// Weekly digest response with song performance summaries.
     var weeklyDigest: WeeklyDigestResponse?
 
@@ -26,7 +35,7 @@ final class ArtistDashboardViewModel {
         isLoading = true
         error = nil
         do {
-            dashboard = try await APIClient.shared.request(.artistDashboard)
+            dashboard = try await APIClient.shared.request(.artistDashboard(period: selectedPeriod))
         } catch {
             self.error = error.localizedDescription
         }
